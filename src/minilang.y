@@ -1,3 +1,5 @@
+/* A parser for GoLite, with the specifications defined in the class's documentation */
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +31,38 @@ void yyerror(const char *s) { fprintf(stderr, "Error: (line %d) %s\n", yylineno,
 
 %type <node> program dcls dcl stmts stmt ifStmt expr
 %type <string_val> types
+
+%token <string_val> tBREAK
+%token <string_val> tDEFAULT
+%token <string_val> tFUNC
+%token <string_val> tINTERFACE
+%token <string_val> tSELECT
+%token <string_val> tCASE
+%token <string_val> tDEFER
+%token <string_val> tGO
+%token <string_val> tMAP
+%token <string_val> tSTRUCT
+%token <string_val> tCHAN
+%token <string_val> tELSE
+%token <string_val> tGOTO
+%token <string_val> tPACKAGE
+%token <string_val> tSWITCH
+%token <string_val> tCONST
+%token <string_val> tFALLTHROUGH
+%token <string_val> tIF
+%token <string_val> tRANGE
+%token <string_val> tTYPE
+%token <string_val> tCONTINUE
+%token <string_val> tFOR
+%token <string_val> tIMPORT
+%token <string_val> tRETURN
+%token <string_val> tVAR
+%token <string_val> tPRINT
+%token <string_val> tPRINTLN
+%token <string_val> tAPPEND
+
+
+
 
 %token <string_val> tSEMICOLON
 %token <string_val> tCOLON
