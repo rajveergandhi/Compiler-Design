@@ -48,30 +48,36 @@ bool needsSemicolon(){
 
 
 void formatRawString(){
-	formattedStr = "";
+	char formattedStr[512];
 	int pos = 0;
 	while(yytext[pos] != '\0'){
 		switch(yytext[pos]){
-			case '\n':
-				formattedStr += "\n";
-				break;
-			case '\t':
-				formattedStr +="\\t";
-				break;
 			case '\a':
-				formattedStr +="\\a";
+				strcat(formattedStr,"\\a");
 				break;
-			case '\v':
-				formattedStr +="\\v";
+			case '\b':
+				strcat(formattedStr,"\\b");
 				break;
 			case '\f':
-				formattedStr +="\\f";
+				strcat(formattedStr,"\\f");
+				break;
+			case '\n':
+				strcat(formattedStr,"\\n");
 				break;
 			case '\r':
-				formattedStr +="\\r";
+				strcat(formattedStr,"\\r");
+				break;
+			case '\t':
+				strcat(formattedStr,"\\t");
+				break;
+			case '\v':
+				strcat(formattedStr,"\\v");
+				break;
+			case '\"':
+				strcat(formattedStr,"\\"");
 				break;
 			case '\\':
-				formattedStr +="\\\\";
+				strcat(formattedStr,"\\\\");
 				formattedStr += yytext[++pos];
 				break;
 			default:
@@ -80,6 +86,7 @@ void formatRawString(){
 		}
 		pos++;
 	}
+	yytext = formattedStr;
 }
 
 %}
@@ -130,7 +137,6 @@ append       { if (g_tokens) printf("tAPPEND\n"); lastRead = tAPPEND; return tAP
 \n 			 {if(needsSemicolon) lastRead = tSEMICOLON; return tSEMICOLON; }
 [ \t]+   { /* whitespace is ignored */ }
 "//".*$      { /* ignore comments */ }
-[/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]      { /* ignore comments */ }
 ";"          { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; }
 ":"          { if (g_tokens) printf("tCOLON\n"); lastRead = tCOLON; return tCOLON; }
 ","          { if (g_tokens) printf("tCOMMA\n"); lastRead = tCOMMA; return tCOMMA; }
@@ -191,7 +197,7 @@ TRUE|FALSE   { if (g_tokens) printf("tBOOLVAL(%s)\n", yytext); yylval.bool_val =
 ((0|[1-9]{DIGIT}*)|(0{OCTAL}+)|(0(x|X){HEX}+))                   { if (g_tokens) printf("tINTVAL(%d)\n", atoi(yytext)); yylval.int_val = atoi(yytext); lastRead = tINTVAL; return tINTVAL; }
 ({DIGIT}*)"."{DIGIT}*      			{ if (g_tokens) printf("tFLOATVAL(%f)\n", atof(yytext)); yylval.float_val = atof(yytext); lastRead = tFLOATVAL; return tFLOATVAL; }
 \"{STRING_VALID_CHARS}*\"           { if (g_tokens) printf("tSTRINGVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
-`(\\.|[^`])*`           { formatRawString(); if (g_tokens) printf("tRAWSTRVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
+`(\\.|[^`])*`           { formatRawString(); if (g_tokens) printf("tRAWSTRVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tRAWSTRVAL; return tRAWSTRVAL; }
 
 [[:alpha:]_][[:alnum:]_]*           { if (g_tokens) printf("tIDENTIFIER(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tIDENTIFIER; return tIDENTIFIER; }
 
