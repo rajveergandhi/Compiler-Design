@@ -50,22 +50,52 @@ append       { if (g_tokens) printf("tAPPEND\n"); return tAPPEND; }
 
 [ \t\n\r]+   { /* whitespace is ignored */ }
 "//".*$      { /* ignore comments */ }
+[/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]      { /* ignore comments */ }
 ";"          { if (g_tokens) printf("tSEMICOLON\n"); return tSEMICOLON; }
 ":"          { if (g_tokens) printf("tCOLON\n"); return tCOLON; }
+","          { if (g_tokens) printf("tCOMMA\n"); return tCOMMA; }
+"."          { if (g_tokens) printf("tPERIOD\n"); return tPERIOD; }
+"..."          { if (g_tokens) printf("tRANGE\n"); return tRANGE; }
 "="          { if (g_tokens) printf("tEQUALS\n"); return tEQUALS; }
-"*"          { if (g_tokens) printf("tASTERISK\n"); return tASTERISK; }
-"/"          { if (g_tokens) printf("tSLASH\n"); return tSLASH; }
+"*"          { if (g_tokens) printf("tMULT\n"); return tMULT; }
+"/"          { if (g_tokens) printf("tDIV\n"); return tDIV; }
 "+"          { if (g_tokens) printf("tPLUS\n"); return tPLUS; }
 "-"          { if (g_tokens) printf("tMINUS\n"); return tMINUS; }
-"("          { if (g_tokens) printf("tOPENPAREN\n"); return tOPENPAREN; }
-")"          { if (g_tokens) printf("tCLOSEPAREN\n"); return tCLOSEPAREN; }
-"{"          { if (g_tokens) printf("tOPENBRACE\n"); return tOPENBRACE; }
-"}"          { if (g_tokens) printf("tCLOSEBRACE\n"); return tCLOSEBRACE; }
-"=="         { if (g_tokens) printf("tEQUALSEQUALS\n"); return tEQUALSEQUALS; }
-"!="         { if (g_tokens) printf("tNOTEQUALS\n"); return tNOTEQUALS; }
-"&&"         { if (g_tokens) printf("tLOGICALAND\n"); return tLOGICALAND; }
-"||"         { if (g_tokens) printf("tLOGICALOR\n"); return tLOGICALOR; }
+"%"          { if (g_tokens) printf("tMOD\n"); return tMOD; }
+"^"          { if (g_tokens) printf("tXOR\n"); return tXOR; }
 "!"          { if (g_tokens) printf("tNOT\n"); return tNOT; }
+"("          { if (g_tokens) printf("tOPEN_PAREN\n"); return tOPEN_PAREN; }
+")"          { if (g_tokens) printf("tCLOSE_PAREN\n"); return tCLOSE_PAREN; }
+"{"          { if (g_tokens) printf("tOPEN_BRACE\n"); return tOPEN_BRACE; }
+"}"          { if (g_tokens) printf("tCLOSE_BRACE\n"); return tCLOSE_BRACE; }
+"["          { if (g_tokens) printf("tOPEN_SQ\n"); return tOPEN_SQ; }
+"]"          { if (g_tokens) printf("tCLOSE_SQ\n"); return tCLOSE_SQ; }
+":="          { if (g_tokens) printf("tDECL\n"); return tDECL; }
+"=="         { if (g_tokens) printf("tEQ_EQ\n"); return tEQ_EQ; }
+"!="         { if (g_tokens) printf("tNOT_EQUALS\n"); return tNOT_EQUALS; }
+"&&"         { if (g_tokens) printf("tLOGICAL_AND\n"); return tLOGICAL_AND; }
+"||"         { if (g_tokens) printf("tLOGICAL_OR\n"); return tLOGICAL_OR; }
+"+="          { if (g_tokens) printf("tPLUS_EQ\n"); return tPLUS_EQ; }
+"&="          { if (g_tokens) printf("tAMP_EQ\n"); return tAMP_EQ; }
+"-="          { if (g_tokens) printf("tMINUS_EQ\n"); return tMINUS_EQ; }
+"%="          { if (g_tokens) printf("tMOD_EQ\n"); return tMOD_EQ; }
+"*="          { if (g_tokens) printf("tMULT_EQ\n"); return tMULT_EQ; }
+"/="          { if (g_tokens) printf("tDIV_EQ\n"); return tDIV_EQ; }
+"|="          { if (g_tokens) printf("tOR_EQ\n"); return tOR_EQ; }
+"<"          { if (g_tokens) printf("tLT\n"); return tLT; }
+"<"          { if (g_tokens) printf("tGT\n"); return tGT; }
+"<="          { if (g_tokens) printf("tLT_EQ\n"); return tLT_EQ; }
+">="          { if (g_tokens) printf("tGT_EQ\n"); return tGT_EQ; }
+"^="          { if (g_tokens) printf("tXOR_EQ\n"); return tXOR_EQ; }
+"<-"          { if (g_tokens) printf("tDIR\n"); return tDIR; }
+"<<"          { if (g_tokens) printf("tSHIFT_LEFT\n"); return tSHIFT_LEFT; }
+">>"          { if (g_tokens) printf("tSHIFT_RIGHT\n"); return tSHIFT_RIGHT; }
+"<<="          { if (g_tokens) printf("tSHIFT_LEFT_EQ\n"); return tSHIFT_LEFT_EQ; }
+">>="          { if (g_tokens) printf("tSHIFT_RIGHT_EQ\n"); return tSHIFT_RIGHT_EQ; }
+"++"          { if (g_tokens) printf("tINC\n"); return tINC; }
+"--"          { if (g_tokens) printf("tDEC\n"); return tDEC; }
+"&^"          { if (g_tokens) printf("tAMP_XOR\n"); return tAMP_XOR; }
+"&^="          { if (g_tokens) printf("tAMP_XOR_EQ\n"); return tAMP_XOR_EQ; }
 
 
 int          { if (g_tokens) printf("tINT\n"); yylval.string_val = strdup(yytext); return tINT; }
