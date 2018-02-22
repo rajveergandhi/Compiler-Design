@@ -1,15 +1,17 @@
 #include <stdio.h>
 #include <string.h>
+/*
 #include "tree.h"
 #include "pretty.h"
 #include "symbol.h"
 #include "type.h"
 #include "codegen.h"
+*/
 
-int yylex();
 void yyparse();
-int g_tokens = 0; // global variable to turn on token output
-int g_symbols = 0; // global variable to turn on symbol table output
+int yylex();
+int g_tokens = 0;
+int g_symbols = 0;
 extern FILE *yyin;
 NODE *root;
 FILE *codegen_file;
