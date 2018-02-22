@@ -202,6 +202,14 @@ rune		 { if (g_tokens) printf("tRUNE\n"); lastRead = tRUNE; return tRUNE;}
 ({DIGIT}*)"."{DIGIT}*      			{ if (g_tokens) printf("tFLOATVAL(%f)\n", atof(yytext)); lastRead = tFLOATVAL; return tFLOATVAL; }
 \"{STRING_VALID_CHARS}*\"           { if (g_tokens) printf("tSTRINGVAL(%s)\n", yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
 `(\\.|[^`])*`           { formatRawString(); if (g_tokens) printf("tRAWSTRVAL(%s)\n", yytext); lastRead = tRAWSTRVAL; return tRAWSTRVAL; }
+'\\a'					{ if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
+'\\b'					{ if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
+'\\f'					{ if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
+'\\n'					{ if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
+'\\r'					{ if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
+'\\t'					{ if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
+'\\v'					{ if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
+'.'						{ if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
 
 [[:alpha:]_][[:alnum:]_]*           { if (g_tokens) printf("tIDENTIFIER(%s)\n", yytext); lastRead = tIDENTIFIER; return tIDENTIFIER; }
 
