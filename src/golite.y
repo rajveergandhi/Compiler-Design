@@ -9,6 +9,14 @@ int yylex();
 void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, s); }
 %}
 
+%union {
+    int int_val;
+	double float_val;
+	char *string_val;
+    char *rune_val;
+	char *ident;
+}
+
 %token tBREAK tDEFAULT tFUNC tINTERFACE tSELECT
 %token tCASE tDEFER tGO tMAP tSTRUCT
 %token tCHAN tELSE tGOTO tPACKAGE tSWITCH
@@ -25,8 +33,13 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
 %token tXOR_EQ tDIR tSHIFT_LEFT tSHIFT_RIGHT tSHIFT_LEFT_EQ
 %token tSHIFT_RIGHT_EQ tINC tDEC tAMP_XOR tAMP_XOR_EQ
 %token tINT tFLOAT tSTRING tBOOLEAN tRUNE
-%token tINTVAL tFLOATVAL tSTRINGVAL tRAWSTRVAL tIDENTIFIER tRUNEVAL
 %token tUNARY
+%token <int_val> tINTVAL
+%token <float_val> tFLOATVAL
+%token <string_val> tSTRINGVAL
+%token <string_val> tRAWSTRVAL
+%token <string_val> tIDENTIFIER
+%token <rune_val> tRUNEVAL
 
 %right tASSIGN
 %left tLOGICAL_OR
@@ -83,12 +96,12 @@ idlist : tIDENTIFIER
 
 type : tINT
      | tFLOAT
-     | tSTRING 
+     | tSTRING
      | tBOOLEAN
      | tRUNE
      | tOPEN_SQ tCLOSE_SQ type
      | tOPEN_SQ tINTVAL tCLOSE_SQ type
-     | tSTRUCT tOPEN_BRACE memberlist tCLOSE_BRACE 
+     | tSTRUCT tOPEN_BRACE memberlist tCLOSE_BRACE
      | tIDENTIFIER
      ;
 
@@ -98,7 +111,7 @@ memberlist : memberlist member
 
 member : idlist type ;
 
-typeDcl : tTYPE types tSEMICOLON 
+typeDcl : tTYPE types tSEMICOLON
         | tTYPE tOPEN_PAREN typeslist tCLOSE_PAREN tSEMICOLON
         ;
 
@@ -109,7 +122,6 @@ typeslist : typeslist types tSEMICOLON
 types : tIDENTIFIER type ;
 
 funcDcl : tFUNC tIDENTIFIER function
-        | tFUNC tIDENTIFIER signature
         ;
 
 function : signature body ;
@@ -175,9 +187,9 @@ else_block : block
            | if_stmt
            ;
 
-for_stmt : tFOR for_condition block ; 
+for_stmt : tFOR for_condition block ;
 
-for_condition : condition 
+for_condition : condition
               | simple_stmt_no_semi tSEMICOLON condition tSEMICOLON simple_stmt_no_semi
               ;
 
@@ -185,7 +197,7 @@ condition : expr
           | %empty
           ;
 
-switch_stmt : tSWITCH switch_condition tOPEN_BRACE caselist tCLOSE_BRACE ; 
+switch_stmt : tSWITCH switch_condition tOPEN_BRACE caselist tCLOSE_BRACE ;
 
 switch_condition : simple_stmt
                  | simple_stmt expr
@@ -193,15 +205,15 @@ switch_condition : simple_stmt
                  | %empty
                  ;
 
-caselist : case tCOLON statement_list ; 
+caselist : case tCOLON statement_list ;
 
-case : tCASE exprlist | tDEFAULT ; 
+case : tCASE exprlist | tDEFAULT ;
 
-break_stmt : tBREAK tSEMICOLON ; 
+break_stmt : tBREAK tSEMICOLON ;
 
-continue_stmt : tCONTINUE tSEMICOLON ; 
+continue_stmt : tCONTINUE tSEMICOLON ;
 
-simple_stmt : simple_stmt_no_semi tSEMICOLON ; 
+simple_stmt : simple_stmt_no_semi tSEMICOLON ;
 
 simple_stmt_no_semi : expr
                     | expr tINC
@@ -210,7 +222,7 @@ simple_stmt_no_semi : expr
                     | shortDcl
                     ;
 
-assignment_stmt : exprlist assign exprlist ; 
+assignment_stmt : exprlist assign exprlist ;
 
 shortDcl : exprlist tDECL exprlist ;
 
@@ -230,7 +242,7 @@ expr : expr tPLUS expr
      | expr tEQ_EQ expr
      | expr tNOT_EQUALS expr
      | expr tSHIFT_RIGHT expr
-     | expr tSHIFT_LEFT expr 
+     | expr tSHIFT_LEFT expr
      | expr tAND expr
      | expr tAMP_XOR expr
      | expr tOR expr
@@ -248,7 +260,7 @@ unary_op : tPLUS
          | tXOR
          ;
 
-append_expr : tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA exprlist tCLOSE_PAREN ; 
+append_expr : tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA exprlist tCLOSE_PAREN ;
 
 other_expressions : operand
                   | function_call
@@ -288,7 +300,7 @@ slice_range : tOPEN_SQ expr tCOLON expr tCLOSE_SQ
             | tOPEN_SQ tCOLON expr tCOLON expr tCLOSE_SQ
             ;
 
-struct_selector : tPERIOD tIDENTIFIER ; 
+struct_selector : tPERIOD tIDENTIFIER ;
 
 assign : tASSIGN
        | tPLUS_EQ
