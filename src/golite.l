@@ -7,93 +7,87 @@
 #include "parser.tab.h"
 #define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno;
 
-
 extern int g_tokens;
-
 int lastRead = 0;
 
-
-
 int needsSemicolon(){
-	switch(lastRead){
-		case tCLOSE_PAREN:
-		case tCLOSE_BRACE:
-		case tCLOSE_SQ:
-		case tRETURN:
-		case tBREAK:
-		case tCONTINUE:
-		case tCONST:
-		case tINT:
-		case tFLOAT:
-		case tBOOLEAN:
-		case tSTRING:
-		case tRUNE:
-		case tINC:
-		case tDEC:
-		case tINTVAL:
-		case tFLOATVAL:
-		case tSTRINGVAL:
-		case tRUNEVAL:
-		case tRAWSTRVAL:
-		case tFALLTHROUGH:
-		case tIDENTIFIER:
-			return 1;
-		default:
-			return 0;
-	}
+ switch(lastRead){
+  case tCLOSE_PAREN:
+  case tCLOSE_BRACE:
+  case tCLOSE_SQ:
+  case tRETURN:
+  case tBREAK:
+  case tCONTINUE:
+  case tCONST:
+  case tINT:
+  case tFLOAT:
+  case tBOOLEAN:
+  case tSTRING:
+  case tRUNE:
+  case tINC:
+  case tDEC:
+  case tINTVAL:
+  case tFLOATVAL:
+  case tSTRINGVAL:
+  case tRUNEVAL:
+  case tRAWSTRVAL:
+  case tFALLTHROUGH:
+  case tIDENTIFIER:
+   return 1;
+  default:
+   return 0;
+ }
 }
 
-
-
 void formatRawString(){
-	char *formattedStr = NULL;
-	int pos = 0;
-	while(yytext[pos] != '\0'){
-		switch(yytext[pos]){
-			case '\a':
-				strcat(formattedStr,"\\a");
-				break;
-			case '\b':
-				strcat(formattedStr,"\\b");
-				break;
-			case '\f':
-				strcat(formattedStr,"\\f");
-				break;
-			case '\n':
-				strcat(formattedStr,"\\n");
-				break;
-			case '\r':
-				strcat(formattedStr,"\\r");
-				break;
-			case '\t':
-				strcat(formattedStr,"\\t");
-				break;
-			case '\v':
-				strcat(formattedStr,"\\v");
-				break;
-			case '\"':
-				strcat(formattedStr,"\\\"");
-				break;
-			case '\\':
-				strcat(formattedStr,"\\\\");
-				formattedStr += yytext[++pos];
-				break;
-			default:
-				formattedStr += yytext[pos];
-				break;
-		}
-		pos++;
-	}
-	yytext = formattedStr;
+ char *formattedStr = NULL;
+ int pos = 0;
+ while(yytext[pos] != '\0'){
+  switch(yytext[pos]){
+   case '\a':
+    strcat(formattedStr,"\\a");
+    break;
+   case '\b':
+    strcat(formattedStr,"\\b");
+    break;
+   case '\f':
+    strcat(formattedStr,"\\f");
+    break;
+   case '\n':
+    strcat(formattedStr,"\\n");
+    break;
+   case '\r':
+    strcat(formattedStr,"\\r");
+    break;
+   case '\t':
+    strcat(formattedStr,"\\t");
+    break;
+   case '\v':
+    strcat(formattedStr,"\\v");
+    break;
+   case '\"':
+    strcat(formattedStr,"\\\"");
+    break;
+   case '\\':
+    strcat(formattedStr,"\\\\");
+    formattedStr += yytext[++pos];
+    break;
+   default:
+    formattedStr += yytext[pos];
+    break;
+  }
+  pos++;
+ }
+ yytext = formattedStr;
 }
 
 %}
 
-%x C_COMMENT
 DIGIT [0-9]
 OCTAL [0-7]
-HEX [0-9A-Fa-f]
+HEX [0-9a-fA-F]
 STRING_VALID_CHARS [ a-zA-Z0-9~@#$%\^&*\-+/`<>=_|'.,;:!?{}[\]()]|(\\[abfnrtv"\\])
+ESCAPE_SEQ (\\[abfnrtv’\\])
 
 %option yylineno
 %option noinput
@@ -101,12 +95,9 @@ STRING_VALID_CHARS [ a-zA-Z0-9~@#$%\^&*\-+/`<>=_|'.,;:!?{}[\]()]|(\\[abfnrtv"\\]
 
 %%
 
-"/*"		 	{ BEGIN(C_COMMENT); }
-<C_COMMENT>. 	{ }
-<C_COMMENT>"\n" { }
-<C_COMMENT>"*/" { BEGIN(INITIAL); }
-
-
+[ \t\r]+     { /* whitespace is ignored */ }
+"//".*$      { /* ignore line comments */ }
+"/*"([^*]|(\*+[^*/]))*\*+\/ { /* ignore block comments */ }
 
 break        { if (g_tokens) printf("tBREAK\n"); lastRead = tBREAK; return tBREAK; }
 default      { if (g_tokens) printf("tDEFAULT\n"); lastRead = tDEFAULT; return tDEFAULT; }
@@ -136,23 +127,20 @@ var          { if (g_tokens) printf("tVAR\n"); lastRead = tVAR; return tVAR; }
 print        { if (g_tokens) printf("tPRINT\n"); lastRead = tPRINT; return tPRINT; }
 println      { if (g_tokens) printf("tPRINTLN\n"); lastRead = tPRINTLN; return tPRINTLN; }
 append       { if (g_tokens) printf("tAPPEND\n"); lastRead = tAPPEND; return tAPPEND; }
-read         { if (g_tokens) printf("tREAD\n"); lastRead = tREAD; return tREAD; }
-\n 			 {if(needsSemicolon() == 1) {if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON;}  }
-[ \t]+   { /* whitespace is ignored */ }
-"//"[^\r\n]*[\r\n<<EOF>>]      { }
+
 ";"          { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; }
 ":"          { if (g_tokens) printf("tCOLON\n"); lastRead = tCOLON; return tCOLON; }
 ","          { if (g_tokens) printf("tCOMMA\n"); lastRead = tCOMMA; return tCOMMA; }
 "."          { if (g_tokens) printf("tPERIOD\n"); lastRead = tPERIOD; return tPERIOD; }
-"..."          { if (g_tokens) printf("tELLIPSIS\n"); lastRead = tELLIPSIS; return tELLIPSIS; }
+"..."        { if (g_tokens) printf("tELLIPSIS\n"); lastRead = tELLIPSIS; return tELLIPSIS; }
 "="          { if (g_tokens) printf("tASSIGN\n"); lastRead = tASSIGN; return tASSIGN; }
 "*"          { if (g_tokens) printf("tMULT\n"); lastRead = tMULT; return tMULT; }
 "/"          { if (g_tokens) printf("tDIV\n"); lastRead = tDIV; return tDIV; }
 "+"          { if (g_tokens) printf("tPLUS\n"); lastRead = tPLUS; return tPLUS; }
 "-"          { if (g_tokens) printf("tMINUS\n"); lastRead = tMINUS; return tMINUS; }
 "%"          { if (g_tokens) printf("tMOD\n"); lastRead = tMOD; return tMOD; }
-"&"			 { if (g_tokens) printf("tAND\n"); lastRead = tAND; return tAND; }
-"|"			 { if (g_tokens) printf("tOR\n"); lastRead = tOR; return tOR; }
+"&"          { if (g_tokens) printf("tAND\n"); lastRead = tAND; return tAND; }
+"|"          { if (g_tokens) printf("tOR\n"); lastRead = tOR; return tOR; }
 "^"          { if (g_tokens) printf("tXOR\n"); lastRead = tXOR; return tXOR; }
 "!"          { if (g_tokens) printf("tNOT\n"); lastRead = tNOT; return tNOT; }
 "("          { if (g_tokens) printf("tOPEN_PAREN\n"); lastRead = tOPEN_PAREN; return tOPEN_PAREN; }
@@ -161,55 +149,54 @@ read         { if (g_tokens) printf("tREAD\n"); lastRead = tREAD; return tREAD; 
 "}"          { if (g_tokens) printf("tCLOSE_BRACE\n"); lastRead = tCLOSE_BRACE;return tCLOSE_BRACE; }
 "["          { if (g_tokens) printf("tOPEN_SQ\n"); lastRead = tOPEN_SQ; return tOPEN_SQ; }
 "]"          { if (g_tokens) printf("tCLOSE_SQ\n"); lastRead = tCLOSE_SQ; return tCLOSE_SQ; }
-":="          { if (g_tokens) printf("tDECL\n"); lastRead = tDECL; return tDECL; }
+":="         { if (g_tokens) printf("tDECL\n"); lastRead = tDECL; return tDECL; }
 "=="         { if (g_tokens) printf("tEQ_EQ\n"); lastRead = tEQ_EQ; return tEQ_EQ; }
 "!="         { if (g_tokens) printf("tNOT_EQUALS\n"); lastRead = tNOT_EQUALS; return tNOT_EQUALS; }
 "&&"         { if (g_tokens) printf("tLOGICAL_AND\n"); lastRead = tLOGICAL_AND; return tLOGICAL_AND; }
 "||"         { if (g_tokens) printf("tLOGICAL_OR\n"); lastRead = tLOGICAL_OR; return tLOGICAL_OR; }
-"+="          { if (g_tokens) printf("tPLUS_EQ\n"); lastRead = tPLUS_EQ; return tPLUS_EQ; }
-"&="          { if (g_tokens) printf("tAMP_EQ\n"); lastRead = tAMP_EQ; return tAMP_EQ; }
-"-="          { if (g_tokens) printf("tMINUS_EQ\n"); lastRead = tMINUS_EQ;return tMINUS_EQ; }
-"%="          { if (g_tokens) printf("tMOD_EQ\n"); lastRead = tMOD_EQ; return tMOD_EQ; }
-"*="          { if (g_tokens) printf("tMULT_EQ\n"); lastRead = tMULT_EQ; return tMULT_EQ; }
-"/="          { if (g_tokens) printf("tDIV_EQ\n"); lastRead = tDIV_EQ; return tDIV_EQ; }
-"|="          { if (g_tokens) printf("tOR_EQ\n"); lastRead = tOR_EQ; return tOR_EQ; }
+"+="         { if (g_tokens) printf("tPLUS_EQ\n"); lastRead = tPLUS_EQ; return tPLUS_EQ; }
+"&="         { if (g_tokens) printf("tAMP_EQ\n"); lastRead = tAMP_EQ; return tAMP_EQ; }
+"-="         { if (g_tokens) printf("tMINUS_EQ\n"); lastRead = tMINUS_EQ;return tMINUS_EQ; }
+"%="         { if (g_tokens) printf("tMOD_EQ\n"); lastRead = tMOD_EQ; return tMOD_EQ; }
+"*="         { if (g_tokens) printf("tMULT_EQ\n"); lastRead = tMULT_EQ; return tMULT_EQ; }
+"/="         { if (g_tokens) printf("tDIV_EQ\n"); lastRead = tDIV_EQ; return tDIV_EQ; }
+"|="         { if (g_tokens) printf("tOR_EQ\n"); lastRead = tOR_EQ; return tOR_EQ; }
 "<"          { if (g_tokens) printf("tLT\n"); lastRead = tLT; return tLT; }
 ">"          { if (g_tokens) printf("tGT\n"); lastRead = tGT; return tGT; }
-"<="          { if (g_tokens) printf("tLT_EQ\n"); lastRead = tLT_EQ; return tLT_EQ; }
-">="          { if (g_tokens) printf("tGT_EQ\n"); lastRead = tGT_EQ; return tGT_EQ; }
-"^="          { if (g_tokens) printf("tXOR_EQ\n"); lastRead = tXOR_EQ; return tXOR_EQ; }
-"<-"          { if (g_tokens) printf("tDIR\n"); lastRead = tDIR; return tDIR; }
-"<<"          { if (g_tokens) printf("tSHIFT_LEFT\n"); lastRead = tSHIFT_LEFT; return tSHIFT_LEFT; }
-">>"          { if (g_tokens) printf("tSHIFT_RIGHT\n"); lastRead = tSHIFT_RIGHT; return tSHIFT_RIGHT; }
-"<<="          { if (g_tokens) printf("tSHIFT_LEFT_EQ\n"); lastRead = tSHIFT_LEFT_EQ; return tSHIFT_LEFT_EQ; }
-">>="          { if (g_tokens) printf("tSHIFT_RIGHT_EQ\n"); lastRead = tSHIFT_RIGHT_EQ; return tSHIFT_RIGHT_EQ; }
-"++"          { if (g_tokens) printf("tINC\n"); lastRead = tINC; return tINC; }
-"--"          { if (g_tokens) printf("tDEC\n"); lastRead = tDEC; return tDEC; }
-"&^"          { if (g_tokens) printf("tAMP_XOR\n"); lastRead = tAMP_XOR; return tAMP_XOR; }
-"&^="          { if (g_tokens) printf("tAMP_XOR_EQ\n"); lastRead = tAMP_XOR_EQ; return tAMP_XOR_EQ; }
+"<="         { if (g_tokens) printf("tLT_EQ\n"); lastRead = tLT_EQ; return tLT_EQ; }
+">="         { if (g_tokens) printf("tGT_EQ\n"); lastRead = tGT_EQ; return tGT_EQ; }
+"^="         { if (g_tokens) printf("tXOR_EQ\n"); lastRead = tXOR_EQ; return tXOR_EQ; }
+"<-"         { if (g_tokens) printf("tARROW\n"); lastRead = tDIR; return tARROW; }
+"<<"         { if (g_tokens) printf("tSHIFT_LEFT\n"); lastRead = tSHIFT_LEFT; return tSHIFT_LEFT; }
+">>"         { if (g_tokens) printf("tSHIFT_RIGHT\n"); lastRead = tSHIFT_RIGHT; return tSHIFT_RIGHT; }
+"<<="        { if (g_tokens) printf("tSHIFT_LEFT_EQ\n"); lastRead = tSHIFT_LEFT_EQ; return tSHIFT_LEFT_EQ; }
+">>="        { if (g_tokens) printf("tSHIFT_RIGHT_EQ\n"); lastRead = tSHIFT_RIGHT_EQ; return tSHIFT_RIGHT_EQ; }
+"++"         { if (g_tokens) printf("tINC\n"); lastRead = tINC; return tINC; }
+"--"         { if (g_tokens) printf("tDEC\n"); lastRead = tDEC; return tDEC; }
+"&^"         { if (g_tokens) printf("tAMP_XOR\n"); lastRead = tAMP_XOR; return tAMP_XOR; }
+"&^="        { if (g_tokens) printf("tAMP_XOR_EQ\n"); lastRead = tAMP_XOR_EQ; return tAMP_XOR_EQ; }
+
+((0|([1-9]{DIGIT}*))|(0{OCTAL}+)|(0[xX]{HEX}+))      { if (g_tokens) printf("tINTVAL(%d)\n", atoi(yytext)); yylval.int_val = atoi(yytext); lastRead = tINTVAL; return tINTVAL; }
+({DIGIT}+"."{DIGIT}*)|({DIGIT}*"."{DIGIT}+)          { if (g_tokens) printf("tFLOATVAL(%f)\n", atof(yytext)); yylval.float_val = atof(yytext); lastRead = tFLOATVAL; return tFLOATVAL; }
+"'"(.|ESCAPE_SEQ)"'"                                 { if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); yylval.rune_val = strdup(yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
+
+\"{STRING_VALID_CHARS}*\" { yylval.string_val = strdup(yytext); if (g_tokens) printf("tSTRINGVAL(%s)\n", yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
+`(\\.|[^`])*`           { yylval.string_val = strdup(yytext); formatRawString(); if (g_tokens) printf("tRAWSTRVAL(%s)\n", yytext); lastRead = tRAWSTRVAL; return tRAWSTRVAL; }
+
+
+read         { if (g_tokens) printf("tREAD\n"); lastRead = tREAD; return tREAD; }
+\n     {if(needsSemicolon() == 1) {if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON;}  }
+
 
 
 int          { if (g_tokens) printf("tINT\n"); lastRead = tINT; return tINT; }
 float64      { if (g_tokens) printf("tFLOAT\n"); lastRead = tFLOAT; return tFLOAT; }
 string       { if (g_tokens) printf("tSTRING\n"); lastRead = tSTRING; return tSTRING; }
 bool         { if (g_tokens) printf("tBOOLEAN\n"); lastRead = tBOOLEAN; return tBOOLEAN; }
-rune		 { if (g_tokens) printf("tRUNE\n"); lastRead = tRUNE; return tRUNE;}
+rune   { if (g_tokens) printf("tRUNE\n"); lastRead = tRUNE; return tRUNE;}
 
 
 
-
-((0|[1-9]{DIGIT}*)|(0{OCTAL}+)|(0(x|X){HEX}+))	{ yylval.int_val = atoi(yytext); if (g_tokens) printf("tINTVAL(%d)\n", atoi(yytext)); lastRead = tINTVAL; return tINTVAL; }
-({DIGIT}*)"."{DIGIT}*	{ yylval.float_val = atof(yytext); if (g_tokens) printf("tFLOATVAL(%f)\n", atof(yytext)); lastRead = tFLOATVAL; return tFLOATVAL; }
-\"{STRING_VALID_CHARS}*\"	{ yylval.string_val = strdup(yytext); if (g_tokens) printf("tSTRINGVAL(%s)\n", yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
-`(\\.|[^`])*`           { yylval.string_val = strdup(yytext); formatRawString(); if (g_tokens) printf("tRAWSTRVAL(%s)\n", yytext); lastRead = tRAWSTRVAL; return tRAWSTRVAL; }
-'\\a'					{ yylval.rune_val = strdup(yytext); if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
-'\\b'					{ yylval.rune_val = strdup(yytext); if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
-'\\f'					{ yylval.rune_val = strdup(yytext); if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
-'\\n'					{ yylval.rune_val = strdup(yytext); if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
-'\\r'					{ yylval.rune_val = strdup(yytext); if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
-'\\t'					{ yylval.rune_val = strdup(yytext); if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
-'\\v'					{ yylval.rune_val = strdup(yytext); if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
-'.'						{ yylval.rune_val = strdup(yytext); if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
 
 [[:alpha:]_][[:alnum:]_]*           { yylval.ident = strdup(yytext); if (g_tokens) printf("tIDENTIFIER(%s)\n", yytext); lastRead = tIDENTIFIER; return tIDENTIFIER; }
 

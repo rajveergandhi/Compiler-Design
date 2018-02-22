@@ -30,7 +30,7 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
 %token tEQ_EQ tNOT_EQUALS tLOGICAL_AND tLOGICAL_OR tPLUS_EQ
 %token tAMP_EQ tMINUS_EQ tMOD_EQ tMULT_EQ tDIV_EQ
 %token tOR_EQ tLT tGT tLT_EQ tGT_EQ
-%token tXOR_EQ tDIR tSHIFT_LEFT tSHIFT_RIGHT tSHIFT_LEFT_EQ
+%token tXOR_EQ tARROW tSHIFT_LEFT tSHIFT_RIGHT tSHIFT_LEFT_EQ
 %token tSHIFT_RIGHT_EQ tINC tDEC tAMP_XOR tAMP_XOR_EQ
 %token tINT tFLOAT tSTRING tBOOLEAN tRUNE
 %token tUNARY
