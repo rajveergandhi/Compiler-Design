@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-/*
 #include "tree.h"
+/*
 #include "pretty.h"
 #include "symbol.h"
 #include "type.h"
@@ -34,6 +34,7 @@ int main(int argc, char* argv[])
                 yyparse();
                 printf("OK\n");
             }
+            /*
             else if (strcmp(mode, "pretty") == 0) {
                 yyparse();
                 prettyPrint(root);
@@ -68,6 +69,7 @@ int main(int argc, char* argv[])
                 codegen(root);
                 printf("OK\n");
             }
+            */
         }
         else {
             printf("Error opening file: %s\n", argv[2]);

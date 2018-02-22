@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wall -Wextra
 LDLIBS=-lfl
 
-main: main.o lex.yy.o parser.tab.o
+main: main.o lex.yy.o parser.tab.o tree.h
 	$(CC) $(CFLAGS) main.o lex.yy.o parser.tab.o -o golitec $(LDLIBS)
 
 parser.tab.c parser.tab.h: golite.y
