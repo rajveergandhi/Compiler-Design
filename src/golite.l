@@ -137,7 +137,7 @@ print        { if (g_tokens) printf("tPRINT\n"); lastRead = tPRINT; return tPRIN
 println      { if (g_tokens) printf("tPRINTLN\n"); lastRead = tPRINTLN; return tPRINTLN; }
 append       { if (g_tokens) printf("tAPPEND\n"); lastRead = tAPPEND; return tAPPEND; }
 read         { if (g_tokens) printf("tREAD\n"); lastRead = tREAD; return tREAD; }
-\n 			 {if(needsSemicolon() == 1) {if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON;} return tSEMICOLON; }
+\n 			 {if(needsSemicolon() == 1) {if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON;}  }
 [ \t]+   { /* whitespace is ignored */ }
 "//"[^\r\n]*[\r\n<<EOF>>]      { }
 ";"          { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; }
