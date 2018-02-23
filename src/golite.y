@@ -97,6 +97,10 @@ id : tIDENTIFIER
    | tRUNE
    ;
 
+arglist : tIDENTIFIER tCOMMA arglist
+        | tIDENTIFIER
+        ;
+
 type : tINT
      | tFLOAT
      | tSTRING
@@ -141,7 +145,7 @@ parameter_list : parameter_list tCOMMA parameter
                | parameter
                ;
 
-parameter : idlist type ;
+parameter : arglist type ;
 
 body : block ;
 
