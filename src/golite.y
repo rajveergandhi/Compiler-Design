@@ -116,7 +116,8 @@ memberlist : memberlist member
            | %empty
            ;
 
-member : idlist type ;
+member : idlist type tSEMICOLON
+       ;
 
 typeDcl : tTYPE types tSEMICOLON
         | tTYPE tOPEN_PAREN typeslist tCLOSE_PAREN tSEMICOLON
