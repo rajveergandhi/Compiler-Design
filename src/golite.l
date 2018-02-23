@@ -14,10 +14,6 @@ int lastRead;
 bool insertSemicolon() {
     switch(lastRead) {
         case tIDENTIFIER:
-        case tINT:
-        case tFLOAT:
-        case tRUNE:
-        case tSTRING:
         case tINTVAL:
         case tFLOATVAL:
         case tRUNEVAL:
@@ -85,11 +81,6 @@ var          { if (g_tokens) printf("tVAR\n"); lastRead = tVAR; return tVAR; }
 print        { if (g_tokens) printf("tPRINT\n"); lastRead = tPRINT; return tPRINT; }
 println      { if (g_tokens) printf("tPRINTLN\n"); lastRead = tPRINTLN; return tPRINTLN; }
 append       { if (g_tokens) printf("tAPPEND\n"); lastRead = tAPPEND; return tAPPEND; }
-int          { if (g_tokens) printf("tINT\n"); lastRead = tINT; return tINT; }
-float64      { if (g_tokens) printf("tFLOAT\n"); lastRead = tFLOAT; return tFLOAT; }
-bool         { if (g_tokens) printf("tBOOL\n"); lastRead = tBOOL; return tBOOL; }
-rune         { if (g_tokens) printf("tRUNE\n"); lastRead = tRUNE; return tRUNE;}
-string       { if (g_tokens) printf("tSTRING\n"); lastRead = tSTRING; return tSTRING; }
 
 ";"          { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; }
 ":"          { if (g_tokens) printf("tCOLON\n"); lastRead = tCOLON; return tCOLON; }
