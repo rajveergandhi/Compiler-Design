@@ -40,7 +40,7 @@ func main() {
 		println("false")
 	} else if (true) {
 		println("true")
-	} 
+	}
 
 	if (false) {
 		println("false")
@@ -93,7 +93,7 @@ func main() {
 		println("false")
 	} else if (true) {
 		println("true")
-	} 
+	}
 
 	if (false) {
 		println("false")
@@ -144,7 +144,7 @@ func main() {
 		println("false")
 	} else if (true) {
 		println("true")
-	} 
+	}
 
 	if (false) {
 		println("false")
@@ -198,7 +198,7 @@ func main() {
 		println("false")
 	} else if (true) {
 		println("true")
-	} 
+	}
 
 	if (false) {
 		println("false")
@@ -246,7 +246,7 @@ func main() {
 		println("false")
 	} else if (true) {
 		println("true")
-	} 
+	}
 
 	if (false) {
 		println("false")
@@ -302,14 +302,14 @@ func main() {
 		println("false")
 	} else if (true) {
 		println("true")
-	} 
+	}
 
 	if (false) {
 		println("false")
 	} else if (false) {
 		println("false")
 	}
-	} 
+	}
 
 	if (false) {
 		println("false")
@@ -352,7 +352,7 @@ func main() {
 		println("false")
 	} else if (true) {
 		println("true")
-	} 
+	}
 
 	if (false) {
 		println("false")

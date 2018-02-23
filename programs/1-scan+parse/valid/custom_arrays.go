@@ -16,7 +16,7 @@ func main() {
 	var struct_array [2] struct {
 		s string
 	}
-	
+
 	struct_array[0].s = "interp"
 	struct_array[1].s = `raw`
 	println(struct_array[0].s)

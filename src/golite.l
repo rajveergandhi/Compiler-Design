@@ -142,7 +142,7 @@ string       { if (g_tokens) printf("tSTRING\n"); lastRead = tSTRING; return tST
 ({DIGIT}+"."{DIGIT}*)|({DIGIT}*"."{DIGIT}+)          { if (g_tokens) printf("tFLOATVAL(%f)\n", atof(yytext)); yylval.float_val = atof(yytext); lastRead = tFLOATVAL; return tFLOATVAL; }
 "'"(.|{ESCAPE_SEQ})"'"                                 { if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); yylval.rune_val = strdup(yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
 
-\"(.|{ESCAPE_SEQ}|\\\")*\"                           { if (g_tokens) printf("tSTRINGVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
+\"(\\[abfnrtv"\\]|[^\\"\n])*\"                         { if (g_tokens) printf("tSTRINGVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
 `[^`]*`                                              { if (g_tokens) printf("tRAWSTRVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tRAWSTRVAL; return tRAWSTRVAL; }
 
 [[:alpha:]_][[:alnum:]_]*                            { if (g_tokens) printf("tIDENTIFIER(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tIDENTIFIER; return tIDENTIFIER; }
