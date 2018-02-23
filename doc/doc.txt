@@ -1,0 +1,9 @@
+Scanner:
+
+optional semicolon problem; had to deal with this by creating a variable called lastRead, and updating it whenever a new token is generated (before it is returned). then, when \n or EOF or block comment including a \n is encountered we check to see with function insertsemicolon if there should have been a semicolon there, and we insert the semicolon in that case.
+
+tokens; we use a global variable in main.c called g_tokens (g for global) and if it is turned on then we print the token value so that we can print the tokens for the compiler mode "tokens"
+
+rune escape sequences and string escape sequences; we use carefully constructed regexes to make sure all (and only) the supported escape sequences match the rune or string
+
+
