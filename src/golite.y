@@ -303,6 +303,7 @@ typecasting : tINT tOPEN_PAREN expr tCLOSE_PAREN
             | tFLOAT tOPEN_PAREN expr tCLOSE_PAREN
             | tBOOL tOPEN_PAREN expr tCLOSE_PAREN
             | tRUNE tOPEN_PAREN expr tCLOSE_PAREN
+            | tSTRING tOPEN_PAREN expr tCLOSE_PAREN
             ;
 
 array_index : tOPEN_SQ expr tCLOSE_SQ ;
