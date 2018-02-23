@@ -3,6 +3,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "parser.tab.h"
 #define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno;
@@ -10,7 +11,7 @@
 extern int g_tokens;
 int lastRead;
 
-int insertSemicolon() {
+bool insertSemicolon() {
     switch(lastRead) {
         case tIDENTIFIER:
         case tINT:
@@ -31,9 +32,9 @@ int insertSemicolon() {
         case tCLOSE_PAREN:
         case tCLOSE_SQ:
         case tCLOSE_BRACE:
-            return 1;
+            return true;
         default:
-            return 0;
+            return false;
     }
 }
 
@@ -54,7 +55,7 @@ ESCAPE_SEQ_STRINGS (\\[abfnrtv"\\])
 [ \t\r]+     { /* whitespace is ignored */ }
 "//".*$      { /* ignore line comments */ }
 "/*"([^*]|(\*+[^*/]))*\*+\/ { /* ignore block comments */ }
-\n           { if(insertSemicolon() == 1) { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; } }
+\n           { if (insertSemicolon()) { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; } }
 
 break        { if (g_tokens) printf("tBREAK\n"); lastRead = tBREAK; return tBREAK; }
 default      { if (g_tokens) printf("tDEFAULT\n"); lastRead = tDEFAULT; return tDEFAULT; }
