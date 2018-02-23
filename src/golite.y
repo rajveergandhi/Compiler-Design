@@ -136,6 +136,7 @@ function : signature body ;
 
 signature : parameters
           | parameters type
+          | parameters tOPEN_PAREN type tCLOSE_PAREN
           ;
 
 parameters : tOPEN_PAREN parameter_list tCLOSE_PAREN
