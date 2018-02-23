@@ -271,8 +271,8 @@ unary_op : tPLUS
 
 append_expr : tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA expr tCLOSE_PAREN ;
 
-other_expressions : operand
-                  | function_call
+other_expressions : function_call
+                  | operand
                   | typecasting
                   | other_expressions array_index
                   | other_expressions slice_range
@@ -288,7 +288,7 @@ operand : tOPEN_PAREN expr tCLOSE_PAREN
         | tRAWSTRVAL
         ;
 
-function_call : tIDENTIFIER tOPEN_PAREN expr tCLOSE_PAREN
+function_call : tIDENTIFIER tOPEN_PAREN exprlist tCLOSE_PAREN
               | tIDENTIFIER tOPEN_PAREN tCLOSE_PAREN
               ;
 
