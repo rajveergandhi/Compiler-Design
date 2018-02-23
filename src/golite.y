@@ -32,7 +32,7 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
 %token tOR_EQ tLT tGT tLT_EQ tGT_EQ
 %token tXOR_EQ tARROW tSHIFT_LEFT tSHIFT_RIGHT tSHIFT_LEFT_EQ
 %token tSHIFT_RIGHT_EQ tINC tDEC tAMP_XOR tAMP_XOR_EQ
-%token tINT tFLOAT tSTRING tBOOLEAN tRUNE
+%token tINT tFLOAT tSTRING tBOOL tRUNE
 %token tUNARY
 %token <int_val> tINTVAL
 %token <float_val> tFLOATVAL
@@ -92,7 +92,7 @@ idlist : id
 id : tIDENTIFIER
    | tINT
    | tFLOAT
-   | tBOOLEAN
+   | tBOOL
    | tSTRING
    | tRUNE
    ;
@@ -100,7 +100,7 @@ id : tIDENTIFIER
 type : tINT
      | tFLOAT
      | tSTRING
-     | tBOOLEAN
+     | tBOOL
      | tRUNE
      | tOPEN_SQ tCLOSE_SQ type
      | tOPEN_SQ tINTVAL tCLOSE_SQ type
@@ -288,7 +288,7 @@ function_call : tIDENTIFIER tOPEN_PAREN exprlist tCLOSE_PAREN
 
 typecasting : tINT tOPEN_PAREN expr tCLOSE_PAREN
             | tFLOAT tOPEN_PAREN expr tCLOSE_PAREN
-            | tBOOLEAN tOPEN_PAREN expr tCLOSE_PAREN
+            | tBOOL tOPEN_PAREN expr tCLOSE_PAREN
             | tRUNE tOPEN_PAREN expr tCLOSE_PAREN
             ;
 
