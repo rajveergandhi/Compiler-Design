@@ -1,2 +1,0 @@
-// missing package identifier
-package

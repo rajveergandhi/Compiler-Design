@@ -1,5 +1,5 @@
-package _
+/* Blank package. */
 
-func main() {
-    _ = 1
-}
+package // Error: Must specify a package name
+
+var t int
