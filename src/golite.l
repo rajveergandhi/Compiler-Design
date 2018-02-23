@@ -50,8 +50,10 @@ ESCAPE_SEQ_STRINGS (\\[abfnrtv"\\])
 
 [ \t\r]+     { /* whitespace is ignored */ }
 "//".*$      { /* ignore line comments */ }
-"/*"([^*]|(\*+[^*/]))*\*+\/ { /* ignore block comments */ }
+"/*"([^*]|(\*+[^*/]))*\n([^*]|(\*+[^*/]))*\*+\/ { /* block comment with a newline character */ if (insertSemicolon()) { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; } }
+"/*"([^*]|(\*+[^*/]))*\*+\/ { /* ignore block comments without a newline character */ }
 \n           { if (insertSemicolon()) { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; } }
+<<EOF>>      { if (insertSemicolon()) { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; } return 0; }
 
 break        { if (g_tokens) printf("tBREAK\n"); lastRead = tBREAK; return tBREAK; }
 default      { if (g_tokens) printf("tDEFAULT\n"); lastRead = tDEFAULT; return tDEFAULT; }
