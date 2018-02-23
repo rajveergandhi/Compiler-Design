@@ -276,7 +276,7 @@ other_expressions : operand
                   | typecasting
                   | other_expressions array_index
                   | other_expressions slice_range
-                  | struct_selector
+                  | other_expressions struct_selector
                   ;
 
 operand : tOPEN_PAREN expr tCLOSE_PAREN
@@ -308,7 +308,7 @@ slice_range : tOPEN_SQ expr tCOLON expr tCLOSE_SQ
             | tOPEN_SQ tCOLON expr tCOLON expr tCLOSE_SQ
             ;
 
-struct_selector : tIDENTIFIER tPERIOD tIDENTIFIER ;
+struct_selector : tPERIOD tIDENTIFIER ;
 
 assign : tASSIGN
        | tPLUS_EQ
