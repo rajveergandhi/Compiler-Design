@@ -42,7 +42,7 @@ int insertSemicolon() {
 DIGIT [0-9]
 OCTAL [0-7]
 HEX [0-9a-fA-F]
-ESCAPE_SEQ (\\[abfnrtv’\\])
+ESCAPE_SEQ (\\[abfnrtv'\\])
 
 %option yylineno
 %option noinput
@@ -139,7 +139,7 @@ string       { if (g_tokens) printf("tSTRING\n"); lastRead = tSTRING; return tST
 
 ((0|([1-9]{DIGIT}*))|(0{OCTAL}+)|(0[xX]{HEX}+))      { if (g_tokens) printf("tINTVAL(%d)\n", atoi(yytext)); yylval.int_val = atoi(yytext); lastRead = tINTVAL; return tINTVAL; }
 ({DIGIT}+"."{DIGIT}*)|({DIGIT}*"."{DIGIT}+)          { if (g_tokens) printf("tFLOATVAL(%f)\n", atof(yytext)); yylval.float_val = atof(yytext); lastRead = tFLOATVAL; return tFLOATVAL; }
-"'"(.|ESCAPE_SEQ)"'"                                 { if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); yylval.rune_val = strdup(yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
+"'"(.|{ESCAPE_SEQ})"'"                                 { if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); yylval.rune_val = strdup(yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
 
 \"(.|{ESCAPE_SEQ}|\\\")*\"                           { if (g_tokens) printf("tSTRINGVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
 `[^`]*`                                              { if (g_tokens) printf("tRAWSTRVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tRAWSTRVAL; return tRAWSTRVAL; }
