@@ -168,6 +168,7 @@ statement : dcl
           | break_stmt
           | continue_stmt
           | simple_stmt
+          | tSEMICOLON
           ;
 
 print_stmt : tPRINT tOPEN_PAREN exprlist tCLOSE_PAREN tSEMICOLON
