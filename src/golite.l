@@ -8,77 +8,33 @@
 #define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno;
 
 extern int g_tokens;
-int lastRead = 0;
+int lastRead;
 
-int needsSemicolon(){
- switch(lastRead){
-  case tCLOSE_PAREN:
-  case tCLOSE_BRACE:
-  case tCLOSE_SQ:
-  case tRETURN:
-  case tBREAK:
-  case tCONTINUE:
-  case tCONST:
-  case tINT:
-  case tFLOAT:
-  case tBOOLEAN:
-  case tSTRING:
-  case tRUNE:
-  case tINC:
-  case tDEC:
-  case tINTVAL:
-  case tFLOATVAL:
-  case tSTRINGVAL:
-  case tRUNEVAL:
-  case tRAWSTRVAL:
-  case tFALLTHROUGH:
-  case tIDENTIFIER:
-   return 1;
-  default:
-   return 0;
- }
-}
-
-void formatRawString(){
- char *formattedStr = NULL;
- int pos = 0;
- while(yytext[pos] != '\0'){
-  switch(yytext[pos]){
-   case '\a':
-    strcat(formattedStr,"\\a");
-    break;
-   case '\b':
-    strcat(formattedStr,"\\b");
-    break;
-   case '\f':
-    strcat(formattedStr,"\\f");
-    break;
-   case '\n':
-    strcat(formattedStr,"\\n");
-    break;
-   case '\r':
-    strcat(formattedStr,"\\r");
-    break;
-   case '\t':
-    strcat(formattedStr,"\\t");
-    break;
-   case '\v':
-    strcat(formattedStr,"\\v");
-    break;
-   case '\"':
-    strcat(formattedStr,"\\\"");
-    break;
-   case '\\':
-    strcat(formattedStr,"\\\\");
-    formattedStr += yytext[++pos];
-    break;
-   default:
-    formattedStr += yytext[pos];
-    break;
-  }
-  pos++;
- }
- yytext = formattedStr;
+int insertSemicolon() {
+    switch(lastRead) {
+        case tIDENTIFIER:
+        case tINT:
+        case tFLOAT:
+        case tRUNE:
+        case tSTRING:
+        case tINTVAL:
+        case tFLOATVAL:
+        case tRUNEVAL:
+        case tSTRINGVAL:
+        case tRAWSTRVAL:
+        case tBREAK:
+        case tCONTINUE:
+        case tFALLTHROUGH:
+        case tRETURN:
+        case tINC:
+        case tDEC:
+        case tCLOSE_PAREN:
+        case tCLOSE_SQ:
+        case tCLOSE_BRACE:
+            return 1;
+        default:
+            return 0;
+    }
 }
 
 %}
@@ -86,7 +42,6 @@ void formatRawString(){
 DIGIT [0-9]
 OCTAL [0-7]
 HEX [0-9a-fA-F]
-STRING_VALID_CHARS [ a-zA-Z0-9~@#$%\^&*\-+/`<>=_|'.,;:!?{}[\]()]|(\\[abfnrtv"\\])
 ESCAPE_SEQ (\\[abfnrtv’\\])
 
 %option yylineno
@@ -98,6 +53,7 @@ ESCAPE_SEQ (\\[abfnrtv’\\])
 [ \t\r]+     { /* whitespace is ignored */ }
 "//".*$      { /* ignore line comments */ }
 "/*"([^*]|(\*+[^*/]))*\*+\/ { /* ignore block comments */ }
+\n           { if(insertSemicolon() == 1) { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; } }
 
 break        { if (g_tokens) printf("tBREAK\n"); lastRead = tBREAK; return tBREAK; }
 default      { if (g_tokens) printf("tDEFAULT\n"); lastRead = tDEFAULT; return tDEFAULT; }
@@ -127,6 +83,11 @@ var          { if (g_tokens) printf("tVAR\n"); lastRead = tVAR; return tVAR; }
 print        { if (g_tokens) printf("tPRINT\n"); lastRead = tPRINT; return tPRINT; }
 println      { if (g_tokens) printf("tPRINTLN\n"); lastRead = tPRINTLN; return tPRINTLN; }
 append       { if (g_tokens) printf("tAPPEND\n"); lastRead = tAPPEND; return tAPPEND; }
+int          { if (g_tokens) printf("tINT\n"); lastRead = tINT; return tINT; }
+float64      { if (g_tokens) printf("tFLOAT\n"); lastRead = tFLOAT; return tFLOAT; }
+bool         { if (g_tokens) printf("tBOOL\n"); lastRead = tBOOL; return tBOOL; }
+rune         { if (g_tokens) printf("tRUNE\n"); lastRead = tRUNE; return tRUNE;}
+string       { if (g_tokens) printf("tSTRING\n"); lastRead = tSTRING; return tSTRING; }
 
 ";"          { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; }
 ":"          { if (g_tokens) printf("tCOLON\n"); lastRead = tCOLON; return tCOLON; }
@@ -166,7 +127,7 @@ append       { if (g_tokens) printf("tAPPEND\n"); lastRead = tAPPEND; return tAP
 "<="         { if (g_tokens) printf("tLT_EQ\n"); lastRead = tLT_EQ; return tLT_EQ; }
 ">="         { if (g_tokens) printf("tGT_EQ\n"); lastRead = tGT_EQ; return tGT_EQ; }
 "^="         { if (g_tokens) printf("tXOR_EQ\n"); lastRead = tXOR_EQ; return tXOR_EQ; }
-"<-"         { if (g_tokens) printf("tARROW\n"); lastRead = tDIR; return tARROW; }
+"<-"         { if (g_tokens) printf("tARROW\n"); lastRead = tARROW; return tARROW; }
 "<<"         { if (g_tokens) printf("tSHIFT_LEFT\n"); lastRead = tSHIFT_LEFT; return tSHIFT_LEFT; }
 ">>"         { if (g_tokens) printf("tSHIFT_RIGHT\n"); lastRead = tSHIFT_RIGHT; return tSHIFT_RIGHT; }
 "<<="        { if (g_tokens) printf("tSHIFT_LEFT_EQ\n"); lastRead = tSHIFT_LEFT_EQ; return tSHIFT_LEFT_EQ; }
@@ -180,27 +141,11 @@ append       { if (g_tokens) printf("tAPPEND\n"); lastRead = tAPPEND; return tAP
 ({DIGIT}+"."{DIGIT}*)|({DIGIT}*"."{DIGIT}+)          { if (g_tokens) printf("tFLOATVAL(%f)\n", atof(yytext)); yylval.float_val = atof(yytext); lastRead = tFLOATVAL; return tFLOATVAL; }
 "'"(.|ESCAPE_SEQ)"'"                                 { if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); yylval.rune_val = strdup(yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
 
-\"{STRING_VALID_CHARS}*\" { yylval.string_val = strdup(yytext); if (g_tokens) printf("tSTRINGVAL(%s)\n", yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
-`(\\.|[^`])*`           { yylval.string_val = strdup(yytext); formatRawString(); if (g_tokens) printf("tRAWSTRVAL(%s)\n", yytext); lastRead = tRAWSTRVAL; return tRAWSTRVAL; }
+\"(.|{ESCAPE_SEQ}|\\\")*\"                           { if (g_tokens) printf("tSTRINGVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
+`[^`]*`                                              { if (g_tokens) printf("tRAWSTRVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tRAWSTRVAL; return tRAWSTRVAL; }
 
+[[:alpha:]_][[:alnum:]_]*                            { if (g_tokens) printf("tIDENTIFIER(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tIDENTIFIER; return tIDENTIFIER; }
 
-read         { if (g_tokens) printf("tREAD\n"); lastRead = tREAD; return tREAD; }
-\n     {if(needsSemicolon() == 1) {if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON;}  }
-
-
-
-int          { if (g_tokens) printf("tINT\n"); lastRead = tINT; return tINT; }
-float64      { if (g_tokens) printf("tFLOAT\n"); lastRead = tFLOAT; return tFLOAT; }
-string       { if (g_tokens) printf("tSTRING\n"); lastRead = tSTRING; return tSTRING; }
-bool         { if (g_tokens) printf("tBOOLEAN\n"); lastRead = tBOOLEAN; return tBOOLEAN; }
-rune   { if (g_tokens) printf("tRUNE\n"); lastRead = tRUNE; return tRUNE;}
-
-
-
-
-[[:alpha:]_][[:alnum:]_]*           { yylval.ident = strdup(yytext); if (g_tokens) printf("tIDENTIFIER(%s)\n", yytext); lastRead = tIDENTIFIER; return tIDENTIFIER; }
-
-{DIGIT}*                            { fprintf(stderr, "Error: (line %d) int starting with 0: '%s'\n", yylineno, yytext); exit(1); }
-.                                   { fprintf(stderr, "Error: (line %d) unexpected character: '%s'\n", yylineno, yytext); exit(1); }
+.                                                    { fprintf(stderr, "Error: (line %d) unexpected character: '%s'\n", yylineno, yytext); exit(1); }
 
 %%
