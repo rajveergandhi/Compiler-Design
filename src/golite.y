@@ -214,9 +214,12 @@ switch_condition : simple_stmt
                  | %empty
                  ;
 
-caselist : case tCOLON statement_list ;
+caselist : case caselist
+         | %empty
+         ;
 
-case : tCASE exprlist | tDEFAULT ;
+case : tCASE exprlist tCOLON statement_list
+     | tDEFAULT tCOLON statement_list;
 
 break_stmt : tBREAK tSEMICOLON ;
 
