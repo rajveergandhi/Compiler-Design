@@ -3,8 +3,7 @@ golitec
 lex.yy.c
 parser.tab.c
 parser.tab.h
-.DS_Store
-*.output
 y.tab.c
 y.tab.h
-
+*.output
+.DS_Store
