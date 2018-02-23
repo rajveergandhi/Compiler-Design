@@ -282,7 +282,7 @@ operand : tOPEN_PAREN expr tCLOSE_PAREN
         | tRAWSTRVAL
         ;
 
-function_call : tIDENTIFIER tOPEN_PAREN exprlist tCLOSE_PAREN
+function_call : tIDENTIFIER tOPEN_PAREN expr tCLOSE_PAREN
               | tIDENTIFIER tOPEN_PAREN tCLOSE_PAREN
               ;
 
