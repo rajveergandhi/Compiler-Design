@@ -6,7 +6,7 @@
 
 extern int yylineno;
 int yylex();
-void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, s); }
+void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, s); exit(1); }
 %}
 
 %union {
@@ -282,7 +282,7 @@ operand : tOPEN_PAREN expr tCLOSE_PAREN
         | tRAWSTRVAL
         ;
 
-function_call : tIDENTIFIER tOPEN_PAREN exprlist tCLOSE_PAREN
+function_call : tIDENTIFIER tOPEN_PAREN expr tCLOSE_PAREN
               | tIDENTIFIER tOPEN_PAREN tCLOSE_PAREN
               ;
 
