@@ -85,14 +85,17 @@ vars : idlist type tASSIGN exprlist
      | idlist type
      ;
 
-idlist : tIDENTIFIER
-       | tINT
-       | tFLOAT
-       | tBOOLEAN
-       | tSTRING
-       | tRUNE
-       | idlist tCOMMA idlist
+idlist : id
+       | id tCOMMA idlist
        ;
+
+id : tIDENTIFIER
+   | tINT
+   | tFLOAT
+   | tBOOLEAN
+   | tSTRING
+   | tRUNE
+   ;
 
 type : tINT
      | tFLOAT
@@ -267,7 +270,7 @@ other_expressions : operand
                   | typecasting
                   | other_expressions array_index
                   | other_expressions slice_range
-                  | other_expressions struct_selector
+                  | struct_selector
                   ;
 
 operand : tOPEN_PAREN expr tCLOSE_PAREN
@@ -279,15 +282,14 @@ operand : tOPEN_PAREN expr tCLOSE_PAREN
         | tRAWSTRVAL
         ;
 
-function_call : other_expressions tOPEN_PAREN exprlist tCLOSE_PAREN
-              | other_expressions tOPEN_PAREN tCLOSE_PAREN
+function_call : tIDENTIFIER tOPEN_PAREN exprlist tCLOSE_PAREN
+              | tIDENTIFIER tOPEN_PAREN tCLOSE_PAREN
               ;
 
 typecasting : tINT tOPEN_PAREN expr tCLOSE_PAREN
             | tFLOAT tOPEN_PAREN expr tCLOSE_PAREN
             | tBOOLEAN tOPEN_PAREN expr tCLOSE_PAREN
             | tRUNE tOPEN_PAREN expr tCLOSE_PAREN
-            | tIDENTIFIER tOPEN_PAREN expr tCLOSE_PAREN
             ;
 
 array_index : tOPEN_SQ expr tCLOSE_SQ ;
@@ -300,7 +302,7 @@ slice_range : tOPEN_SQ expr tCOLON expr tCLOSE_SQ
             | tOPEN_SQ tCOLON expr tCOLON expr tCLOSE_SQ
             ;
 
-struct_selector : tPERIOD tIDENTIFIER ;
+struct_selector : tIDENTIFIER tPERIOD tIDENTIFIER ;
 
 assign : tASSIGN
        | tPLUS_EQ
