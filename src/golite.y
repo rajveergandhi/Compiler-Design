@@ -213,7 +213,6 @@ switch_condition : simple_stmt
                  | simple_stmt expr
                  | expr
                  | %empty
-                 | tSEMICOLON
                  ;
 
 caselist : case caselist
@@ -228,7 +227,9 @@ break_stmt : tBREAK tSEMICOLON ;
 
 continue_stmt : tCONTINUE tSEMICOLON ;
 
-simple_stmt : simple_stmt_no_semi tSEMICOLON ;
+simple_stmt : simple_stmt_no_semi tSEMICOLON
+            | tSEMICOLON
+            ;
 
 simple_stmt_no_semi : expr
                     | expr tINC
