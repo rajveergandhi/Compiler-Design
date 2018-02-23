@@ -263,7 +263,7 @@ unary_op : tPLUS
          | tXOR
          ;
 
-append_expr : tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA exprlist tCLOSE_PAREN ;
+append_expr : tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA expr tCLOSE_PAREN ;
 
 other_expressions : operand
                   | function_call
