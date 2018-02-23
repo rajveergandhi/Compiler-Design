@@ -20,6 +20,7 @@ int insertSemicolon() {
         case tINTVAL:
         case tFLOATVAL:
         case tRUNEVAL:
+        case tBOOL:
         case tSTRINGVAL:
         case tRAWSTRVAL:
         case tBREAK:

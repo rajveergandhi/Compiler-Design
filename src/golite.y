@@ -219,7 +219,8 @@ caselist : case caselist
          ;
 
 case : tCASE exprlist tCOLON statement_list
-     | tDEFAULT tCOLON statement_list;
+     | tDEFAULT tCOLON statement_list
+     ;
 
 break_stmt : tBREAK tSEMICOLON ;
 
