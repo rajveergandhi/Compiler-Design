@@ -6,7 +6,7 @@
 
 extern int yylineno;
 int yylex();
-void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, s); }
+void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, s); exit(1); }
 %}
 
 %union {
