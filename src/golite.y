@@ -169,7 +169,6 @@ statement : dcl
           | break_stmt
           | continue_stmt
           | simple_stmt
-          | tSEMICOLON
           ;
 
 print_stmt : tPRINT tOPEN_PAREN exprlist tCLOSE_PAREN tSEMICOLON
@@ -228,7 +227,6 @@ break_stmt : tBREAK tSEMICOLON ;
 continue_stmt : tCONTINUE tSEMICOLON ;
 
 simple_stmt : simple_stmt_no_semi tSEMICOLON
-            | tSEMICOLON
             ;
 
 simple_stmt_no_semi : expr
@@ -236,6 +234,7 @@ simple_stmt_no_semi : expr
                     | expr tDEC
                     | assignment_stmt
                     | shortDcl
+                    | %empty
                     ;
 
 assignment_stmt : exprlist assign exprlist ;
