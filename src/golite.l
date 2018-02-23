@@ -20,7 +20,6 @@ int insertSemicolon() {
         case tINTVAL:
         case tFLOATVAL:
         case tRUNEVAL:
-        case tBOOL:
         case tSTRINGVAL:
         case tRAWSTRVAL:
         case tBREAK:
@@ -43,7 +42,8 @@ int insertSemicolon() {
 DIGIT [0-9]
 OCTAL [0-7]
 HEX [0-9a-fA-F]
-ESCAPE_SEQ (\\[abfnrtv'\\])
+ESCAPE_SEQ_RUNES (\\[abfnrtv'\\])
+ESCAPE_SEQ_STRINGS (\\[abfnrtv"\\])
 
 %option yylineno
 %option noinput
@@ -140,9 +140,9 @@ string       { if (g_tokens) printf("tSTRING\n"); lastRead = tSTRING; return tST
 
 ((0|([1-9]{DIGIT}*))|(0{OCTAL}+)|(0[xX]{HEX}+))      { if (g_tokens) printf("tINTVAL(%d)\n", atoi(yytext)); yylval.int_val = atoi(yytext); lastRead = tINTVAL; return tINTVAL; }
 ({DIGIT}+"."{DIGIT}*)|({DIGIT}*"."{DIGIT}+)          { if (g_tokens) printf("tFLOATVAL(%f)\n", atof(yytext)); yylval.float_val = atof(yytext); lastRead = tFLOATVAL; return tFLOATVAL; }
-"'"(.|{ESCAPE_SEQ})"'"                                 { if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); yylval.rune_val = strdup(yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
+"'"(.|{ESCAPE_SEQ_RUNES})"'"                         { if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); yylval.rune_val = strdup(yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
 
-\"(\\[abfnrtv"\\]|[^\\"\n])*\"                         { if (g_tokens) printf("tSTRINGVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
+\"({ESCAPE_SEQ_STRINGS}|[^\n"\\])*\"                 { if (g_tokens) printf("tSTRINGVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tSTRINGVAL; return tSTRINGVAL; }
 `[^`]*`                                              { if (g_tokens) printf("tRAWSTRVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tRAWSTRVAL; return tRAWSTRVAL; }
 
 [[:alpha:]_][[:alnum:]_]*                            { if (g_tokens) printf("tIDENTIFIER(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tIDENTIFIER; return tIDENTIFIER; }
