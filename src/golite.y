@@ -206,12 +206,14 @@ condition : expr
           | %empty
           ;
 
-switch_stmt : tSWITCH switch_condition tOPEN_BRACE caselist tCLOSE_BRACE ;
+switch_stmt : tSWITCH switch_condition tOPEN_BRACE caselist tCLOSE_BRACE
+            ;
 
 switch_condition : simple_stmt
                  | simple_stmt expr
                  | expr
                  | %empty
+                 | tSEMICOLON
                  ;
 
 caselist : case caselist
