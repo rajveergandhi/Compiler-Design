@@ -166,7 +166,7 @@ append       { if (g_tokens) printf("tAPPEND\n"); lastRead = tAPPEND; return tAP
 "<="         { if (g_tokens) printf("tLT_EQ\n"); lastRead = tLT_EQ; return tLT_EQ; }
 ">="         { if (g_tokens) printf("tGT_EQ\n"); lastRead = tGT_EQ; return tGT_EQ; }
 "^="         { if (g_tokens) printf("tXOR_EQ\n"); lastRead = tXOR_EQ; return tXOR_EQ; }
-"<-"         { if (g_tokens) printf("tARROW\n"); lastRead = tDIR; return tARROW; }
+"<-"         { if (g_tokens) printf("tARROW\n"); lastRead = tARROW; return tARROW; }
 "<<"         { if (g_tokens) printf("tSHIFT_LEFT\n"); lastRead = tSHIFT_LEFT; return tSHIFT_LEFT; }
 ">>"         { if (g_tokens) printf("tSHIFT_RIGHT\n"); lastRead = tSHIFT_RIGHT; return tSHIFT_RIGHT; }
 "<<="        { if (g_tokens) printf("tSHIFT_LEFT_EQ\n"); lastRead = tSHIFT_LEFT_EQ; return tSHIFT_LEFT_EQ; }
