@@ -1,6 +1,4 @@
-#!/usr/local/bin/bash
-#!/bin/bash
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 
 LOG=0
 VERBOSE=0
