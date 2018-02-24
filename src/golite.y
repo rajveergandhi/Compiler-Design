@@ -84,13 +84,12 @@ vars : idlist type tASSIGN exprlist
      | idlist type
      ;
 
-idlist : tIDENTIFIER
-       | tIDENTIFIER tCOMMA idlist
+idlist : id
+       | id tCOMMA idlist
        ;
 
-arglist : tIDENTIFIER tCOMMA arglist
-        | tIDENTIFIER
-        ;
+id : tIDENTIFIER
+   ;
 
 type : tOPEN_SQ tCLOSE_SQ type
      | tOPEN_SQ tINTVAL tCLOSE_SQ type
@@ -133,7 +132,7 @@ parameter_list : parameter_list tCOMMA parameter
                | parameter
                ;
 
-parameter : arglist type ;
+parameter : idlist type ;
 
 body : block ;
 
