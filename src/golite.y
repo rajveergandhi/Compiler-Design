@@ -81,68 +81,61 @@ dcl : varDcl {$$ = $1;}
     | typeDcl {$$ = $1;}
     ;
 
-varDcl : tVAR varSpec tSEMICOLON {$$ = makeDCL_var($1);}
-       | tVAR tOPEN_PAREN varDclList tCLOSE_PAREN tSEMICOLON
+varDcl : tVAR varSpec tSEMICOLON {$$ = makeDCL_var($2);}
+       | tVAR tOPEN_PAREN varDclList tCLOSE_PAREN tSEMICOLON {$$ = makeDCL_varList($3);}
        ;
 
-varSpec : idlist type
-        | idlist tASSIGN expr_list
-        | idlist type tASSIGN expr_list
+varSpec : idlist type {$$ = makeDCL_varNoAssign($1, $2);}
+        | idlist tASSIGN expr_list {$$ = makeDCL_varNoType($1, $3);}
+        | idlist type tASSIGN expr_list {$$ = makeDCL_varTypeAssign($1, $2, $4);}
         ;
 
-varDclList : varDclList varSpec tSEMICOLON
+varDclList : varDclList varSpec tSEMICOLON {$$ = makeDCL_nextVar($1, $2);}
            | %empty
            ;
 
-idlist : tIDENTIFIER
-       | tIDENTIFIER tCOMMA idlist
+idlist : tIDENTIFIER {$$ = makeIDENTIFIER($1);}
+       | tIDENTIFIER tCOMMA idlist {$$ = makeIDENTIFIERLIST($1, $3);}
        ;
 
-typeDcl : tTYPE typeSpec tSEMICOLON
-        | tTYPE tOPEN_PAREN typeDclList tCLOSE_PAREN tSEMICOLON
+typeDcl : tTYPE typeSpec tSEMICOLON {$$ = makeDCL_type($2);}
+        | tTYPE tOPEN_PAREN typeDclList tCLOSE_PAREN tSEMICOLON {$$ = makeDCL_typeList($3);}
         ;
 
-typeSpec : tIDENTIFIER type
+typeSpec : tIDENTIFIER type {$$ = makeDCL_typeSpec($1, $2);}
          ;
 
-type : tIDENTIFIER
-     | tOPEN_SQ tCLOSE_SQ type
-     | tOPEN_SQ tINTVAL tCLOSE_SQ type
-     | tSTRUCT tOPEN_BRACE memberlist tCLOSE_BRACE
+type : tIDENTIFIER {$$ = makeIDENTIFIER($1);}
+     | tOPEN_SQ tCLOSE_SQ type {$$ = makeArrayNoIndex($3);}
+     | tOPEN_SQ tINTVAL tCLOSE_SQ type {$$ = makeArray($2, $4);}
+     | tSTRUCT tOPEN_BRACE memberlist tCLOSE_BRACE {$$ = makeStruct($3);}
      ;
 
-memberlist : memberlist member
+memberlist : memberlist member {$$ = makeStruct_nextMember($1, $2);}
            | %empty
            ;
 
-member : idlist type tSEMICOLON
+member : idlist type tSEMICOLON {$$ = makeStruct_Member($1, $2);}
        ;
 
-typeDclList : typeDclList typeSpec tSEMICOLON
+typeDclList : typeDclList typeSpec tSEMICOLON {$$ = makeDCL_nextType($1, $2);}
             | %empty
             ;
 
-funcDcl : tFUNC tIDENTIFIER function
+funcDcl : tFUNC tIDENTIFIER signature block {$$ = makeFUNCTION($2, $3, $4);}
         ;
 
-function : signature block
-         ;
-
-signature : parameters
-          | parameters type
-          | parameters tOPEN_PAREN type tCLOSE_PAREN
+signature : tOPEN_PAREN parameter_list tCLOSE_PAREN {$$ = makeFUNCTION_para($2);}
+          | tOPEN_PAREN tCLOSE_PAREN {$$ = makeFUNCTION_empty();}
+          | tOPEN_PAREN parameter_list tCLOSE_PAREN type {$$ = makeFUNCTION_paraType($2, $4);}
+          | tOPEN_PAREN tCLOSE_PAREN type {$$ = makeFUNCTION_type($3);}
+          | tOPEN_PAREN parameter_list tCLOSE_PAREN tOPEN_PAREN type tCLOSE_PAREN {$$ = makeFUNCTION_paraType($2, $5);}
+          | tOPEN_PAREN tCLOSE_PAREN tOPEN_PAREN type tCLOSE_PAREN {$$ = makeFUNCTION_type($4);}
           ;
 
-parameters : tOPEN_PAREN parameter_list tCLOSE_PAREN
-           | tOPEN_PAREN tCLOSE_PAREN
-           ;
-
-parameter_list : parameter_list tCOMMA parameter
-               | parameter
+parameter_list : parameter_list tCOMMA idlist type {$$ = makeFUNCTION_ParaList($1, $3, $4);}
+               | idlist type {$$ = makeFUNCTION_Para($1, $2);}
                ;
-
-parameter : idlist type
-          ;
 
 block : simple_block tSEMICOLON
       ;

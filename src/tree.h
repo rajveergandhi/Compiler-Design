@@ -67,7 +67,7 @@ struct NODE {
                 struct { NODE *expr; NODE *stmts; } stmtIf;
                 struct { NODE *expr; NODE *ifStmts; NODE *elseStmts; } stmtIfElse;
             }  type;
-            NODE *nextStmt; 
+            NODE *nextStmt;
         } stmt;
         */
     } val;
@@ -76,6 +76,37 @@ struct NODE {
 NODE *makePROGRAM(NODE *package, NODE *topLevelDecls);
 NODE *makePACKAGE(char *package);
 NODE *makeTOPLEVELDECLS(NODE *topLevelDecls, NODE *topLevelDecl);
+
+NODE *makeDCL_var(NODE *dclVar);
+NODE *makeDCL_varList(NODE *dclVarList);
+NODE *makeDCL_varNoAssign(NODE *idlist, NODE *type);
+NODE *makeDCL_varNoType(NODE *idlist, NODE *expr_list);
+NODE *makeDCL_varAssignType(NODE *idlist, NODE *type, NODE *expr_list);
+NODE *makeDCL_nextVar(NODE *dclVarList, NODE *dclVar);
+
+NODE *makeIDENTIFIER(char *identifier);
+NODE *makeIDENTIFIERLIST(char *identifier, NODE *idlist);
+
+NODE *makeDCL_type(NODE *dclType);
+NODE *makeDCL_typeList(NODE *dclTypeList);
+NODE *makeDCL_typeSpec(char *identifier, NODE *type);
+
+NODE *makeArrayNoIndex(NODE *type);
+NODE *makeArray(int index, NODE *type);
+NODE *makeStruct(NODE *memberlist);
+
+NODE *makeStruct_nextMember(NODE *memberlist, NODE *member);
+NODE *makeStruct_Member(NODE *idlist, NODE *type);
+NODE *makeStruct_nextType(NODE *dclTypeList, NODE *dclType);
+
+NODE *makeFUNCTION(char *identifier, NODE *signature, NODE *block);
+NODE *makeFUNCTION_para(NODE *paralist);
+NODE *makeFUNCTION_empty();
+NODE *makeFUNCTION_paraType(NODE *paralist, NODE *type);
+NODE *makeFUNCTION_type(NODE *type);
+NODE *makeFUNCTION_ParaList(NODE *paralist, NODE *idlist, NODE *type);
+NODE *makeFUNCTION_Para(NODE *idlist, NODE *type);
+
 
 /*
 NODE *makePROGRAM(NODE *dcls, NODE *stmts);
@@ -203,4 +234,3 @@ NODE *next_member(NODE *members, NODE *member);
 // NODE *makeEXP_binary(Kind op, NODE *lhs, NODE *rhs); // binary expressions: addition, subtraction, multiplication, division, equalsequals, notequals, logical and, logical or
 // NODE *makeEXP_not(NODE *expr);
 // NODE *makeEXP_unaryminus(NODE *expr);
-
