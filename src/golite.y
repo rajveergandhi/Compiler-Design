@@ -27,6 +27,8 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
     NODE *node;
 }
 
+%type <node> program package topLevelDecls topLevelDecl
+
 %token tBREAK tDEFAULT tFUNC tINTERFACE tSELECT
 %token tCASE tDEFER tGO tMAP tSTRUCT
 %token tCHAN tELSE tGOTO tPACKAGE tSWITCH
@@ -61,25 +63,25 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
 
 %%
 
-program : package topLevelDecls
+program : package topLevelDecls {root = makePROGRAM($1,$2);}
         ;
 
-package : tPACKAGE tIDENTIFIER tSEMICOLON
+package : tPACKAGE tIDENTIFIER tSEMICOLON {$$ = makePACKAGE($2);}
         ;
 
-topLevelDecls : topLevelDecls topLevelDecl
-              | %empty
+topLevelDecls : topLevelDecls topLevelDecl {$$ = makeTOPLEVELDECLS($1,$2);}
+              | %empty {$$ = NULL;}
               ;
 
-topLevelDecl : dcl
-             | funcDcl
+topLevelDecl : dcl {$$ = $1;}
+             | funcDcl {$$ = $1;}
              ;
 
-dcl : varDcl
-    | typeDcl
+dcl : varDcl {$$ = $1;}
+    | typeDcl {$$ = $1;}
     ;
 
-varDcl : tVAR varSpec tSEMICOLON
+varDcl : tVAR varSpec tSEMICOLON {$$ = makeDCL_var($1);}
        | tVAR tOPEN_PAREN varDclList tCLOSE_PAREN tSEMICOLON
        ;
 
