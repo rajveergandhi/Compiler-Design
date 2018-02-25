@@ -1,20 +1,30 @@
 /* A parser for GoLite, with the specifications defined in the class's documentation */
 
 %{
-#include<stdio.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "tree.h"
 
 extern int yylineno;
+extern NODE *root;
+
 int yylex();
 void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, s); exit(1); }
 %}
 
+%code requires
+{
+    #include "tree.h"
+}
+
+%locations
+%error-verbose
+
 %union {
     int int_val;
-	double float_val;
-	char *string_val;
-    char *rune_val;
-	char *ident;
+    double float_val;
+    char *string_val;
+    NODE *node;
 }
 
 %token tBREAK tDEFAULT tFUNC tINTERFACE tSELECT
@@ -33,13 +43,12 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
 %token tXOR_EQ tARROW tSHIFT_LEFT tSHIFT_RIGHT tSHIFT_LEFT_EQ
 %token tSHIFT_RIGHT_EQ tINC tDEC tAMP_XOR tAMP_XOR_EQ
 %token tINT tFLOAT tSTRING tBOOL tRUNE
-%token tUNARY
 %token <int_val> tINTVAL
 %token <float_val> tFLOATVAL
 %token <string_val> tSTRINGVAL
 %token <string_val> tRAWSTRVAL
 %token <string_val> tIDENTIFIER
-%token <rune_val> tRUNEVAL
+%token <string_val> tRUNEVAL
 
 %right tASSIGN
 %left tLOGICAL_OR
@@ -47,69 +56,58 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
 %left tEQ_EQ tNOT_EQUALS tLT tGT tLT_EQ tGT_EQ
 %left tPLUS tMINUS tOR tXOR
 %left tMULT tDIV tMOD tSHIFT_LEFT tSHIFT_RIGHT tAND tAMP_XOR
-%left tUNARY
-
-%error-verbose
-%locations
+%left UNARY
 
 %start program
 
 %%
 
-program : packages tSEMICOLON initial_dcls ;
+program : package topLevelDecls
+        ;
 
-packages : tPACKAGE tIDENTIFIER ;
+package : tPACKAGE tIDENTIFIER tSEMICOLON
+        ;
 
-initial_dcls : initial_dcls initial_dcl
-             | %empty
+topLevelDecls : topLevelDecls topLevelDecl
+              | %empty
+              ;
+
+topLevelDecl : dcl
+             | funcDcl
              ;
-
-initial_dcl : dcl
-            | funcDcl
-            ;
 
 dcl : varDcl
     | typeDcl
     ;
 
-varDcl : tVAR vars tSEMICOLON
-       | tVAR tOPEN_PAREN varslist tCLOSE_PAREN tSEMICOLON
+varDcl : tVAR varSpec tSEMICOLON
+       | tVAR tOPEN_PAREN varDclList tCLOSE_PAREN tSEMICOLON
        ;
 
-varslist : varslist vars tSEMICOLON
-         | %empty
-         ;
-
-vars : idlist type tASSIGN exprlist
-     | idlist tASSIGN exprlist
-     | idlist type
-     ;
-
-idlist : id
-       | id tCOMMA idlist
-       ;
-
-id : tIDENTIFIER
-   | tINT
-   | tFLOAT
-   | tBOOL
-   | tSTRING
-   | tRUNE
-   ;
-
-arglist : tIDENTIFIER tCOMMA arglist
-        | tIDENTIFIER
+varSpec : idlist type
+        | idlist tASSIGN expr_list
+        | idlist type tASSIGN expr_list
         ;
 
-type : tINT
-     | tFLOAT
-     | tSTRING
-     | tBOOL
-     | tRUNE
+varDclList : varDclList varSpec tSEMICOLON
+           | %empty
+           ;
+
+idlist : tIDENTIFIER
+       | tIDENTIFIER tCOMMA idlist
+       ;
+
+typeDcl : tTYPE typeSpec tSEMICOLON
+        | tTYPE tOPEN_PAREN typeDclList tCLOSE_PAREN tSEMICOLON
+        ;
+
+typeSpec : tIDENTIFIER type
+         ;
+
+type : tIDENTIFIER
      | tOPEN_SQ tCLOSE_SQ type
      | tOPEN_SQ tINTVAL tCLOSE_SQ type
      | tSTRUCT tOPEN_BRACE memberlist tCLOSE_BRACE
-     | tIDENTIFIER
      ;
 
 memberlist : memberlist member
@@ -119,20 +117,15 @@ memberlist : memberlist member
 member : idlist type tSEMICOLON
        ;
 
-typeDcl : tTYPE types tSEMICOLON
-        | tTYPE tOPEN_PAREN typeslist tCLOSE_PAREN tSEMICOLON
-        ;
-
-typeslist : typeslist types tSEMICOLON
-          | %empty
-          ;
-
-types : tIDENTIFIER type ;
+typeDclList : typeDclList typeSpec tSEMICOLON
+            | %empty
+            ;
 
 funcDcl : tFUNC tIDENTIFIER function
         ;
 
-function : signature body ;
+function : signature block
+         ;
 
 signature : parameters
           | parameters type
@@ -147,13 +140,18 @@ parameter_list : parameter_list tCOMMA parameter
                | parameter
                ;
 
-parameter : arglist type ;
+parameter : arglist type
+          ;
 
-body : block ;
+arglist : tIDENTIFIER tCOMMA arglist
+        | tIDENTIFIER
+        ;
 
-block : simple_block tSEMICOLON ;
+block : simple_block tSEMICOLON
+      ;
 
-simple_block : tOPEN_BRACE statement_list tCLOSE_BRACE ;
+simple_block : tOPEN_BRACE statement_list tCLOSE_BRACE
+             ;
 
 statement_list : statement_list statement
                | %empty
@@ -172,11 +170,11 @@ statement : dcl
           | simple_stmt
           ;
 
-print_stmt : tPRINT tOPEN_PAREN exprlist tCLOSE_PAREN tSEMICOLON
+print_stmt : tPRINT tOPEN_PAREN expr_list tCLOSE_PAREN tSEMICOLON
            | tPRINT tOPEN_PAREN tCLOSE_PAREN tSEMICOLON
            ;
 
-println_stmt : tPRINTLN tOPEN_PAREN exprlist tCLOSE_PAREN tSEMICOLON
+println_stmt : tPRINTLN tOPEN_PAREN expr_list tCLOSE_PAREN tSEMICOLON
              | tPRINTLN tOPEN_PAREN tCLOSE_PAREN tSEMICOLON
              ;
 
@@ -196,7 +194,8 @@ else_block : block
            | if_stmt
            ;
 
-for_stmt : tFOR for_condition block ;
+for_stmt : tFOR for_condition block
+         ;
 
 for_condition : condition
               | simple_stmt_no_semi tSEMICOLON condition tSEMICOLON simple_stmt_no_semi
@@ -219,13 +218,15 @@ caselist : case caselist
          | %empty
          ;
 
-case : tCASE exprlist tCOLON statement_list
+case : tCASE expr_list tCOLON statement_list
      | tDEFAULT tCOLON statement_list
      ;
 
-break_stmt : tBREAK tSEMICOLON ;
+break_stmt : tBREAK tSEMICOLON
+           ;
 
-continue_stmt : tCONTINUE tSEMICOLON ;
+continue_stmt : tCONTINUE tSEMICOLON
+              ;
 
 simple_stmt : simple_stmt_no_semi tSEMICOLON
             ;
@@ -238,12 +239,14 @@ simple_stmt_no_semi : expr
                     | %empty
                     ;
 
-assignment_stmt : exprlist assign exprlist ;
+assignment_stmt : expr_list assign expr_list
+                ;
 
-shortDcl : exprlist tDECL exprlist ;
+shortDcl : expr_list tDECL expr_list
+         ;
 
-exprlist : expr
-         | exprlist tCOMMA expr
+expr_list : expr
+         | expr_list tCOMMA expr
          ;
 
 expr : expr tPLUS expr
@@ -265,7 +268,7 @@ expr : expr tPLUS expr
      | expr tXOR expr
      | expr tLOGICAL_AND expr
      | expr tLOGICAL_OR expr
-     | unary_op expr %prec tUNARY
+     | unary_op expr %prec UNARY
      | append_expr
      | other_expressions
      ;
@@ -276,7 +279,8 @@ unary_op : tPLUS
          | tXOR
          ;
 
-append_expr : tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA expr tCLOSE_PAREN ;
+append_expr : tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA expr tCLOSE_PAREN
+            ;
 
 other_expressions : function_call
                   | operand
@@ -295,7 +299,7 @@ operand : tOPEN_PAREN expr tCLOSE_PAREN
         | tRAWSTRVAL
         ;
 
-function_call : other_expressions tOPEN_PAREN exprlist tCLOSE_PAREN
+function_call : other_expressions tOPEN_PAREN expr_list tCLOSE_PAREN
               | other_expressions tOPEN_PAREN tCLOSE_PAREN
               ;
 
@@ -306,7 +310,8 @@ typecasting : tINT tOPEN_PAREN expr tCLOSE_PAREN
             | tSTRING tOPEN_PAREN expr tCLOSE_PAREN
             ;
 
-array_index : tOPEN_SQ expr tCLOSE_SQ ;
+array_index : tOPEN_SQ expr tCLOSE_SQ
+            ;
 
 slice_range : tOPEN_SQ expr tCOLON expr tCLOSE_SQ
             | tOPEN_SQ tCOLON expr tCLOSE_SQ
@@ -316,7 +321,8 @@ slice_range : tOPEN_SQ expr tCOLON expr tCLOSE_SQ
             | tOPEN_SQ tCOLON expr tCOLON expr tCLOSE_SQ
             ;
 
-struct_selector : tPERIOD tIDENTIFIER ;
+struct_selector : tPERIOD tIDENTIFIER
+                ;
 
 assign : tASSIGN
        | tPLUS_EQ
