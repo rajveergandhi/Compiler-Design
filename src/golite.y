@@ -42,7 +42,6 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
 %token tOR_EQ tLT tGT tLT_EQ tGT_EQ
 %token tXOR_EQ tARROW tSHIFT_LEFT tSHIFT_RIGHT tSHIFT_LEFT_EQ
 %token tSHIFT_RIGHT_EQ tINC tDEC tAMP_XOR tAMP_XOR_EQ
-%token tINT tFLOAT tSTRING tBOOL tRUNE
 %token <int_val> tINTVAL
 %token <float_val> tFLOATVAL
 %token <string_val> tSTRINGVAL
@@ -140,12 +139,8 @@ parameter_list : parameter_list tCOMMA parameter
                | parameter
                ;
 
-parameter : arglist type
+parameter : idlist type
           ;
-
-arglist : tIDENTIFIER tCOMMA arglist
-        | tIDENTIFIER
-        ;
 
 block : simple_block tSEMICOLON
       ;
@@ -284,7 +279,6 @@ append_expr : tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA expr tCLOSE_PAREN
 
 other_expressions : function_call
                   | operand
-                  | typecasting
                   | other_expressions array_index
                   | other_expressions slice_range
                   | other_expressions struct_selector
@@ -302,13 +296,6 @@ operand : tOPEN_PAREN expr tCLOSE_PAREN
 function_call : other_expressions tOPEN_PAREN expr_list tCLOSE_PAREN
               | other_expressions tOPEN_PAREN tCLOSE_PAREN
               ;
-
-typecasting : tINT tOPEN_PAREN expr tCLOSE_PAREN
-            | tFLOAT tOPEN_PAREN expr tCLOSE_PAREN
-            | tBOOL tOPEN_PAREN expr tCLOSE_PAREN
-            | tRUNE tOPEN_PAREN expr tCLOSE_PAREN
-            | tSTRING tOPEN_PAREN expr tCLOSE_PAREN
-            ;
 
 array_index : tOPEN_SQ expr tCLOSE_SQ
             ;
