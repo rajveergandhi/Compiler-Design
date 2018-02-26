@@ -32,8 +32,9 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
 %type <node> typeDcl typeSpec type memberlist member typeDclList funcDcl signature parameter_list 
 %type <node> block statement_list statement print_stmt println_stmt return_stmt if_stmt else_block for_stmt 
 %type <node> for_condition condition switch_stmt switch_condition caselist case break_stmt continue_stmt simple_stmt 
-%type <node> simple_stmt_no_semi assignment_stmt shortDcl expr_list expr unary_op append_expr other_expressions operand 
-%type <node> function_call array_index struct_selector assign 
+%type <node> simple_stmt_no_semi assignment_stmt shortDcl expr_list expr append_expr other_expressions operand 
+%type <node> function_call array_index
+%type <string_val> assign_op
 
 %token <string_val> tBREAK tDEFAULT tFUNC tINTERFACE tSELECT
 %token <string_val> tCASE tDEFER tGO tMAP tSTRUCT
@@ -84,8 +85,8 @@ dcl : varDcl {$$ = $1;}
     | typeDcl {$$ = $1;}
     ;
 
-varDcl : tVAR varSpec tSEMICOLON {$$ = $1;}
-       | tVAR tOPEN_PAREN varDclList tCLOSE_PAREN tSEMICOLON {$$ = $1;}
+varDcl : tVAR varSpec tSEMICOLON {$$ = $2;}
+       | tVAR tOPEN_PAREN varDclList tCLOSE_PAREN tSEMICOLON {$$ = $3;}
        ;
 
 varSpec : idlist type {$$ = makeDCL_var($1, $2, NULL);}
@@ -94,22 +95,22 @@ varSpec : idlist type {$$ = makeDCL_var($1, $2, NULL);}
         ;
 
 varDclList : varDclList varSpec tSEMICOLON {$$ = makeDCL_vars($1, $2);}
-           | %empty {$$ = NULL;}
+           | %empty {$$ = makeDCL_var(NULL, NULL, NULL);}
            ;
 
 idlist : tIDENTIFIER {$$ = makeIDLIST($1, NULL);}
        | tIDENTIFIER tCOMMA idlist {$$ = makeIDLIST($1, $3);}
        ;
 
-typeDcl : tTYPE typeSpec tSEMICOLON {$$ = $1;}
-        | tTYPE tOPEN_PAREN typeDclList tCLOSE_PAREN tSEMICOLON {$$ = $1;}
+typeDcl : tTYPE typeSpec tSEMICOLON {$$ = $2;}
+        | tTYPE tOPEN_PAREN typeDclList tCLOSE_PAREN tSEMICOLON {$$ = $3;}
         ;
 
 typeSpec : tIDENTIFIER type {$$ = makeDCL_type($1, $2);}
          ;
 
 type : tIDENTIFIER {$$ = makeEXP_identifier($1);}
-     | tOPEN_SQ tCLOSE_SQ type {$$ = makeArray(NULL, $3);}
+     | tOPEN_SQ tCLOSE_SQ type {$$ = makeSlice($3);}
      | tOPEN_SQ tINTVAL tCLOSE_SQ type {$$ = makeArray($2, $4);}
      | tSTRUCT tOPEN_BRACE memberlist tCLOSE_BRACE {$$ = $3;}
      ;
@@ -122,7 +123,7 @@ member : idlist type tSEMICOLON {$$ = makeStruct($1, $2);}
        ;
 
 typeDclList : typeDclList typeSpec tSEMICOLON {$$ = makeDCL_types($1, $2);}
-            | %empty {$$ = NULL;}
+            | %empty  {$$ = makeDCL_type(NULL, NULL);}
             ;
 
 funcDcl : tFUNC tIDENTIFIER signature block {$$ = makeFUNCTION($2, $3, $4);}
@@ -168,7 +169,7 @@ println_stmt : tPRINTLN tOPEN_PAREN expr_list tCLOSE_PAREN tSEMICOLON {$$ = make
              | tPRINTLN tOPEN_PAREN tCLOSE_PAREN tSEMICOLON {$$ = makeSTATEMENT_print(NULL, true);}
              ;
 
-return_stmt : tRETURN expr tSEMICOLON {$$ = makeSTATEMENT_return($1);}
+return_stmt : tRETURN expr tSEMICOLON {$$ = makeSTATEMENT_return($2);}
             | tRETURN tSEMICOLON {$$ = makeSTATEMENT_return(NULL);}
             ;
 
@@ -193,7 +194,7 @@ condition : expr {$$ = $1;}
           | %empty {$$ = NULL;}
           ;
 
-switch_stmt : tSWITCH switch_condition tOPEN_BRACE caselist tCLOSE_BRACE {$$ = makeSTATEMENT_switch($2, $3);}
+switch_stmt : tSWITCH switch_condition tOPEN_BRACE caselist tCLOSE_BRACE {$$ = makeSTATEMENT_switch($2, $4);}
             ;
 
 switch_condition : simple_stmt {$$ = makeSTATEMENT_switchCondition($1, NULL);}
@@ -227,7 +228,7 @@ simple_stmt_no_semi : expr {$$ = $1;}
                     | %empty {$$ = NULL;}
                     ;
 
-assignment_stmt : expr_list assign expr_list {$$ = makeSTATEMENT_assign($1, $2, $3);}
+assignment_stmt : expr_list assign_op expr_list {$$ = makeSTATEMENT_assign($1, $2, $3);}
                 ;
 
 shortDcl : expr_list tDECL expr_list {$$ = makeSTATEMENT_shortDcl($1, $3);}
@@ -256,16 +257,13 @@ expr : expr tPLUS expr {$$ = makeEXP_binary(k_expressionKindPlus, $1, $3);}
      | expr tXOR expr {$$ = makeEXP_binary(k_expressionKindXor, $1, $3);}
      | expr tLOGICAL_AND expr {$$ = makeEXP_binary(k_expressionKindLogicalAnd, $1, $3);}
      | expr tLOGICAL_OR expr {$$ = makeEXP_binary(k_expressionKindLogicalOr, $1, $3);}
-     | unary_op expr %prec UNARY {$$ = makeEXP_unary($1, $2);}
+     | tPLUS expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindPlus, $2);}
+     | tMINUS expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindMinus, $2);}
+     | tNOT expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindNot, $2);}
+     | tXOR expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindXor, $2);}
      | append_expr {$$ = $1;}
      | other_expressions {$$ = $1;}
      ;
-
-unary_op : tPLUS {$$ = $1;}
-         | tMINUS {$$ = $1;}
-         | tNOT {$$ = $1;}
-         | tXOR {$$ = $1;}
-         ;
 
 append_expr : tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA expr tCLOSE_PAREN {$$ = makeAPPEND($3, $5);}
             ;
@@ -273,7 +271,7 @@ append_expr : tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA expr tCLOSE_PAREN {$$ = mak
 other_expressions : function_call {$$ = $1;}
                   | operand {$$ = $1;}
                   | other_expressions array_index {$$ = makeEXPRESSION_arrayIndex($1, $2);}
-                  | other_expressions struct_selector {$$ = makeEXPRESSION_structSelector($1, $2);}
+                  | other_expressions tPERIOD tIDENTIFIER {$$ = makeEXPRESSION_structSelector($1, $3);}
                   ;
 
 operand : tOPEN_PAREN expr tCLOSE_PAREN {$$ = $2;}
@@ -285,17 +283,14 @@ operand : tOPEN_PAREN expr tCLOSE_PAREN {$$ = $2;}
         | tRUNEVAL {$$ = makeEXP_runeLiteral($1);}
         ;
 
-function_call : other_expressions tOPEN_PAREN expr_list tCLOSE_PAREN {$$ = makeFUNCTIONCALL($1, $2);}
+function_call : other_expressions tOPEN_PAREN expr_list tCLOSE_PAREN {$$ = makeFUNCTIONCALL($1, $3);}
               | other_expressions tOPEN_PAREN tCLOSE_PAREN {$$ = makeFUNCTIONCALL($1, NULL);}
               ;
 
-array_index : tOPEN_SQ expr tCLOSE_SQ {$$ = $1;}
+array_index : tOPEN_SQ expr tCLOSE_SQ {$$ = $2;}
             ;
 
-struct_selector : tPERIOD tIDENTIFIER {$$ = $1;}
-                ;
-
-assign : tASSIGN {$$ = $1;}
+assign_op : tASSIGN {$$ = $1;}
        | tPLUS_EQ {$$ = $1;}
        | tMINUS_EQ {$$ = $1;}
        | tMULT_EQ {$$ = $1;}

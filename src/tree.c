@@ -23,7 +23,7 @@ NODE *makePACKAGE(char *package) {
 NODE *makeTOPLEVELDECLS(NODE *topLevelDecls, NODE *topLevelDecl) {
     // make a linked list structure so that each item points to the next
     if (topLevelDecls)
-        topLevelDecl->val.topLevelDecl.next = topLevelDecls;
+        topLevelDecl->val.next = topLevelDecls;
     return topLevelDecl;
 }
 
@@ -31,15 +31,16 @@ NODE *makeDCL_var(NODE *idlist, NODE *type, NODE *expr_list) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_dcl_var;
-    node->val.varDcl.idlist = idlist;
-    node->val.varDcl.type = type;
-    node->val.varDcl.expr_list = expr_list;
+    node->val.stmt.type.varDcl.idlist = idlist;
+    node->val.stmt.type.varDcl.type = type;
+    node->val.stmt.type.varDcl.expr_list = expr_list;
     return node;
 }
+
 NODE *makeDCL_vars(NODE *varDcls, NODE *varDcl) {
     // make a linked list structure so that each item points to the next
     if (varDcls)
-        varDcl->val.varDcl.next = varDcls;
+        varDcl->val.stmt.type.varDcl.next = varDcls;
     return varDcl;
 }
 
@@ -56,27 +57,27 @@ NODE *makeDCL_type(char *identifier, NODE *type) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_dcl_type;
-    node->val.varType.identifier = identifier;
-    node->val.varType.type = type;
+    node->val.stmt.type.typeDcl.identifier = identifier;
+    node->val.stmt.type.typeDcl.type = type;
     return node;
 }
 
 NODE *makeDCL_types(NODE *typeDclList, NODE *typeDcl) {
     // make a linked list structure so that each item points to the next
     if (typeDclList)
-        typeDcl->val.varType.next = typeDclList;
+        typeDcl->val.stmt.type.typeDcl.next = typeDclList;
     return typeDcl;
 }
 
-NODE *makeEXP_identifier(char *identifier) {
+NODE *makeSlice(NODE *type) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = k_identifier;
-    node->val.identifier = identifier;
+    node->kind = k_slice;
+    node->val.typeSlice.type = type;
     return node;
 }
 
-NODE *makeArray(NODE *intval, NODE *type) {
+NODE *makeArray(int intval, NODE *type) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_array;
@@ -84,6 +85,7 @@ NODE *makeArray(NODE *intval, NODE *type) {
     node->val.typeArray.type = type;
     return node;
 }
+
 NODE *makeStruct(NODE *idlist, NODE *type) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
@@ -92,6 +94,7 @@ NODE *makeStruct(NODE *idlist, NODE *type) {
     node->val.typeStruct.type = type;
     return node;
 }
+
 NODE *makeStruct_members(NODE *members, NODE *member) {
     // make a linked list structure so that each item points to the next
     if (members)
@@ -103,17 +106,18 @@ NODE *makeFUNCTION(char *identifier, NODE *signature, NODE *block) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_function;
-    node->val.typeFunction.identifier = identifier;
-    node->val.typeFunction.signature = signature;
-    node->val.typeFunction.block = block;
+    node->val.funcDcl.identifier = identifier;
+    node->val.funcDcl.signature = signature;
+    node->val.funcDcl.block = block;
     return node;
 }
+
 NODE *makeFUNCTION_signature(NODE *params, NODE *type) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_function_signature;
-    node->val.func_sign.params = params;
-    node->val.func_sign.type = type;
+    node->val.funcSign.params = params;
+    node->val.funcSign.type = type;
     return node;
 }
 
@@ -121,9 +125,9 @@ NODE *makeFUNCTION_parameterList(NODE *param_list, NODE *idlist, NODE *type) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_function_params;
-    node->val.func_params.param_list = param_list;
-    node->val.func_params.idlist = idlist;
-    node->val.func_params.type = type;
+    node->val.funcParams.param_list = param_list;
+    node->val.funcParams.idlist = idlist;
+    node->val.funcParams.type = type;
     return node;
 }
 
@@ -131,7 +135,7 @@ NODE *makeBLOCK(NODE *statements) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_block;
-    node->val.statements = statements;
+    node->val.stmt.type.block.stmts = statements;
     return node;
 }
 
@@ -142,234 +146,190 @@ NODE *makeSTATEMENTS(NODE *stmts, NODE *stmt) {
     return stmt;
 }
 
-// add this to tree.h: bool println is true iff println was called
 NODE *makeSTATEMENT_print(NODE *expr_list, bool println) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_statementKindPrint;
-    node->val.stmt.print.expr_list = expr_list;
-    node->val.stmt.print.println = println;
+    node->val.stmt.type.print.expr_list = expr_list;
+    node->val.stmt.type.print.println = println;
     return node;
 }
 
-NODE *makeSTATEMENT_return(NODE *return) {
+NODE *makeSTATEMENT_return(NODE *stmtReturn) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindReturn;
+    node->val.stmt.type.stmtReturn.expr = stmtReturn;
     return node;
 }
 
-NODE *makeSTATEMENT_if($2, $3, $4, NULL) {
+NODE *makeSTATEMENT_if(NODE *simple, NODE *expr, NODE *stmts, NODE *elseBlock) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindIf;
+    node->val.stmt.type.stmtIf.simple = simple;
+    node->val.stmt.type.stmtIf.expr = expr;
+    node->val.stmt.type.stmtIf.stmts = stmts;
+    node->val.stmt.type.stmtIf.elseBlock = elseBlock;
     return node;
 }
 
-NODE *makeSTATEMENT_for($2, $3) {
+NODE *makeSTATEMENT_for(NODE *condition, NODE *block) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindFor;
+    node->val.stmt.type.stmtFor.condition = condition;
+    node->val.stmt.type.stmtFor.block = block;
     return node;
 }
 
-NODE *makeSTATEMENT_forCondition($1, $3, $5) {
+NODE *makeSTATEMENT_forCondition(NODE *part1, NODE *part2, NODE *part3) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindForCond;
+    node->val.stmtForCondition.part1 = part1;
+    node->val.stmtForCondition.part2 = part2;
+    node->val.stmtForCondition.part3 = part3;
     return node;
 }
 
-NODE *makeSTATEMENT_switch($2, $3) {
+NODE *makeSTATEMENT_switch(NODE *condition, NODE *caselist) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindSwitch;
+    node->val.stmt.type.stmtSwitch.condition = condition;
+    node->val.stmt.type.stmtSwitch.caselist = caselist;
     return node;
 }
 
-NODE *makeSTATEMENT_switchCondition($1, NULL) {
+NODE *makeSTATEMENT_switchCondition(NODE *simple, NODE *expr) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindSwitchCondition;
+    node->val.stmtSwitchCondition.simple = simple;
+    node->val.stmtSwitchCondition.expr = expr;
     return node;
 }
 
-NODE *makeSTATEMENT_switchCases($1, $2) {
-    NODE *node = malloc(sizeof(NODE));
-    node->lineno = yylineno;
-    node->kind = 
-    node->val.
-    return node;
+NODE *makeSTATEMENT_switchCases(NODE *givenCase, NODE *cases) {
+    // make a linked list structure so that each item points to the next
+    if (cases)
+        givenCase->val.stmtSwitchCase.next = cases;
+    return givenCase;
 }
 
-NODE *makeSTATEMENT_switchCase($2, $4) {
+NODE *makeSTATEMENT_switchCase(NODE *expr_list, NODE *statement_list) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindSwitchCase;
+    node->val.stmtSwitchCase.expr_list = expr_list;
+    node->val.stmtSwitchCase.statement_list = statement_list;
     return node;
 }
 
 NODE *makeSTATEMENT_break() {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindBreak;
     return node;
 }
 
 NODE *makeSTATEMENT_continue() {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindContinue;
     return node;
 }
 
-NODE *makeSTATEMENT_simple($1) {
+NODE *makeSTATEMENT_simple(NODE *simple) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindSimple;
+    node->val.stmt.type.stmtSimple.simple = simple;
     return node;
 }
 
-NODE *makeSTATEMENT_simpleIncrement($1, true) {
+NODE *makeSTATEMENT_simpleIncrement(NODE *expr, bool inc) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindIncrement;
+    node->val.stmt.type.stmtInc.expr = expr;
+    node->val.stmt.type.stmtInc.inc = inc;
     return node;
 }
 
-NODE *makeSTATEMENT_assign($1, $2, $3) {
+NODE *makeSTATEMENT_assign(NODE *LHS_expr_list, char *assign_op, NODE *RHS_expr_list) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindAssign;
+    node->val.stmt.type.stmtAssign.LHS_expr_list = LHS_expr_list;
+    node->val.stmt.type.stmtAssign.assign_op = assign_op;
+    node->val.stmt.type.stmtAssign.RHS_expr_list = RHS_expr_list;
     return node;
 }
 
-NODE *makeSTATEMENT_shortDcl($1, $3) {
+NODE *makeSTATEMENT_shortDcl(NODE *LHS_expr_list, NODE *RHS_expr_list) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_statementKindShortDcl;
+    node->val.stmt.type.stmtShortDcl.LHS_expr_list = LHS_expr_list;
+    node->val.stmt.type.stmtShortDcl.RHS_expr_list = RHS_expr_list;
     return node;
 }
 
-NODE *makeEXPRLIST($1, $3) {
+NODE *makeEXPRLIST(NODE *expr_list, NODE *expr) {
+    // make a linked list structure so that each item points to the next
+    if (expr_list)
+        expr->val.expr.next = expr_list;
+    return expr;
+}
+
+NODE *makeEXP_binary(Kind op, NODE *lhs, NODE *rhs) {
+    // all binary expressions
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = op;
+    node->val.expr.type.exp_binary.lhs = lhs;
+    node->val.expr.type.exp_binary.rhs = rhs;
     return node;
 }
 
-NODE *makeEXP_binary(k_expressionKindPlus, $1, $3) {
+NODE *makeEXP_unary(Kind op, NODE *expr) {
+    // all unary expressions
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = op;
+    node->val.expr.type.exp_unary = expr;
     return node;
 }
 
-NODE *makeEXP_unary($1, $2) {
+NODE *makeAPPEND(char *identifier, NODE *expr) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_append;
+    node->val.expr.type.expr_append.identifier = identifier;
+    node->val.expr.type.expr_append.expr = expr;
     return node;
 }
 
-NODE *makeAPPEND($3, $5) {
+NODE *makeEXPRESSION_arrayIndex(NODE *expr, NODE *index) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_expressionArrayIndex;
+    node->val.expr.type.arrayIndex.expr = expr;
+    node->val.expr.type.arrayIndex.index = index;
     return node;
 }
 
-NODE *makeEXPRESSION_arrayIndex($1, $2) {
+NODE *makeEXPRESSION_structSelector(NODE *expr, char *identifier) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = 
-    node->val.
+    node->kind = k_expressionKindStructSelector;
+    node->val.expr.type.structSelector.expr = expr;
+    node->val.expr.type.structSelector.identifier = identifier;
     return node;
 }
 
-NODE *makeEXPRESSION_structSelector($1, $2) {
-    NODE *node = malloc(sizeof(NODE));
-    node->lineno = yylineno;
-    node->kind = 
-    node->val.
-    return node;
-}
-
-NODE *makeEXP_identifier($1) {
-    NODE *node = malloc(sizeof(NODE));
-    node->lineno = yylineno;
-    node->kind = 
-    node->val.
-    return node;
-}
-
-NODE *makeEXP_intLiteral($1) {
-    NODE *node = malloc(sizeof(NODE));
-    node->lineno = yylineno;
-    node->kind = 
-    node->val.
-    return node;
-}
-
-NODE *makeEXP_floatLiteral($1) {
-    NODE *node = malloc(sizeof(NODE));
-    node->lineno = yylineno;
-    node->kind = 
-    node->val.
-    return node;
-}
-
-NODE *makeEXP_stringLiteral($1, true) {
-    NODE *node = malloc(sizeof(NODE));
-    node->lineno = yylineno;
-    node->kind = 
-    node->val.
-    return node;
-}
-
-NODE *makeEXP_stringLiteral($1, false) {
-    NODE *node = malloc(sizeof(NODE));
-    node->lineno = yylineno;
-    node->kind = 
-    node->val.
-    return node;
-}
-
-NODE *makeEXP_runeLiteral($1) {
-    NODE *node = malloc(sizeof(NODE));
-    node->lineno = yylineno;
-    node->kind = 
-    node->val.
-    return node;
-}
-
-NODE *makeFUNCTIONCALL($1, $2) {
-    NODE *node = malloc(sizeof(NODE));
-    node->lineno = yylineno;
-    node->kind = 
-    node->val.
-    return node;
-}
-
-
-/*
 NODE *makeEXP_identifier(char *identifier) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
@@ -394,45 +354,28 @@ NODE *makeEXP_floatLiteral(float floatLiteral) {
     return node;
 }
 
-NODE *makeEXP_boolLiteral(bool boolLiteral) {
-    NODE *node = malloc(sizeof(NODE));
-    node->lineno = yylineno;
-    node->kind = k_expressionKindBoolLiteral;
-    node->val.boolLiteral = boolLiteral;
-    return node;
-}
-
-NODE *makeEXP_stringLiteral(char *stringLiteral) {
+NODE *makeEXP_stringLiteral(char *stringLiteral, bool interpreted) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_expressionKindStringLiteral;
-    node->val.stringLiteral = stringLiteral;
+    node->val.stringLiteral.stringLiteral = stringLiteral;
+    node->val.stringLiteral.interpreted = interpreted;
     return node;
 }
 
-NODE *makeEXP_binary(Kind op, NODE *lhs, NODE *rhs) {
-    // binary expressions: addition, subtraction, multiplication, division, equalsequals, notequals, logical and, logical or
+NODE *makeEXP_runeLiteral(char *runeLiteral) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = op;
-    node->val.exp_binary.lhs = lhs;
-    node->val.exp_binary.rhs = rhs;
+    node->kind = k_expressionKindRuneLiteral;
+    node->val.runeLiteral = runeLiteral;
     return node;
 }
 
-NODE *makeEXP_not(NODE *expr) {
+NODE *makeFUNCTIONCALL(NODE *id, NODE *args) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
-    node->kind = k_expressionKindNot;
-    node->val.exp_unary = expr;
+    node->kind = k_function_call;
+    node->val.expr.type.funcCall.id = id;
+    node->val.expr.type.funcCall.args = args;
     return node;
 }
-
-NODE *makeEXP_unaryminus(NODE *expr) {
-    NODE *node = malloc(sizeof(NODE));
-    node->lineno = yylineno;
-    node->kind = k_expressionKindUnaryMinus;
-    node->val.exp_unary = expr;
-    return node;
-}
-*/
