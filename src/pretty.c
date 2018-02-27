@@ -55,6 +55,19 @@ void prettyPrint(NODE *node) {
             }
             break;
         case k_dcl_type:
+            for (NODE *TOPLEVEL = node; TOPLEVEL; TOPLEVEL = TOPLEVEL->val.toplevel.next) {
+                if (TOPLEVEL->kind == k_dcl_type) {
+                    for (NODE *i = TOPLEVEL; i != NULL; i = i->val.toplevel.type.typeDcl.next) {
+                        printf("type ");
+                        printf("%s ", i->val.toplevel.type.typeDcl.identifier);
+                        prettyPrint(i->val.toplevel.type.typeDcl.type);
+                        printf("\n");
+                    }
+                }
+                else {
+                    prettyPrint(TOPLEVEL);
+                }
+            }
             break;
         case k_array:
             printf("[");
@@ -83,6 +96,8 @@ void prettyPrint(NODE *node) {
                     prettyPrint(node->val.toplevel.type.funcDcl.block);
                     printf("}\n");
                 }
+                else
+                    prettyPrint(TOPLEVEL);
             }
             break;
         case k_function_signature:

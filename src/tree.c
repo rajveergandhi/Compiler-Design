@@ -61,6 +61,7 @@ NODE *makeDCL_type(char *identifier, NODE *type) {
     node->kind = k_dcl_type;
     node->val.toplevel.type.typeDcl.identifier = identifier;
     node->val.toplevel.type.typeDcl.type = type;
+    node->val.toplevel.type.typeDcl.next = NULL;
     return node;
 }
 
