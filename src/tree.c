@@ -24,7 +24,7 @@ NODE *makePACKAGE(char *package) {
 NODE *makeTOPLEVELDECLS(NODE *topLevelDecl, NODE *topLevelDecls) {
     // make a linked list structure so that each item points to the next
     if (topLevelDecls)
-        topLevelDecl->val.next = topLevelDecls;
+        topLevelDecl->val.toplevel.next = topLevelDecls;
     return topLevelDecl;
 }
 
@@ -32,17 +32,17 @@ NODE *makeDCL_var(NODE *idlist, NODE *type, NODE *expr_list) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_dcl_var;
-    node->val.stmt.type.varDcl.idlist = idlist;
-    node->val.stmt.type.varDcl.type = type;
-    node->val.stmt.type.varDcl.expr_list = expr_list;
-    node->val.stmt.type.varDcl.next = NULL;
+    node->val.toplevel.type.varDcl.idlist = idlist;
+    node->val.toplevel.type.varDcl.type = type;
+    node->val.toplevel.type.varDcl.expr_list = expr_list;
+    node->val.toplevel.type.varDcl.next = NULL;
     return node;
 }
 
 NODE *makeDCL_vars(NODE *varDcl, NODE *varDcls) {
     // make a linked list structure so that each item points to the next
     if (varDcls)
-        varDcl->val.stmt.type.varDcl.next = varDcls;
+        varDcl->val.toplevel.type.varDcl.next = varDcls;
     return varDcl;
 }
 
@@ -50,8 +50,8 @@ NODE *makeIDLIST(char *id, NODE *nextId) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_idlist;
-    node->val.idlist.identifier = id;
-    node->val.idlist.next = nextId;
+    node->val.toplevel.type.idlist.identifier = id;
+    node->val.toplevel.type.idlist.next = nextId;
     return node;
 }
 
@@ -59,15 +59,15 @@ NODE *makeDCL_type(char *identifier, NODE *type) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_dcl_type;
-    node->val.stmt.type.typeDcl.identifier = identifier;
-    node->val.stmt.type.typeDcl.type = type;
+    node->val.toplevel.type.typeDcl.identifier = identifier;
+    node->val.toplevel.type.typeDcl.type = type;
     return node;
 }
 
 NODE *makeDCL_types(NODE *type, NODE *types) {
     // make a linked list structure so that each item points to the next
     if (types)
-        type->val.stmt.type.typeDcl.next = types;
+        type->val.toplevel.type.typeDcl.next = types;
     return type;
 }
 

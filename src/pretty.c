@@ -24,22 +24,24 @@ void prettyPrint(NODE *node) {
             printf("package %s\n", node->val.package);
             break;
         case k_dcl_var:
-            for (NODE *i = node; i != NULL; i = i->val.stmt.type.varDcl.next) 
-            {
-                printf("var ");
-                prettyPrint(i->val.stmt.type.varDcl.idlist);
-                if (i->val.stmt.type.varDcl.type) {
-                    printf(" ");
-                    prettyPrint(i->val.stmt.type.varDcl.type);
-                }
-                if (i->val.stmt.type.varDcl.expr_list) {
-                    printf(" = ");
-                    for (NODE *j = i->val.stmt.type.varDcl.expr_list; j != NULL; j = j->val.expr.next) {
-                        prettyPrint(j);
-                        if (j->val.expr.next != NULL) printf(", ");
+            for (NODE *TOPLEVEL = node; TOPLEVEL; TOPLEVEL = TOPLEVEL->val.toplevel.next) {
+                for (NODE *i = TOPLEVEL; i != NULL; i = i->val.toplevel.type.varDcl.next)
+                {
+                    printf("var ");
+                    prettyPrint(i->val.toplevel.type.varDcl.idlist);
+                    if (i->val.toplevel.type.varDcl.type) {
+                        printf(" ");
+                        prettyPrint(i->val.toplevel.type.varDcl.type);
                     }
+                    if (i->val.toplevel.type.varDcl.expr_list) {
+                        printf(" = ");
+                        for (NODE *j = i->val.toplevel.type.varDcl.expr_list; j != NULL; j = j->val.expr.next) {
+                            prettyPrint(j);
+                            if (j->val.expr.next != NULL) printf(", ");
+                        }
+                    }
+                    printf("\n");
                 }
-                printf("\n");
             }
             break;
         case k_idlist:
@@ -51,10 +53,22 @@ void prettyPrint(NODE *node) {
         case k_dcl_type:
             break;
         case k_array:
+            printf("[");
+            printf("%d", node->val.typeArray.intval);
+            printf("]");
+            prettyPrint(node->val.typeArray.type);
             break;
         case k_slice:
+            printf("[");
+            printf("]");
+            prettyPrint(node->val.typeArray.type);
             break;
         case k_struct:
+            printf("struct {");
+            prettyPrint(node->val.typeStruct.idlist);
+            prettyPrint(node->val.typeStruct.type);
+            printf(";");
+            printf("}\n");
             break;
         case k_function:
             printf("func %s", node->val.funcDcl.identifier);
@@ -94,6 +108,10 @@ void prettyPrint(NODE *node) {
             printf(")\n");
             break;
         case k_function_call:
+            prettyPrint(node->val.expr.type.funcCall.id);
+            printf("(");
+            prettyPrint(node->val.expr.type.funcCall.args);
+            printf(")\n");
             //if (node->val.expr.next)
                 //prettyPrint(node->val.expr.next);
             break;

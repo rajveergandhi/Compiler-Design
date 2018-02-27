@@ -95,13 +95,19 @@ struct NODE {
         struct { NODE *expr_list; NODE *statement_list; NODE *next; } stmtSwitchCase;
         struct {
             union {
+                struct { NODE *idlist; NODE *type; NODE *expr_list; NODE *next; } varDcl;
+                struct { char *identifier; NODE *type; NODE *next; } typeDcl;
+                struct { char *identifier; NODE *next; } idlist;
+            } type;
+            NODE *next;
+        } toplevel;
+        struct {
+            union {
                 struct { NODE *stmts; } block;
                 struct { NODE *simple; } stmtSimple;
                 struct { NODE *expr; bool inc; } stmtInc;
                 struct { NODE *LHS_expr_list; char *assign_op; NODE *RHS_expr_list; } stmtAssign;
                 struct { NODE *LHS_expr_list; NODE *RHS_expr_list; } stmtShortDcl;
-                struct { NODE *idlist; NODE *type; NODE *expr_list; NODE *next; } varDcl;
-                struct { char *identifier; NODE *type; NODE *next; } typeDcl;
                 struct { NODE *expr_list; bool println; } print;
                 struct { NODE *expr; } stmtReturn;
                 struct { NODE *simple; NODE *expr; NODE *stmts; NODE *elseBlock; } stmtIf;
