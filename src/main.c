@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "tree.h"
-/*
 #include "pretty.h"
+/*
 #include "symbol.h"
 #include "type.h"
 #include "codegen.h"
@@ -34,11 +34,11 @@ int main(int argc, char* argv[])
                 yyparse();
                 printf("OK\n");
             }
-            /*
             else if (strcmp(mode, "pretty") == 0) {
                 yyparse();
                 prettyPrint(root);
             }
+            /*
             else if (strcmp(mode, "symbol") == 0) {
                 yyparse();
                 SymbolTable *t = initSymbolTable();

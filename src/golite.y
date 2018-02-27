@@ -73,7 +73,7 @@ program : package topLevelDecls {root = makePROGRAM($1,$2);}
 package : tPACKAGE tIDENTIFIER tSEMICOLON {$$ = makePACKAGE($2);}
         ;
 
-topLevelDecls : topLevelDecls topLevelDecl {$$ = makeTOPLEVELDECLS($1,$2);}
+topLevelDecls : topLevelDecl topLevelDecls {$$ = makeTOPLEVELDECLS($1, $2);}
               | %empty {$$ = NULL;}
               ;
 
@@ -94,7 +94,7 @@ varSpec : idlist type {$$ = makeDCL_var($1, $2, NULL);}
         | idlist type tASSIGN expr_list {$$ = makeDCL_var($1, $2, $4);}
         ;
 
-varDclList : varDclList varSpec tSEMICOLON {$$ = makeDCL_vars($1, $2);}
+varDclList : varSpec tSEMICOLON varDclList {$$ = makeDCL_vars($1, $3);}
            | %empty {$$ = makeDCL_var(NULL, NULL, NULL);}
            ;
 
@@ -115,14 +115,14 @@ type : tIDENTIFIER {$$ = makeEXP_identifier($1);}
      | tSTRUCT tOPEN_BRACE memberlist tCLOSE_BRACE {$$ = $3;}
      ;
 
-memberlist : memberlist member {$$ = makeStruct_members($1, $2);}
+memberlist : member memberlist {$$ = makeStruct_members($1, $2);}
            | %empty {$$ = NULL;}
            ;
 
 member : idlist type tSEMICOLON {$$ = makeStruct($1, $2);}
        ;
 
-typeDclList : typeDclList typeSpec tSEMICOLON {$$ = makeDCL_types($1, $2);}
+typeDclList : typeSpec tSEMICOLON typeDclList {$$ = makeDCL_types($1, $3);}
             | %empty  {$$ = makeDCL_type(NULL, NULL);}
             ;
 
@@ -144,7 +144,7 @@ parameter_list : parameter_list tCOMMA idlist type {$$ = makeFUNCTION_parameterL
 block : tOPEN_BRACE statement_list tCLOSE_BRACE tSEMICOLON {$$ = makeBLOCK($2);}
       ;
 
-statement_list : statement_list statement {$$ = makeSTATEMENTS($1, $2);}
+statement_list : statement statement_list {$$ = makeSTATEMENTS($1, $2);}
                | %empty {$$ = NULL;}
                ;
 
@@ -235,7 +235,7 @@ shortDcl : expr_list tDECL expr_list {$$ = makeSTATEMENT_shortDcl($1, $3);}
          ;
 
 expr_list : expr {$$ = $1;}
-          | expr_list tCOMMA expr {$$ = makeEXPRLIST($1, $3);}
+          | expr tCOMMA expr_list {$$ = makeEXPRLIST($1, $3);}
           ;
 
 expr : expr tPLUS expr {$$ = makeEXP_binary(k_expressionKindPlus, $1, $3);}

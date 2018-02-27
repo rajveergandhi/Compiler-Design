@@ -16,11 +16,11 @@ NODE *makePACKAGE(char *package) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_package;
-    node->val.identifier = package;
+    node->val.package = package;
     return node;
 }
 
-NODE *makeTOPLEVELDECLS(NODE *topLevelDecls, NODE *topLevelDecl) {
+NODE *makeTOPLEVELDECLS(NODE *topLevelDecl, NODE *topLevelDecls) {
     // make a linked list structure so that each item points to the next
     if (topLevelDecls)
         topLevelDecl->val.next = topLevelDecls;
@@ -34,10 +34,11 @@ NODE *makeDCL_var(NODE *idlist, NODE *type, NODE *expr_list) {
     node->val.stmt.type.varDcl.idlist = idlist;
     node->val.stmt.type.varDcl.type = type;
     node->val.stmt.type.varDcl.expr_list = expr_list;
+    node->val.stmt.type.varDcl.next = NULL;
     return node;
 }
 
-NODE *makeDCL_vars(NODE *varDcls, NODE *varDcl) {
+NODE *makeDCL_vars(NODE *varDcl, NODE *varDcls) {
     // make a linked list structure so that each item points to the next
     if (varDcls)
         varDcl->val.stmt.type.varDcl.next = varDcls;
@@ -62,11 +63,11 @@ NODE *makeDCL_type(char *identifier, NODE *type) {
     return node;
 }
 
-NODE *makeDCL_types(NODE *typeDclList, NODE *typeDcl) {
+NODE *makeDCL_types(NODE *type, NODE *types) {
     // make a linked list structure so that each item points to the next
-    if (typeDclList)
-        typeDcl->val.stmt.type.typeDcl.next = typeDclList;
-    return typeDcl;
+    if (types)
+        type->val.stmt.type.typeDcl.next = types;
+    return type;
 }
 
 NODE *makeSlice(NODE *type) {
@@ -95,7 +96,7 @@ NODE *makeStruct(NODE *idlist, NODE *type) {
     return node;
 }
 
-NODE *makeStruct_members(NODE *members, NODE *member) {
+NODE *makeStruct_members(NODE *member, NODE *members) {
     // make a linked list structure so that each item points to the next
     if (members)
         member->val.typeStruct.next = members;
@@ -139,7 +140,7 @@ NODE *makeBLOCK(NODE *statements) {
     return node;
 }
 
-NODE *makeSTATEMENTS(NODE *stmts, NODE *stmt) {
+NODE *makeSTATEMENTS(NODE *stmt, NODE *stmts) {
     // make a linked list structure so that each item points to the next
     if (stmts)
         stmt->val.stmt.next = stmts;
@@ -277,7 +278,7 @@ NODE *makeSTATEMENT_shortDcl(NODE *LHS_expr_list, NODE *RHS_expr_list) {
     return node;
 }
 
-NODE *makeEXPRLIST(NODE *expr_list, NODE *expr) {
+NODE *makeEXPRLIST(NODE *expr, NODE *expr_list) {
     // make a linked list structure so that each item points to the next
     if (expr_list)
         expr->val.expr.next = expr_list;
@@ -334,7 +335,7 @@ NODE *makeEXP_identifier(char *identifier) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_expressionKindIdentifier;
-    node->val.identifier = identifier;
+    node->val.expr.type.identifier = identifier;
     return node;
 }
 
@@ -342,7 +343,7 @@ NODE *makeEXP_intLiteral(int intLiteral) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_expressionKindIntLiteral;
-    node->val.intLiteral = intLiteral;
+    node->val.expr.type.intLiteral = intLiteral;
     return node;
 }
 
@@ -350,7 +351,7 @@ NODE *makeEXP_floatLiteral(float floatLiteral) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_expressionKindFloatLiteral;
-    node->val.floatLiteral = floatLiteral;
+    node->val.expr.type.floatLiteral = floatLiteral;
     return node;
 }
 
@@ -358,8 +359,8 @@ NODE *makeEXP_stringLiteral(char *stringLiteral, bool interpreted) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_expressionKindStringLiteral;
-    node->val.stringLiteral.stringLiteral = stringLiteral;
-    node->val.stringLiteral.interpreted = interpreted;
+    node->val.expr.type.stringLiteral.stringLiteral = stringLiteral;
+    node->val.expr.type.stringLiteral.interpreted = interpreted;
     return node;
 }
 
@@ -367,7 +368,7 @@ NODE *makeEXP_runeLiteral(char *runeLiteral) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_expressionKindRuneLiteral;
-    node->val.runeLiteral = runeLiteral;
+    node->val.expr.type.runeLiteral = runeLiteral;
     return node;
 }
 

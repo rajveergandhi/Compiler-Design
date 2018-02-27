@@ -78,11 +78,7 @@ struct NODE {
     //SymbolKind s_kind; // will be used for future milestone
     union {
         NODE *next; // for use with topLevelDecls, which can be: funcDcl, varDcl, typeDcl
-        char *identifier;
-        char *runeLiteral;
-        int intLiteral;
-        float floatLiteral;
-        struct { char *stringLiteral; bool interpreted; } stringLiteral;
+        char *package;
         struct { NODE *package; NODE *topLevelDecls; } program;
         struct { char *identifier; NODE *next; } idlist;
         struct { int intval; NODE *type; } typeArray;
@@ -113,6 +109,11 @@ struct NODE {
         } stmt;
         struct {
             union {
+                char *identifier;
+                char *runeLiteral;
+                int intLiteral;
+                float floatLiteral;
+                struct { char *stringLiteral; bool interpreted; } stringLiteral;
                 NODE *exp_unary;
                 struct { NODE *lhs; NODE *rhs; } exp_binary;
                 struct { char *identifier; NODE *expr; } expr_append;
@@ -127,22 +128,22 @@ struct NODE {
 
 NODE *makePROGRAM(NODE *package, NODE *topLevelDecls);
 NODE *makePACKAGE(char *package);
-NODE *makeTOPLEVELDECLS(NODE *topLevelDecls, NODE *topLevelDecl);
+NODE *makeTOPLEVELDECLS(NODE *topLevelDecl, NODE *topLevelDecls);
 NODE *makeDCL_var(NODE *idlist, NODE *type, NODE *expr_list); // type or expr_list (but not both) can be NULL
-NODE *makeDCL_vars(NODE *varDcls, NODE *varDcl);
+NODE *makeDCL_vars(NODE *varDcl, NODE *varDcls);
 NODE *makeIDLIST(char *id, NODE *nextId); // nextId can be NULL
 NODE *makeDCL_type(char *identifier, NODE *type);
-NODE *makeDCL_types(NODE *typeDclList, NODE *typeDcl);
+NODE *makeDCL_types(NODE *type, NODE *types);
 NODE *makeEXP_identifier(char *identifier);
 NODE *makeSlice(NODE *type);
 NODE *makeArray(int intval, NODE *type);
 NODE *makeStruct(NODE *idlist, NODE *type);
-NODE *makeStruct_members(NODE *members, NODE *member);
+NODE *makeStruct_members(NODE *member, NODE *members);
 NODE *makeFUNCTION(char *identifier, NODE *signature, NODE *block);
 NODE *makeFUNCTION_signature(NODE *params, NODE *type);
 NODE *makeFUNCTION_parameterList(NODE *param_list, NODE *idlist, NODE *type);
 NODE *makeBLOCK(NODE *statements);
-NODE *makeSTATEMENTS(NODE *stmts, NODE *stmt);
+NODE *makeSTATEMENTS(NODE *stmt, NODE *stmts);
 NODE *makeSTATEMENT_print(NODE *expr_list, bool println); // bool println: true if println was called, false if print was called
 NODE *makeSTATEMENT_return(NODE *stmtReturn);
 NODE *makeSTATEMENT_if(NODE *simple, NODE *expr, NODE *stmts, NODE *elseBlock);
@@ -158,7 +159,7 @@ NODE *makeSTATEMENT_simple(NODE *simple);
 NODE *makeSTATEMENT_simpleIncrement(NODE *expr, bool inc); // inc: true means increment, false means decrement
 NODE *makeSTATEMENT_assign(NODE *LHS_expr_list, char *assign_op, NODE *RHS_expr_list);
 NODE *makeSTATEMENT_shortDcl(NODE *LHS_expr_list, NODE *RHS_expr_list);
-NODE *makeEXPRLIST(NODE *expr_list, NODE *expr);
+NODE *makeEXPRLIST(NODE *expr, NODE *expr_list);
 NODE *makeEXP_binary(Kind op, NODE *lhs, NODE *rhs);
 NODE *makeEXP_unary(Kind op, NODE *expr);
 NODE *makeAPPEND(char *identifier, NODE *expr);
