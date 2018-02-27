@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h> // for debugging
 #include "tree.h"
 
 extern int yylineno;

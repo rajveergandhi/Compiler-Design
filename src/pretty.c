@@ -57,10 +57,30 @@ void prettyPrint(NODE *node) {
         case k_struct:
             break;
         case k_function:
+            printf("func %s", node->val.funcDcl.identifier);
+            prettyPrint(node->val.funcDcl.signature);
+            printf(" {\n");
+            prettyPrint(node->val.funcDcl.block);
+            printf("}\n");
             break;
         case k_function_signature:
+            printf("(");
+            if (node->val.funcSign.params)
+                prettyPrint(node->val.funcSign.params);
+            printf(")");
+            if (node->val.funcSign.type) {
+                printf(" ");
+                prettyPrint(node->val.funcSign.type);
+            }
             break;
         case k_function_params:
+            prettyPrint(node->val.funcParams.idlist);
+            printf(" ");
+            prettyPrint(node->val.funcParams.type);
+            if (node->val.funcParams.param_list) {
+                printf(", ");
+                prettyPrint(node->val.funcParams.param_list);
+            }
             break;
         case k_block:
             printf("{\n");
@@ -69,26 +89,88 @@ void prettyPrint(NODE *node) {
             printf("\n}\n");
             break;
         case k_append:
+            printf("append(%s, ", node->val.expr.type.expr_append.identifier);
+            prettyPrint(node->val.expr.type.expr_append.expr);
+            printf(")\n");
             break;
         case k_function_call:
-            if (node->val.expr.next)
-                prettyPrint(node->val.expr.next);
+            //if (node->val.expr.next)
+                //prettyPrint(node->val.expr.next);
             break;
         case k_statementKindPrint:
+            printf("print");
+            if (node->val.stmt.type.print.println)
+                printf("ln");
+            printf(" (");
+            if (node->val.stmt.type.print.expr_list)
+                prettyPrint(node->val.stmt.type.print.expr_list);
+            printf(")\n");
             break;
         case k_statementKindReturn:
+            printf("return ");
+            if (node->val.stmt.type.stmtReturn.expr)
+                prettyPrint(node->val.stmt.type.stmtReturn.expr);
+            printf("\n");
             break;
         case k_statementKindIf:
+            printf("if ");
+            if (node->val.stmt.type.stmtIf.simple) {
+                prettyPrint(node->val.stmt.type.stmtIf.simple);
+                printf(";");
+            }
+            prettyPrint(node->val.stmt.type.stmtIf.expr);
+            printf(" {\n");
+            prettyPrint(node->val.stmt.type.stmtIf.stmts);
+            printf("}");
+            if (node->val.stmt.type.stmtIf.elseBlock) {
+                printf(" else ");
+                prettyPrint(node->val.stmt.type.stmtIf.elseBlock);
+            }
             break;
         case k_statementKindFor:
+            printf("for ");
+            if (node->val.stmt.type.stmtFor.condition) {
+                prettyPrint(node->val.stmt.type.stmtFor.condition);
+                printf(" ");
+            }
+            printf("{\n");
+            prettyPrint(node->val.stmt.type.stmtFor.block);
+            printf("}\n");
             break;
         case k_statementKindForCond:
+            prettyPrint(node->val.stmtForCondition.part1);
+            printf("; ");
+            prettyPrint(node->val.stmtForCondition.part2);
+            printf("; ");
+            prettyPrint(node->val.stmtForCondition.part3);
             break;
         case k_statementKindSwitch:
+            printf("switch ");
+            if (node->val.stmt.type.stmtSwitch.condition) {
+                prettyPrint(node->val.stmt.type.stmtSwitch.condition);
+                printf(" ");
+            }
+            printf("{\n");
+            prettyPrint(node->val.stmt.type.stmtSwitch.caselist);
+            printf("}\n");
             break;
         case k_statementKindSwitchCondition:
+            if (node->val.stmtSwitchCondition.simple) {
+                prettyPrint(node->val.stmtSwitchCondition.simple);
+                printf(";");
+            }
+            if (node->val.stmtSwitchCondition.expr)
+                prettyPrint(node->val.stmtSwitchCondition.expr);
             break;
         case k_statementKindSwitchCase:
+            if (node->val.stmtSwitchCase.expr_list)
+                prettyPrint(node->val.stmtSwitchCase.expr_list);
+            else
+                printf("default");
+            printf(":\n");
+            prettyPrint(node->val.stmtSwitchCase.statement_list);
+            if (node->val.stmtSwitchCase.next)
+                prettyPrint(node->val.stmtSwitchCase.next);
             break;
         case k_statementKindBreak:
             printf("break;\n");
@@ -97,20 +179,39 @@ void prettyPrint(NODE *node) {
             printf("continue;\n");
             break;
         case k_statementKindSimple:
+            prettyPrint(node->val.stmt.type.stmtSimple.simple);
+            printf(";");
             break;
         case k_statementKindIncrement:
+            prettyPrint(node->val.stmt.type.stmtInc.expr);
+            if (node->val.stmt.type.stmtInc.inc)
+                printf("++");
+            else
+                printf("--");
             break;
         case k_statementKindAssign:
+            prettyPrint(node->val.stmt.type.stmtAssign.LHS_expr_list);
+            printf(" %s ", node->val.stmt.type.stmtAssign.assign_op);
+            prettyPrint(node->val.stmt.type.stmtAssign.RHS_expr_list);
             break;
         case k_statementKindShortDcl:
+            prettyPrint(node->val.stmt.type.stmtShortDcl.LHS_expr_list);
+            printf(" := ");
+            prettyPrint(node->val.stmt.type.stmtShortDcl.RHS_expr_list);
             break;
         case k_expressionArrayIndex:
-            if (node->val.expr.next)
-                prettyPrint(node->val.expr.next);
+            prettyPrint(node->val.expr.type.arrayIndex.expr);
+            printf("[");
+            prettyPrint(node->val.expr.type.arrayIndex.index);
+            printf("]");
+            //if (node->val.expr.next)
+                //prettyPrint(node->val.expr.next);
             break;
         case k_expressionKindStructSelector:
-            if (node->val.expr.next)
-                prettyPrint(node->val.expr.next);
+            prettyPrint(node->val.expr.type.structSelector.expr);
+            printf(".%s", node->val.expr.type.structSelector.identifier);
+            //if (node->val.expr.next)
+                //prettyPrint(node->val.expr.next);
             break;
         case k_expressionKindIdentifier:
             printf("%s", node->val.expr.type.identifier);
@@ -122,216 +223,163 @@ void prettyPrint(NODE *node) {
             printf("%f", node->val.expr.type.floatLiteral);
             break;
         case k_expressionKindStringLiteral:
+            printf("%s", node->val.expr.type.stringLiteral.stringLiteral);
             break;
         case k_expressionKindRuneLiteral:
+            printf("%s", node->val.expr.type.runeLiteral);
             break;
         case k_expressionKindPlus:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" + ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindMinus:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" - ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindMult:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" * ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindDiv:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" / ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindMod:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" %% ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindLT:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" < ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindLT_EQ:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" <= ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindGT:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" > ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindGT_EQ:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" >= ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindEQ_EQ:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" == ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindNotEquals:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" != ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindShift_Right:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" >> ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindShift_Left:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" << ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindAnd:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" & ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindAMP_XOR:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" %%^ ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindOr:
+            printf("(");
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" | ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
+            printf(")");
             break;
         case k_expressionKindXor:
-            break;
-        case k_expressionKindLogicalAnd:
-            break;
-        case k_expressionKindLogicalOr:
-            break;
-        case k_expressionKindNot:
-            break;
-
-    /* assignment 2 code
-        case k_program:
-            if (node->val.program.dcls)
-                prettyPrint(node->val.program.dcls);
-            printf("\n");
-            if (node->val.program.stmts)
-                prettyPrint(node->val.program.stmts);
-            break;
-        case k_dcl:
-            for (NODE *i = node; i != NULL; i = i->val.dcl.nextDcl) {
-                printf("var %s: %s = ", i->val.dcl.identifier, i->val.dcl.type);
-                prettyPrint(i->val.dcl.expr);
-                printf(";\n");
-            }
-            break;
-        case k_statementKindRead:
-            prettyIndent(g_indent);
-            printf("read %s;\n", node->val.stmt.type.stmtRead);
-            if (node->val.stmt.nextStmt)
-                prettyPrint(node->val.stmt.nextStmt);
-            break;
-        case k_statementKindPrint:
-            prettyIndent(g_indent);
-            printf("print ");
-            prettyPrint(node->val.stmt.type.stmtPrint);
-            printf(";\n");
-            if (node->val.stmt.nextStmt)
-                prettyPrint(node->val.stmt.nextStmt);
-            break;
-        case k_statementKindAssignment:
-            prettyIndent(g_indent);
-            printf("%s = ", node->val.stmt.type.stmtAssign.identifier);
-            prettyPrint(node->val.stmt.type.stmtAssign.expr);
-            printf(";\n");
-            if (node->val.stmt.nextStmt)
-                prettyPrint(node->val.stmt.nextStmt);
-            break;
-        case k_statementKindWhile:
-            prettyIndent(g_indent);
-            printf("while ");
-            prettyPrint(node->val.stmt.type.stmtWhile.expr);
-            printf(" {\n");
-            g_indent++;
-            if (node->val.stmt.type.stmtWhile.stmts)
-                prettyPrint(node->val.stmt.type.stmtWhile.stmts);
-            g_indent--;
-            prettyIndent(g_indent);
-            printf("}\n");
-            if (node->val.stmt.nextStmt)
-                prettyPrint(node->val.stmt.nextStmt);
-            break;
-        case k_statementKindIfStmt:
-            prettyIndent(g_indent);
-            printf("if ");
-            prettyPrint(node->val.stmt.type.stmtIf.expr);
-            printf(" {\n");
-            g_indent++;
-            if (node->val.stmt.type.stmtIf.stmts)
-                prettyPrint(node->val.stmt.type.stmtIf.stmts);
-            g_indent--;
-            prettyIndent(g_indent);
-            printf("}\n");
-            if (node->val.stmt.nextStmt)
-                prettyPrint(node->val.stmt.nextStmt);
-            break;
-        case k_statementKindIfElseStmt:
-            prettyIndent(g_indent);
-            printf("if ");
-            prettyPrint(node->val.stmt.type.stmtIfElse.expr);
-            printf(" {\n");
-            g_indent++;
-            if (node->val.stmt.type.stmtIfElse.ifStmts)
-                prettyPrint(node->val.stmt.type.stmtIfElse.ifStmts);
-            g_indent--;
-            prettyIndent(g_indent);
-            printf("} else {\n");
-            g_indent++;
-            if (node->val.stmt.type.stmtIfElse.elseStmts)
-                prettyPrint(node->val.stmt.type.stmtIfElse.elseStmts);
-            g_indent--;
-            prettyIndent(g_indent);
-            printf("}\n");
-            if (node->val.stmt.nextStmt)
-                prettyPrint(node->val.stmt.nextStmt);
-            break;
-        case k_expressionKindIdentifier:
-            printf("%s", node->val.identifier);
-            break;
-        case k_expressionKindIntLiteral:
-            printf("%d", node->val.intLiteral);
-            break;
-        case k_expressionKindFloatLiteral:
-            printf("%f", node->val.floatLiteral);
-            break;
-        case k_expressionKindBoolLiteral:
-            printf("%d", node->val.boolLiteral);
-            break;
-        case k_expressionKindStringLiteral:
-            printf("%s", node->val.stringLiteral);
-            break;
-        case k_expressionKindAddition:
             printf("(");
-            prettyPrint(node->val.exp_binary.lhs);
-            printf(" + ");
-            prettyPrint(node->val.exp_binary.rhs);
-            printf(")");
-            break;
-        case k_expressionKindSubtraction:
-            printf("(");
-            prettyPrint(node->val.exp_binary.lhs);
-            printf(" - ");
-            prettyPrint(node->val.exp_binary.rhs);
-            printf(")");
-            break;
-        case k_expressionKindMultiplication:
-            printf("(");
-            prettyPrint(node->val.exp_binary.lhs);
-            printf(" * ");
-            prettyPrint(node->val.exp_binary.rhs);
-            printf(")");
-            break;
-        case k_expressionKindDivision:
-            printf("(");
-            prettyPrint(node->val.exp_binary.lhs);
-            printf(" / ");
-            prettyPrint(node->val.exp_binary.rhs);
-            printf(")");
-            break;
-        case k_expressionKindEqualsEquals:
-            printf("(");
-            prettyPrint(node->val.exp_binary.lhs);
-            printf(" == ");
-            prettyPrint(node->val.exp_binary.rhs);
-            printf(")");
-            break;
-        case k_expressionKindNotEquals:
-            printf("(");
-            prettyPrint(node->val.exp_binary.lhs);
-            printf(" != ");
-            prettyPrint(node->val.exp_binary.rhs);
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
+            printf(" ^ ");
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
             printf(")");
             break;
         case k_expressionKindLogicalAnd:
             printf("(");
-            prettyPrint(node->val.exp_binary.lhs);
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
             printf(" && ");
-            prettyPrint(node->val.exp_binary.rhs);
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
             printf(")");
             break;
         case k_expressionKindLogicalOr:
             printf("(");
-            prettyPrint(node->val.exp_binary.lhs);
+            prettyPrint(node->val.expr.type.exp_binary.lhs);
             printf(" || ");
-            prettyPrint(node->val.exp_binary.rhs);
+            prettyPrint(node->val.expr.type.exp_binary.rhs);
             printf(")");
             break;
-        case k_expressionKindNot:
-            printf("!(");
-            prettyPrint(node->val.exp_unary);
+        case k_expressionKindNotUnary:
+            printf("(!(");
+            prettyPrint(node->val.expr.type.exp_unary);
             printf(")");
             break;
-        case k_expressionKindUnaryMinus:
-            printf("-(");
-            prettyPrint(node->val.exp_unary);
+        case k_expressionKindPlusUnary:
+            printf("(+(");
+            prettyPrint(node->val.expr.type.exp_unary);
             printf(")");
             break;
-    */
+        case k_expressionKindMinusUnary:
+            printf("(-(");
+            prettyPrint(node->val.expr.type.exp_unary);
+            printf(")");
+            break;
+        case k_expressionKindXorUnary:
+            printf("(^(");
+            prettyPrint(node->val.expr.type.exp_unary);
+            printf(")");
+            break;
     }
 }

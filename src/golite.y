@@ -257,10 +257,10 @@ expr : expr tPLUS expr {$$ = makeEXP_binary(k_expressionKindPlus, $1, $3);}
      | expr tXOR expr {$$ = makeEXP_binary(k_expressionKindXor, $1, $3);}
      | expr tLOGICAL_AND expr {$$ = makeEXP_binary(k_expressionKindLogicalAnd, $1, $3);}
      | expr tLOGICAL_OR expr {$$ = makeEXP_binary(k_expressionKindLogicalOr, $1, $3);}
-     | tPLUS expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindPlus, $2);}
-     | tMINUS expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindMinus, $2);}
-     | tNOT expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindNot, $2);}
-     | tXOR expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindXor, $2);}
+     | tPLUS expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindPlusUnary, $2);}
+     | tMINUS expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindMinusUnary, $2);}
+     | tNOT expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindNotUnary, $2);}
+     | tXOR expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindXorUnary, $2);}
      | append_expr {$$ = $1;}
      | other_expressions {$$ = $1;}
      ;

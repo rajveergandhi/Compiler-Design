@@ -68,7 +68,10 @@ typedef enum {
     k_expressionKindXor,
     k_expressionKindLogicalAnd,
     k_expressionKindLogicalOr,
-    k_expressionKindNot,
+    k_expressionKindNotUnary,
+    k_expressionKindPlusUnary,
+    k_expressionKindMinusUnary,
+    k_expressionKindXorUnary,
 } Kind;
 
 typedef struct NODE NODE;
