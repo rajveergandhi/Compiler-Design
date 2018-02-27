@@ -44,7 +44,7 @@ void prettyPrint(NODE *node) {
                         printf("\n");
                     }
                 }
-                else if (TOPLEVEL != NULL) {
+                else {
                     prettyPrint(TOPLEVEL);
                     break;
                 }
@@ -66,7 +66,7 @@ void prettyPrint(NODE *node) {
                         printf("\n");
                     }
                 }
-                else if (TOPLEVEL != NULL) {
+                else {
                     prettyPrint(TOPLEVEL);
                     break;
                 }
@@ -99,7 +99,7 @@ void prettyPrint(NODE *node) {
                     prettyPrint(node->val.toplevel.type.funcDcl.block);
                     printf("}\n");
                 }
-                else if (TOPLEVEL != NULL) {
+                else {
                     prettyPrint(TOPLEVEL);
                     break;
                 }
