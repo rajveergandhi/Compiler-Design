@@ -266,7 +266,6 @@ NODE *makeSTATEMENT_assign(NODE *LHS_expr_list, char *assign_op, NODE *RHS_expr_
     node->lineno = yylineno;
     node->kind = k_statementKindAssign;
     node->val.stmt.type.stmtAssign.LHS_expr_list = LHS_expr_list;
-    printf("%s---------", assign_op);
     node->val.stmt.type.stmtAssign.assign_op = assign_op;
     node->val.stmt.type.stmtAssign.RHS_expr_list = RHS_expr_list;
     return node;
