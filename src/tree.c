@@ -108,9 +108,9 @@ NODE *makeFUNCTION(char *identifier, NODE *signature, NODE *block) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_function;
-    node->val.funcDcl.identifier = identifier;
-    node->val.funcDcl.signature = signature;
-    node->val.funcDcl.block = block;
+    node->val.toplevel.type.funcDcl.identifier = identifier;
+    node->val.toplevel.type.funcDcl.signature = signature;
+    node->val.toplevel.type.funcDcl.block = block;
     return node;
 }
 

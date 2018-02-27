@@ -89,7 +89,6 @@ struct NODE {
         struct { NODE *idlist; NODE *type; NODE *next; } typeStruct;
         struct { NODE *params; NODE *type; } funcSign;
         struct { NODE *param_list; NODE *idlist; NODE *type; } funcParams;
-        struct { char *identifier; NODE *signature; NODE *block; } funcDcl;
         struct { NODE *part1; NODE *part2; NODE *part3; } stmtForCondition;
         struct { NODE *simple; NODE *expr; } stmtSwitchCondition;
         struct { NODE *expr_list; NODE *statement_list; NODE *next; } stmtSwitchCase;
@@ -97,6 +96,7 @@ struct NODE {
             union {
                 struct { NODE *idlist; NODE *type; NODE *expr_list; NODE *next; } varDcl;
                 struct { char *identifier; NODE *type; NODE *next; } typeDcl;
+                struct { char *identifier; NODE *signature; NODE *block; } funcDcl;
                 struct { char *identifier; NODE *next; } idlist;
             } type;
             NODE *next;

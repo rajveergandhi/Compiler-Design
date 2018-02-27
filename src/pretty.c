@@ -25,23 +25,27 @@ void prettyPrint(NODE *node) {
             break;
         case k_dcl_var:
             for (NODE *TOPLEVEL = node; TOPLEVEL; TOPLEVEL = TOPLEVEL->val.toplevel.next) {
-                for (NODE *i = TOPLEVEL; i != NULL; i = i->val.toplevel.type.varDcl.next)
-                {
-                    printf("var ");
-                    prettyPrint(i->val.toplevel.type.varDcl.idlist);
-                    if (i->val.toplevel.type.varDcl.type) {
-                        printf(" ");
-                        prettyPrint(i->val.toplevel.type.varDcl.type);
-                    }
-                    if (i->val.toplevel.type.varDcl.expr_list) {
-                        printf(" = ");
-                        for (NODE *j = i->val.toplevel.type.varDcl.expr_list; j != NULL; j = j->val.expr.next) {
-                            prettyPrint(j);
-                            if (j->val.expr.next != NULL) printf(", ");
+                if (TOPLEVEL->kind == k_dcl_var) {
+                    for (NODE *i = TOPLEVEL; i != NULL; i = i->val.toplevel.type.varDcl.next)
+                    {
+                        printf("var ");
+                        prettyPrint(i->val.toplevel.type.varDcl.idlist);
+                        if (i->val.toplevel.type.varDcl.type) {
+                            printf(" ");
+                            prettyPrint(i->val.toplevel.type.varDcl.type);
                         }
+                        if (i->val.toplevel.type.varDcl.expr_list) {
+                            printf(" = ");
+                            for (NODE *j = i->val.toplevel.type.varDcl.expr_list; j != NULL; j = j->val.expr.next) {
+                                prettyPrint(j);
+                                if (j->val.expr.next != NULL) printf(", ");
+                            }
+                        }
+                        printf("\n");
                     }
-                    printf("\n");
                 }
+                else
+                    prettyPrint(TOPLEVEL);
             }
             break;
         case k_idlist:
@@ -71,11 +75,15 @@ void prettyPrint(NODE *node) {
             printf("}\n");
             break;
         case k_function:
-            printf("func %s", node->val.funcDcl.identifier);
-            prettyPrint(node->val.funcDcl.signature);
-            printf(" {\n");
-            prettyPrint(node->val.funcDcl.block);
-            printf("}\n");
+            for (NODE *TOPLEVEL = node; TOPLEVEL; TOPLEVEL = TOPLEVEL->val.toplevel.next) {
+                if (TOPLEVEL->kind == k_function) {
+                    printf("func %s", node->val.toplevel.type.funcDcl.identifier);
+                    prettyPrint(node->val.toplevel.type.funcDcl.signature);
+                    printf(" {\n");
+                    prettyPrint(node->val.toplevel.type.funcDcl.block);
+                    printf("}\n");
+                }
+            }
             break;
         case k_function_signature:
             printf("(");
