@@ -16,20 +16,18 @@ void prettyPrint(NODE *node) {
     switch (node->kind) {
         case k_program:
             prettyPrint(node->val.program.package);
-            for (NODE *i = node; i->val.program.topLevelDecls != NULL; i = i->val.program.topLevelDecls->val.next) {
-                prettyPrint(i->val.program.topLevelDecls);
-            }
+            prettyPrint(node->val.program.topLevelDecls);
             break;
         case k_package:
             printf("package %s\n", node->val.package);
             break;
         case k_dcl_var:
-            for (NODE *TOPLEVEL = node; TOPLEVEL; TOPLEVEL = TOPLEVEL->val.toplevel.next) {
+            for (NODE *TOPLEVEL = node; TOPLEVEL != NULL; TOPLEVEL = TOPLEVEL->val.toplevel.next) {
                 if (TOPLEVEL->kind == k_dcl_var) {
-                    for (NODE *i = TOPLEVEL; i != NULL; i = i->val.toplevel.type.varDcl.next)
-                    {
+                    for (NODE *i = TOPLEVEL; i != NULL; i = i->val.toplevel.type.varDcl.next) {
                         printf("var ");
-                        prettyPrint(i->val.toplevel.type.varDcl.idlist);
+                        if (i->val.toplevel.type.varDcl.idlist)
+                            prettyPrint(i->val.toplevel.type.varDcl.idlist);
                         if (i->val.toplevel.type.varDcl.type) {
                             printf(" ");
                             prettyPrint(i->val.toplevel.type.varDcl.type);
@@ -42,9 +40,10 @@ void prettyPrint(NODE *node) {
                             }
                         }
                         printf("\n");
+                        //TOPLEVEL = TOPLEVEL->val.toplevel.next;
+                        //printf("-----\n");
                     }
-                }
-                else {
+                } else {
                     prettyPrint(TOPLEVEL);
                     break;
                 }
@@ -60,10 +59,12 @@ void prettyPrint(NODE *node) {
             for (NODE *TOPLEVEL = node; TOPLEVEL; TOPLEVEL = TOPLEVEL->val.toplevel.next) {
                 if (TOPLEVEL->kind == k_dcl_type) {
                     for (NODE *i = TOPLEVEL; i != NULL; i = i->val.toplevel.type.typeDcl.next) {
+                        if(i->val.toplevel.type.typeDcl.identifier) {
                         printf("type ");
                         printf("%s ", i->val.toplevel.type.typeDcl.identifier);
                         prettyPrint(i->val.toplevel.type.typeDcl.type);
                         printf("\n");
+                        }
                     }
                 }
                 else {
@@ -84,19 +85,21 @@ void prettyPrint(NODE *node) {
             prettyPrint(node->val.typeSlice.type);
             break;
         case k_struct:
-            printf("struct {");
-            prettyPrint(node->val.typeStruct.idlist);
-            prettyPrint(node->val.typeStruct.type);
-            printf(";");
+            printf("struct {\n");
+            for (NODE *i = node; i; i = i->val.typeStruct.next) {
+                prettyPrint(i->val.typeStruct.idlist);
+                prettyPrint(i->val.typeStruct.type);
+                printf(";\n");
+            }
             printf("}\n");
             break;
         case k_function:
             for (NODE *TOPLEVEL = node; TOPLEVEL; TOPLEVEL = TOPLEVEL->val.toplevel.next) {
                 if (TOPLEVEL->kind == k_function) {
-                    printf("func %s", node->val.toplevel.type.funcDcl.identifier);
-                    prettyPrint(node->val.toplevel.type.funcDcl.signature);
+                    printf("func %s", TOPLEVEL->val.toplevel.type.funcDcl.identifier);
+                    prettyPrint(TOPLEVEL->val.toplevel.type.funcDcl.signature);
                     printf(" {\n");
-                    prettyPrint(node->val.toplevel.type.funcDcl.block);
+                    prettyPrint(TOPLEVEL->val.toplevel.type.funcDcl.block);
                     printf("}\n");
                 }
                 else {

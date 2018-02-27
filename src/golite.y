@@ -95,7 +95,7 @@ varSpec : idlist type {$$ = makeDCL_var($1, $2, NULL);}
         ;
 
 varDclList : varSpec tSEMICOLON varDclList {$$ = makeDCL_vars($1, $3);}
-           | %empty {$$ = makeDCL_var(NULL, NULL, NULL);}
+           | %empty {$$ = NULL;}
            ;
 
 idlist : tIDENTIFIER {$$ = makeIDLIST($1, NULL);}
@@ -137,8 +137,8 @@ signature : tOPEN_PAREN parameter_list tCLOSE_PAREN {$$ = makeFUNCTION_signature
           | tOPEN_PAREN tCLOSE_PAREN tOPEN_PAREN type tCLOSE_PAREN {$$ = makeFUNCTION_signature(NULL, $4);}
           ;
 
-parameter_list : parameter_list tCOMMA idlist type {$$ = makeFUNCTION_parameterList($1, $3, $4);}
-               | idlist type {$$ = makeFUNCTION_parameterList(NULL, $1, $2);}
+parameter_list : idlist type tCOMMA parameter_list {$$ = makeFUNCTION_parameterList($1, $2, $4);}
+               | idlist type {$$ = makeFUNCTION_parameterList($1, $2, NULL);}
                ;
 
 block : tOPEN_BRACE statement_list tCLOSE_BRACE tSEMICOLON {$$ = makeBLOCK($2);}

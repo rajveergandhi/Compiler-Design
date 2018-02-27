@@ -35,7 +35,6 @@ NODE *makeDCL_var(NODE *idlist, NODE *type, NODE *expr_list) {
     node->val.toplevel.type.varDcl.idlist = idlist;
     node->val.toplevel.type.varDcl.type = type;
     node->val.toplevel.type.varDcl.expr_list = expr_list;
-    node->val.toplevel.type.varDcl.next = NULL;
     return node;
 }
 
@@ -124,7 +123,7 @@ NODE *makeFUNCTION_signature(NODE *params, NODE *type) {
     return node;
 }
 
-NODE *makeFUNCTION_parameterList(NODE *param_list, NODE *idlist, NODE *type) {
+NODE *makeFUNCTION_parameterList(NODE *idlist, NODE *type, NODE *param_list) {
     NODE *node = malloc(sizeof(NODE));
     node->lineno = yylineno;
     node->kind = k_function_params;
