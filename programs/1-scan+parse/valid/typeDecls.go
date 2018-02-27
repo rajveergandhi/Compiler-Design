@@ -10,5 +10,9 @@ type dog struct1
 func main() {
 	var jake dog
 	print(jake.foo)
-	println(jake.bar) 
+	println(jake.bar)
+	println(jake.bar)
+	println(jake.bar)
+	var jake dog
+	var jake dog
 }

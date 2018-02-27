@@ -136,6 +136,8 @@ void prettyPrint(NODE *node) {
             if (node->val.stmt.type.block.stmts)
                 prettyPrint(node->val.stmt.type.block.stmts);
             printf("\n}\n");
+            if (node->val.stmt.next)
+                prettyPrint(node->val.stmt.next);
             break;
         case k_append:
             printf("append(%s, ", node->val.expr.type.expr_append.identifier);
@@ -158,12 +160,16 @@ void prettyPrint(NODE *node) {
             if (node->val.stmt.type.print.expr_list)
                 prettyPrint(node->val.stmt.type.print.expr_list);
             printf(")\n");
+            if (node->val.stmt.next)
+                prettyPrint(node->val.stmt.next);
             break;
         case k_statementKindReturn:
             printf("return ");
             if (node->val.stmt.type.stmtReturn.expr)
                 prettyPrint(node->val.stmt.type.stmtReturn.expr);
             printf("\n");
+            if (node->val.stmt.next)
+                prettyPrint(node->val.stmt.next);
             break;
         case k_statementKindIf:
             printf("if ");
@@ -179,6 +185,8 @@ void prettyPrint(NODE *node) {
                 printf(" else ");
                 prettyPrint(node->val.stmt.type.stmtIf.elseBlock);
             }
+            if (node->val.stmt.next)
+                prettyPrint(node->val.stmt.next);
             break;
         case k_statementKindFor:
             printf("for ");
@@ -196,6 +204,8 @@ void prettyPrint(NODE *node) {
             prettyPrint(node->val.stmtForCondition.part2);
             printf("; ");
             prettyPrint(node->val.stmtForCondition.part3);
+            if (node->val.stmt.next)
+                prettyPrint(node->val.stmt.next);
             break;
         case k_statementKindSwitch:
             printf("switch ");
@@ -206,6 +216,8 @@ void prettyPrint(NODE *node) {
             printf("{\n");
             prettyPrint(node->val.stmt.type.stmtSwitch.caselist);
             printf("}\n");
+            if (node->val.stmt.next)
+                prettyPrint(node->val.stmt.next);
             break;
         case k_statementKindSwitchCondition:
             if (node->val.stmtSwitchCondition.simple) {
@@ -234,6 +246,8 @@ void prettyPrint(NODE *node) {
         case k_statementKindSimple:
             prettyPrint(node->val.stmt.type.stmtSimple.simple);
             printf(";");
+            if (node->val.stmt.next)
+                prettyPrint(node->val.stmt.next);
             break;
         case k_statementKindIncrement:
             prettyPrint(node->val.stmt.type.stmtInc.expr);
@@ -241,16 +255,22 @@ void prettyPrint(NODE *node) {
                 printf("++");
             else
                 printf("--");
+            if (node->val.stmt.next)
+                prettyPrint(node->val.stmt.next);
             break;
         case k_statementKindAssign:
             prettyPrint(node->val.stmt.type.stmtAssign.LHS_expr_list);
             printf(" %s ", node->val.stmt.type.stmtAssign.assign_op);
             prettyPrint(node->val.stmt.type.stmtAssign.RHS_expr_list);
+            if (node->val.stmt.next)
+                prettyPrint(node->val.stmt.next);
             break;
         case k_statementKindShortDcl:
             prettyPrint(node->val.stmt.type.stmtShortDcl.LHS_expr_list);
             printf(" := ");
             prettyPrint(node->val.stmt.type.stmtShortDcl.RHS_expr_list);
+            if (node->val.stmt.next)
+                prettyPrint(node->val.stmt.next);
             break;
         case k_expressionArrayIndex:
             prettyPrint(node->val.expr.type.arrayIndex.expr);
