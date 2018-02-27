@@ -84,53 +84,53 @@ print        { if (g_tokens) printf("tPRINT\n"); lastRead = tPRINT; return tPRIN
 println      { if (g_tokens) printf("tPRINTLN\n"); lastRead = tPRINTLN; return tPRINTLN; }
 append       { if (g_tokens) printf("tAPPEND\n"); lastRead = tAPPEND; return tAPPEND; }
 
-";"          { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; }
-":"          { if (g_tokens) printf("tCOLON\n"); lastRead = tCOLON; return tCOLON; }
-","          { if (g_tokens) printf("tCOMMA\n"); lastRead = tCOMMA; return tCOMMA; }
-"."          { if (g_tokens) printf("tPERIOD\n"); lastRead = tPERIOD; return tPERIOD; }
-"..."        { if (g_tokens) printf("tELLIPSIS\n"); lastRead = tELLIPSIS; return tELLIPSIS; }
-"="          { if (g_tokens) printf("tASSIGN\n"); lastRead = tASSIGN; return tASSIGN; }
-"*"          { if (g_tokens) printf("tMULT\n"); lastRead = tMULT; return tMULT; }
-"/"          { if (g_tokens) printf("tDIV\n"); lastRead = tDIV; return tDIV; }
-"+"          { if (g_tokens) printf("tPLUS\n"); lastRead = tPLUS; return tPLUS; }
-"-"          { if (g_tokens) printf("tMINUS\n"); lastRead = tMINUS; return tMINUS; }
-"%"          { if (g_tokens) printf("tMOD\n"); lastRead = tMOD; return tMOD; }
-"&"          { if (g_tokens) printf("tAND\n"); lastRead = tAND; return tAND; }
-"|"          { if (g_tokens) printf("tOR\n"); lastRead = tOR; return tOR; }
-"^"          { if (g_tokens) printf("tXOR\n"); lastRead = tXOR; return tXOR; }
-"!"          { if (g_tokens) printf("tNOT\n"); lastRead = tNOT; return tNOT; }
-"("          { if (g_tokens) printf("tOPEN_PAREN\n"); lastRead = tOPEN_PAREN; return tOPEN_PAREN; }
-")"          { if (g_tokens) printf("tCLOSE_PAREN\n"); lastRead = tCLOSE_PAREN; return tCLOSE_PAREN; }
-"{"          { if (g_tokens) printf("tOPEN_BRACE\n"); lastRead = tOPEN_BRACE; return tOPEN_BRACE; }
-"}"          { if (g_tokens) printf("tCLOSE_BRACE\n"); lastRead = tCLOSE_BRACE;return tCLOSE_BRACE; }
-"["          { if (g_tokens) printf("tOPEN_SQ\n"); lastRead = tOPEN_SQ; return tOPEN_SQ; }
-"]"          { if (g_tokens) printf("tCLOSE_SQ\n"); lastRead = tCLOSE_SQ; return tCLOSE_SQ; }
-":="         { if (g_tokens) printf("tDECL\n"); lastRead = tDECL; return tDECL; }
-"=="         { if (g_tokens) printf("tEQ_EQ\n"); lastRead = tEQ_EQ; return tEQ_EQ; }
-"!="         { if (g_tokens) printf("tNOT_EQUALS\n"); lastRead = tNOT_EQUALS; return tNOT_EQUALS; }
-"&&"         { if (g_tokens) printf("tLOGICAL_AND\n"); lastRead = tLOGICAL_AND; return tLOGICAL_AND; }
-"||"         { if (g_tokens) printf("tLOGICAL_OR\n"); lastRead = tLOGICAL_OR; return tLOGICAL_OR; }
-"+="         { if (g_tokens) printf("tPLUS_EQ\n"); lastRead = tPLUS_EQ; return tPLUS_EQ; }
-"&="         { if (g_tokens) printf("tAMP_EQ\n"); lastRead = tAMP_EQ; return tAMP_EQ; }
-"-="         { if (g_tokens) printf("tMINUS_EQ\n"); lastRead = tMINUS_EQ;return tMINUS_EQ; }
-"%="         { if (g_tokens) printf("tMOD_EQ\n"); lastRead = tMOD_EQ; return tMOD_EQ; }
-"*="         { if (g_tokens) printf("tMULT_EQ\n"); lastRead = tMULT_EQ; return tMULT_EQ; }
-"/="         { if (g_tokens) printf("tDIV_EQ\n"); lastRead = tDIV_EQ; return tDIV_EQ; }
-"|="         { if (g_tokens) printf("tOR_EQ\n"); lastRead = tOR_EQ; return tOR_EQ; }
-"<"          { if (g_tokens) printf("tLT\n"); lastRead = tLT; return tLT; }
-">"          { if (g_tokens) printf("tGT\n"); lastRead = tGT; return tGT; }
-"<="         { if (g_tokens) printf("tLT_EQ\n"); lastRead = tLT_EQ; return tLT_EQ; }
-">="         { if (g_tokens) printf("tGT_EQ\n"); lastRead = tGT_EQ; return tGT_EQ; }
-"^="         { if (g_tokens) printf("tXOR_EQ\n"); lastRead = tXOR_EQ; return tXOR_EQ; }
-"<-"         { if (g_tokens) printf("tARROW\n"); lastRead = tARROW; return tARROW; }
-"<<"         { if (g_tokens) printf("tSHIFT_LEFT\n"); lastRead = tSHIFT_LEFT; return tSHIFT_LEFT; }
-">>"         { if (g_tokens) printf("tSHIFT_RIGHT\n"); lastRead = tSHIFT_RIGHT; return tSHIFT_RIGHT; }
-"<<="        { if (g_tokens) printf("tSHIFT_LEFT_EQ\n"); lastRead = tSHIFT_LEFT_EQ; return tSHIFT_LEFT_EQ; }
-">>="        { if (g_tokens) printf("tSHIFT_RIGHT_EQ\n"); lastRead = tSHIFT_RIGHT_EQ; return tSHIFT_RIGHT_EQ; }
-"++"         { if (g_tokens) printf("tINC\n"); lastRead = tINC; return tINC; }
-"--"         { if (g_tokens) printf("tDEC\n"); lastRead = tDEC; return tDEC; }
-"&^"         { if (g_tokens) printf("tAMP_XOR\n"); lastRead = tAMP_XOR; return tAMP_XOR; }
-"&^="        { if (g_tokens) printf("tAMP_XOR_EQ\n"); lastRead = tAMP_XOR_EQ; return tAMP_XOR_EQ; }
+";"          { if (g_tokens) printf("tSEMICOLON\n"); yylval.string_val = strdup(yytext); lastRead = tSEMICOLON; return tSEMICOLON; }
+":"          { if (g_tokens) printf("tCOLON\n"); yylval.string_val = strdup(yytext); lastRead = tCOLON; return tCOLON; }
+","          { if (g_tokens) printf("tCOMMA\n"); yylval.string_val = strdup(yytext); lastRead = tCOMMA; return tCOMMA; }
+"."          { if (g_tokens) printf("tPERIOD\n"); yylval.string_val = strdup(yytext); lastRead = tPERIOD; return tPERIOD; }
+"..."        { if (g_tokens) printf("tELLIPSIS\n"); yylval.string_val = strdup(yytext); lastRead = tELLIPSIS; return tELLIPSIS; }
+"="          { if (g_tokens) printf("tASSIGN\n"); yylval.string_val = strdup(yytext); lastRead = tASSIGN; return tASSIGN; }
+"*"          { if (g_tokens) printf("tMULT\n"); yylval.string_val = strdup(yytext); lastRead = tMULT; return tMULT; }
+"/"          { if (g_tokens) printf("tDIV\n"); yylval.string_val = strdup(yytext); lastRead = tDIV; return tDIV; }
+"+"          { if (g_tokens) printf("tPLUS\n"); yylval.string_val = strdup(yytext); lastRead = tPLUS; return tPLUS; }
+"-"          { if (g_tokens) printf("tMINUS\n"); yylval.string_val = strdup(yytext); lastRead = tMINUS; return tMINUS; }
+"%"          { if (g_tokens) printf("tMOD\n"); yylval.string_val = strdup(yytext); lastRead = tMOD; return tMOD; }
+"&"          { if (g_tokens) printf("tAND\n"); yylval.string_val = strdup(yytext); lastRead = tAND; return tAND; }
+"|"          { if (g_tokens) printf("tOR\n"); yylval.string_val = strdup(yytext); lastRead = tOR; return tOR; }
+"^"          { if (g_tokens) printf("tXOR\n"); yylval.string_val = strdup(yytext); lastRead = tXOR; return tXOR; }
+"!"          { if (g_tokens) printf("tNOT\n"); yylval.string_val = strdup(yytext); lastRead = tNOT; return tNOT; }
+"("          { if (g_tokens) printf("tOPEN_PAREN\n"); yylval.string_val = strdup(yytext); lastRead = tOPEN_PAREN; return tOPEN_PAREN; }
+")"          { if (g_tokens) printf("tCLOSE_PAREN\n"); yylval.string_val = strdup(yytext); lastRead = tCLOSE_PAREN; return tCLOSE_PAREN; }
+"{"          { if (g_tokens) printf("tOPEN_BRACE\n"); yylval.string_val = strdup(yytext); lastRead = tOPEN_BRACE; return tOPEN_BRACE; }
+"}"          { if (g_tokens) printf("tCLOSE_BRACE\n"); yylval.string_val = strdup(yytext); lastRead = tCLOSE_BRACE;return tCLOSE_BRACE; }
+"["          { if (g_tokens) printf("tOPEN_SQ\n"); yylval.string_val = strdup(yytext); lastRead = tOPEN_SQ; return tOPEN_SQ; }
+"]"          { if (g_tokens) printf("tCLOSE_SQ\n"); yylval.string_val = strdup(yytext); lastRead = tCLOSE_SQ; return tCLOSE_SQ; }
+":="         { if (g_tokens) printf("tDECL\n"); yylval.string_val = strdup(yytext); lastRead = tDECL; return tDECL; }
+"=="         { if (g_tokens) printf("tEQ_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tEQ_EQ; return tEQ_EQ; }
+"!="         { if (g_tokens) printf("tNOT_EQUALS\n"); yylval.string_val = strdup(yytext); lastRead = tNOT_EQUALS; return tNOT_EQUALS; }
+"&&"         { if (g_tokens) printf("tLOGICAL_AND\n"); yylval.string_val = strdup(yytext); lastRead = tLOGICAL_AND; return tLOGICAL_AND; }
+"||"         { if (g_tokens) printf("tLOGICAL_OR\n"); yylval.string_val = strdup(yytext); lastRead = tLOGICAL_OR; return tLOGICAL_OR; }
+"+="         { if (g_tokens) printf("tPLUS_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tPLUS_EQ; return tPLUS_EQ; }
+"&="         { if (g_tokens) printf("tAMP_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tAMP_EQ; return tAMP_EQ; }
+"-="         { if (g_tokens) printf("tMINUS_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tMINUS_EQ;return tMINUS_EQ; }
+"%="         { if (g_tokens) printf("tMOD_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tMOD_EQ; return tMOD_EQ; }
+"*="         { if (g_tokens) printf("tMULT_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tMULT_EQ; return tMULT_EQ; }
+"/="         { if (g_tokens) printf("tDIV_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tDIV_EQ; return tDIV_EQ; }
+"|="         { if (g_tokens) printf("tOR_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tOR_EQ; return tOR_EQ; }
+"<"          { if (g_tokens) printf("tLT\n"); yylval.string_val = strdup(yytext); lastRead = tLT; return tLT; }
+">"          { if (g_tokens) printf("tGT\n"); yylval.string_val = strdup(yytext); lastRead = tGT; return tGT; }
+"<="         { if (g_tokens) printf("tLT_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tLT_EQ; return tLT_EQ; }
+">="         { if (g_tokens) printf("tGT_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tGT_EQ; return tGT_EQ; }
+"^="         { if (g_tokens) printf("tXOR_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tXOR_EQ; return tXOR_EQ; }
+"<-"         { if (g_tokens) printf("tARROW\n"); yylval.string_val = strdup(yytext); lastRead = tARROW; return tARROW; }
+"<<"         { if (g_tokens) printf("tSHIFT_LEFT\n"); yylval.string_val = strdup(yytext); lastRead = tSHIFT_LEFT; return tSHIFT_LEFT; }
+">>"         { if (g_tokens) printf("tSHIFT_RIGHT\n"); yylval.string_val = strdup(yytext); lastRead = tSHIFT_RIGHT; return tSHIFT_RIGHT; }
+"<<="        { if (g_tokens) printf("tSHIFT_LEFT_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tSHIFT_LEFT_EQ; return tSHIFT_LEFT_EQ; }
+">>="        { if (g_tokens) printf("tSHIFT_RIGHT_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tSHIFT_RIGHT_EQ; return tSHIFT_RIGHT_EQ; }
+"++"         { if (g_tokens) printf("tINC\n"); yylval.string_val = strdup(yytext); lastRead = tINC; return tINC; }
+"--"         { if (g_tokens) printf("tDEC\n"); yylval.string_val = strdup(yytext); lastRead = tDEC; return tDEC; }
+"&^"         { if (g_tokens) printf("tAMP_XOR\n"); yylval.string_val = strdup(yytext); lastRead = tAMP_XOR; return tAMP_XOR; }
+"&^="        { if (g_tokens) printf("tAMP_XOR_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tAMP_XOR_EQ; return tAMP_XOR_EQ; }
 
 ((0|([1-9]{DIGIT}*))|(0{OCTAL}+)|(0[xX]{HEX}+))      { if (g_tokens) printf("tINTVAL(%d)\n", atoi(yytext)); yylval.int_val = atoi(yytext); lastRead = tINTVAL; return tINTVAL; }
 ({DIGIT}+"."{DIGIT}*)|({DIGIT}*"."{DIGIT}+)          { if (g_tokens) printf("tFLOATVAL(%f)\n", atof(yytext)); yylval.float_val = atof(yytext); lastRead = tFLOATVAL; return tFLOATVAL; }

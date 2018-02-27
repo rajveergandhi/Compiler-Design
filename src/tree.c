@@ -35,6 +35,7 @@ NODE *makeDCL_var(NODE *idlist, NODE *type, NODE *expr_list) {
     node->val.toplevel.type.varDcl.idlist = idlist;
     node->val.toplevel.type.varDcl.type = type;
     node->val.toplevel.type.varDcl.expr_list = expr_list;
+    node->val.toplevel.type.varDcl.next = NULL;
     return node;
 }
 
@@ -265,6 +266,7 @@ NODE *makeSTATEMENT_assign(NODE *LHS_expr_list, char *assign_op, NODE *RHS_expr_
     node->lineno = yylineno;
     node->kind = k_statementKindAssign;
     node->val.stmt.type.stmtAssign.LHS_expr_list = LHS_expr_list;
+    printf("%s---------", assign_op);
     node->val.stmt.type.stmtAssign.assign_op = assign_op;
     node->val.stmt.type.stmtAssign.RHS_expr_list = RHS_expr_list;
     return node;
