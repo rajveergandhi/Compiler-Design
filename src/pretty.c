@@ -88,6 +88,7 @@ void prettyPrint(NODE *node) {
             printf("struct {\n");
             for (NODE *i = node; i; i = i->val.typeStruct.next) {
                 prettyPrint(i->val.typeStruct.idlist);
+                printf (" ");
                 prettyPrint(i->val.typeStruct.type);
                 printf(";\n");
             }
