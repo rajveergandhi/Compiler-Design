@@ -95,7 +95,7 @@ varSpec : idlist type {$$ = makeDCL_var($1, $2, NULL);}
         ;
 
 varDclList : varSpec tSEMICOLON varDclList {$$ = makeDCL_vars($1, $3);}
-           | %empty {$$ = NULL;}
+           | %empty {$$ = makeDCL_var(NULL, NULL, NULL);}
            ;
 
 idlist : tIDENTIFIER {$$ = makeIDLIST($1, NULL);}
@@ -116,7 +116,7 @@ type : tIDENTIFIER {$$ = makeEXP_identifier($1);}
      ;
 
 memberlist : member memberlist {$$ = makeStruct_members($1, $2);}
-           | %empty {$$ = NULL;}
+           | %empty {$$ = makeStruct(NULL, NULL);}
            ;
 
 member : idlist type tSEMICOLON {$$ = makeStruct($1, $2);}

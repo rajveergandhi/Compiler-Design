@@ -25,9 +25,10 @@ void prettyPrint(NODE *node) {
             for (NODE *TOPLEVEL = node; TOPLEVEL != NULL; TOPLEVEL = TOPLEVEL->val.toplevel.next) {
                 if (TOPLEVEL->kind == k_dcl_var) {
                     for (NODE *i = TOPLEVEL; i != NULL; i = i->val.toplevel.type.varDcl.next) {
-                        printf("var ");
-                        if (i->val.toplevel.type.varDcl.idlist)
+                        if (i->val.toplevel.type.varDcl.idlist) {
+                            printf("var ");
                             prettyPrint(i->val.toplevel.type.varDcl.idlist);
+                        }
                         if (i->val.toplevel.type.varDcl.type) {
                             printf(" ");
                             prettyPrint(i->val.toplevel.type.varDcl.type);
@@ -87,10 +88,12 @@ void prettyPrint(NODE *node) {
         case k_struct:
             printf("struct {\n");
             for (NODE *i = node; i; i = i->val.typeStruct.next) {
-                prettyPrint(i->val.typeStruct.idlist);
-                printf (" ");
-                prettyPrint(i->val.typeStruct.type);
-                printf(";\n");
+                if (i->val.typeStruct.idlist) {
+                    prettyPrint(i->val.typeStruct.idlist);
+                    printf (" ");
+                    prettyPrint(i->val.typeStruct.type);
+                    printf(";\n");
+                }
             }
             printf("}\n");
             break;
