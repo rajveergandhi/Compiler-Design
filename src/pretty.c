@@ -44,8 +44,10 @@ void prettyPrint(NODE *node) {
                         printf("\n");
                     }
                 }
-                else
+                else {
                     prettyPrint(TOPLEVEL);
+                    break;
+                }
             }
             break;
         case k_idlist:
@@ -66,6 +68,7 @@ void prettyPrint(NODE *node) {
                 }
                 else {
                     prettyPrint(TOPLEVEL);
+                    break;
                 }
             }
             break;
@@ -96,8 +99,10 @@ void prettyPrint(NODE *node) {
                     prettyPrint(node->val.toplevel.type.funcDcl.block);
                     printf("}\n");
                 }
-                else
+                else {
                     prettyPrint(TOPLEVEL);
+                    break;
+                }
             }
             break;
         case k_function_signature:
