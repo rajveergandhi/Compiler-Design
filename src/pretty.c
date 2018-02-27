@@ -81,7 +81,7 @@ void prettyPrint(NODE *node) {
         case k_slice:
             printf("[");
             printf("]");
-            prettyPrint(node->val.typeArray.type);
+            prettyPrint(node->val.typeSlice.type);
             break;
         case k_struct:
             printf("struct {");
