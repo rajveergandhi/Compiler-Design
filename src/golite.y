@@ -291,17 +291,17 @@ array_index : tOPEN_SQ expr tCLOSE_SQ {$$ = $2;}
             ;
 
 assign_op : tASSIGN {$$ = $1;}
-       | tPLUS_EQ {$$ = $1;}
-       | tMINUS_EQ {$$ = $1;}
-       | tMULT_EQ {$$ = $1;}
-       | tDIV_EQ {$$ = $1;}
-       | tMOD_EQ {$$ = $1;}
-       | tAMP_EQ {$$ = $1;}
-       | tOR_EQ {$$ = $1;}
-       | tXOR_EQ {$$ = $1;}
-       | tSHIFT_LEFT_EQ {$$ = $1;}
-       | tSHIFT_RIGHT_EQ {$$ = $1;}
-       | tAMP_XOR_EQ {$$ = $1;}
-       ;
+          | tPLUS_EQ {$$ = $1;}
+          | tMINUS_EQ {$$ = $1;}
+          | tMULT_EQ {$$ = $1;}
+          | tDIV_EQ {$$ = $1;}
+          | tMOD_EQ {$$ = $1;}
+          | tAMP_EQ {$$ = $1;}
+          | tOR_EQ {$$ = $1;}
+          | tXOR_EQ {$$ = $1;}
+          | tSHIFT_LEFT_EQ {$$ = $1;}
+          | tSHIFT_RIGHT_EQ {$$ = $1;}
+          | tAMP_XOR_EQ {$$ = $1;}
+          ;
 
 %%

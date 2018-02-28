@@ -41,8 +41,6 @@ void prettyPrint(NODE *node) {
                             }
                         }
                         printf("\n");
-                        //TOPLEVEL = TOPLEVEL->val.toplevel.next;
-                        //printf("-----\n");
                     }
                 } else {
                     prettyPrint(TOPLEVEL);
@@ -102,9 +100,9 @@ void prettyPrint(NODE *node) {
                 if (TOPLEVEL->kind == k_function) {
                     printf("func %s", TOPLEVEL->val.toplevel.type.funcDcl.identifier);
                     prettyPrint(TOPLEVEL->val.toplevel.type.funcDcl.signature);
-                    printf(" {\n");
+                    printf("\n");
                     prettyPrint(TOPLEVEL->val.toplevel.type.funcDcl.block);
-                    printf("}\n");
+                    printf("\n");
                 }
                 else {
                     prettyPrint(TOPLEVEL);
@@ -148,7 +146,7 @@ void prettyPrint(NODE *node) {
             prettyPrint(node->val.expr.type.funcCall.id);
             printf("(");
             prettyPrint(node->val.expr.type.funcCall.args);
-            printf(")\n");
+            printf(")");
             //if (node->val.expr.next)
                 //prettyPrint(node->val.expr.next);
             break;
@@ -175,7 +173,7 @@ void prettyPrint(NODE *node) {
             printf("if ");
             if (node->val.stmt.type.stmtIf.simple) {
                 prettyPrint(node->val.stmt.type.stmtIf.simple);
-                printf(";");
+                printf(" ");
             }
             prettyPrint(node->val.stmt.type.stmtIf.expr);
             printf(" {\n");
@@ -194,9 +192,9 @@ void prettyPrint(NODE *node) {
                 prettyPrint(node->val.stmt.type.stmtFor.condition);
                 printf(" ");
             }
-            printf("{\n");
+            printf("\n");
             prettyPrint(node->val.stmt.type.stmtFor.block);
-            printf("}\n");
+            printf("\n");
             if (node->val.stmt.next)
                 prettyPrint(node->val.stmt.next);
             break;
@@ -222,18 +220,20 @@ void prettyPrint(NODE *node) {
         case k_statementKindSwitchCondition:
             if (node->val.stmtSwitchCondition.simple) {
                 prettyPrint(node->val.stmtSwitchCondition.simple);
-                printf(";");
             }
             if (node->val.stmtSwitchCondition.expr)
                 prettyPrint(node->val.stmtSwitchCondition.expr);
             break;
         case k_statementKindSwitchCase:
-            if (node->val.stmtSwitchCase.expr_list)
+            if (node->val.stmtSwitchCase.expr_list) {
+                printf("case ");    
                 prettyPrint(node->val.stmtSwitchCase.expr_list);
+            }
             else
                 printf("default");
             printf(":\n");
-            prettyPrint(node->val.stmtSwitchCase.statement_list);
+            if (node->val.stmtSwitchCase.statement_list)
+                prettyPrint(node->val.stmtSwitchCase.statement_list);
             if (node->val.stmtSwitchCase.next)
                 prettyPrint(node->val.stmtSwitchCase.next);
             break;
