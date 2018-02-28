@@ -70,8 +70,8 @@ void weedSTATEMENT(NODE *stmt){
 			if (stmt->val.stmt.type.stmtIf.elseBlock) {
                 weedBLOCK(stmt->val.stmt.type.stmtIf.elseBlock);
             }
+            break;
 		case k_statementKindBreak:
-			printf("Inside break\n");
 			if(!insideFor && !insideSwitch){
 				fprintf(stderr, "Error: (line %d) break statements can only be inside a for loop or switch block\n", stmt->lineno);
 				exit(1);
