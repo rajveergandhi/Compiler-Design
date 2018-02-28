@@ -2,7 +2,7 @@
 #include <string.h>
 #include "tree.h"
 #include "pretty.h"
-#include "weed.h"
+#include "weed2.h"
 /*
 #include "symbol.h"
 #include "type.h"
@@ -33,7 +33,8 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(mode, "parse") == 0) {
                 yyparse();
-                weedPROGRAM(root);
+
+                weed(root);
                 printf("OK\n");
             }
             else if (strcmp(mode, "pretty") == 0) {

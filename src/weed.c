@@ -9,26 +9,19 @@ static bool insideSwitch = false;
 static bool isBlankIdValid = false;
 
 void weedPROGRAM(NODE *p){
-	if(p!=NULL){
-		for(NODE *i = p; i->val.program.topLevelDecls != NULL; i = i->val.program.topLevelDecls->val.next){
-			weedTOPLEVELDECLS(i->val.program.topLevelDecls);
-		}
-	}
+    weedTOPLEVELDECLS(p->val.program.topLevelDecls);
 }
 void weedTOPLEVELDECLS(NODE *d){
-	for (NODE *TOPLEVEL = d; TOPLEVEL; ) {
+	for (NODE *TOPLEVEL = d; TOPLEVEL != NULL; TOPLEVEL = TOPLEVEL->val.toplevel.next) {
 		if(TOPLEVEL->kind == k_function){
 			weedBLOCK(TOPLEVEL->val.toplevel.type.funcDcl.block);
-			TOPLEVEL = TOPLEVEL->val.toplevel.next;
 		} else if(TOPLEVEL->kind == k_dcl_var){
 			for(NODE *i = TOPLEVEL; i != NULL; i = i->val.toplevel.type.varDcl.next){
 				isBlankIdValid = true;
 			}
 			isBlankIdValid = false;
-			TOPLEVEL = TOPLEVEL->val.toplevel.next;
 		} else {
-			if (TOPLEVEL != NULL)
-				TOPLEVEL = TOPLEVEL->val.toplevel.next;
+            weedTYPEDCL(TOPLEVEL);
 		}
 	}
 }
@@ -66,8 +59,10 @@ void weedSTATEMENT(NODE *stmt){
 			insideFor = false;
 			break;
 		case k_statementKindIf:
+            printf("If\n");
 			weedBLOCK(stmt->val.stmt.type.stmtIf.stmts);
 			if (stmt->val.stmt.type.stmtIf.elseBlock) {
+                printf("Else\n");
                 weedBLOCK(stmt->val.stmt.type.stmtIf.elseBlock);
             }
             break;
@@ -85,7 +80,7 @@ void weedSTATEMENT(NODE *stmt){
 			break;
 		case k_statementKindAssign:
 			isBlankIdValid = true;
-			weedEXPRESSION(stmt->val.stmt.type.stmtShortDcl.LHS_expr_list);
+			weedEXPRESSION(stmt->val.stmt.type.stmtAssign.LHS_expr_list);
 			isBlankIdValid = false;
 			break;
 
