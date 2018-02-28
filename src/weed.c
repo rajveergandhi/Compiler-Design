@@ -25,6 +25,7 @@ void weedTOPLEVELDECLS(NODE *d){
 				isBlankIdValid = true;
 			}
 			isBlankIdValid = false;
+			TOPLEVEL = TOPLEVEL->val.toplevel.next;
 		} else {
 			if (TOPLEVEL != NULL)
 				TOPLEVEL = TOPLEVEL->val.toplevel.next;

@@ -2,8 +2,8 @@ CC=gcc
 CFLAGS=-Wall -Wextra
 LDLIBS=-ll
 
-main: main.o lex.yy.o parser.tab.o weed.h weed.o tree.h tree.o pretty.h pretty.o
-	$(CC) $(CFLAGS) main.o lex.yy.o parser.tab.o weed.o tree.o pretty.o -o golitec $(LDLIBS)
+main: main.o lex.yy.o parser.tab.o tree.h tree.o pretty.h pretty.o weed.h weed.o
+	$(CC) $(CFLAGS) main.o lex.yy.o parser.tab.o tree.o pretty.o weed.o -o golitec $(LDLIBS)
 
 parser.tab.c parser.tab.h: golite.y
 	bison --yacc --defines=parser.tab.c --output=parser.tab.h golite.y

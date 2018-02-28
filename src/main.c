@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(mode, "parse") == 0) {
                 yyparse();
-                printf("X");
                 weedPROGRAM(root);
                 printf("OK\n");
             }
