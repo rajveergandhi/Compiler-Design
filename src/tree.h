@@ -3,182 +3,298 @@
 
 #include <stdbool.h>
 
-/* // will be used for future milestone
-typedef enum {
-    s_int,
-    s_float,
-    s_string,
-    s_rune,
-    s_bool,
-} SymbolKind;
-*/
+// forward declarations
+typedef struct PROGRAM PROGRAM;
+typedef struct PACKAGE PACKAGE;
+typedef struct TOPLEVELDECL TOPLEVELDECL;
+typedef struct DCL DCL;
+typedef struct VARDCL VARDCL;
+typedef struct TYPEDCL TYPEDCL;
+typedef struct FUNCDCL FUNCDCL;
+typedef struct FUNC_SIGNATURE FUNC_SIGNATURE;
+typedef struct PARAM_LIST PARAM_LIST;
+typedef struct IDLIST IDLIST;
+typedef struct TYPE TYPE;
+typedef struct STRUCT_TYPE STRUCT_TYPE;
+typedef struct BLOCK BLOCK;
+typedef struct STATEMENTS STATEMENTS;
+typedef struct STATEMENT STATEMENT;
+typedef struct ELSE_BLOCK ELSE_BLOCK;
+typedef struct SWITCH_CONDITION SWITCH_CONDITION;
+typedef struct SWITCH_CASELIST SWITCH_CASELIST;
+typedef struct EXPRLIST EXPRLIST;
+typedef struct FOR_CONDITION FOR_CONDITION;
+typedef struct SIMPLE SIMPLE;
+typedef struct EXPR EXPR;
+typedef struct OTHER_EXPR OTHER_EXPR;
 
-typedef enum {
-    k_program,
-    k_package,
-    k_dcl_var,
-    k_idlist,
-    k_dcl_type,
-    k_array,
-    k_slice,
-    k_struct,
-    k_function,
-    k_function_signature,
-    k_function_params,
-    k_block,
-    k_append,
-    k_function_call,
-    k_statementKindPrint,
-    k_statementKindReturn,
-    k_statementKindIf,
-    k_statementKindFor,
-    k_statementKindForCond,
-    k_statementKindSwitch,
-    k_statementKindSwitchCondition,
-    k_statementKindSwitchCase,
-    k_statementKindBreak,
-    k_statementKindContinue,
-    k_statementKindSimple,
-    k_statementKindIncrement,
-    k_statementKindAssign,
-    k_statementKindShortDcl,
-    k_expressionArrayIndex,
-    k_expressionKindStructSelector,
-    k_expressionKindIdentifier,
-    k_expressionKindIntLiteral,
-    k_expressionKindFloatLiteral,
-    k_expressionKindStringLiteral,
-    k_expressionKindRuneLiteral,
-    k_expressionKindPlus,
-    k_expressionKindMinus,
-    k_expressionKindMult,
-    k_expressionKindDiv,
-    k_expressionKindMod,
-    k_expressionKindLT,
-    k_expressionKindLT_EQ,
-    k_expressionKindGT,
-    k_expressionKindGT_EQ,
-    k_expressionKindEQ_EQ,
-    k_expressionKindNotEquals,
-    k_expressionKindShift_Right,
-    k_expressionKindShift_Left,
-    k_expressionKindAnd,
-    k_expressionKindAMP_XOR,
-    k_expressionKindOr,
-    k_expressionKindXor,
-    k_expressionKindLogicalAnd,
-    k_expressionKindLogicalOr,
-    k_expressionKindNotUnary,
-    k_expressionKindPlusUnary,
-    k_expressionKindMinusUnary,
-    k_expressionKindXorUnary,
-} Kind;
-
-typedef struct NODE NODE;
-struct NODE {
+typedef struct PROGRAM {
     int lineno;
-    Kind kind;
-    //SymbolKind s_kind; // will be used for future milestone
-    union {
-        NODE *next; // for use with topLevelDecls, which can be: funcDcl, varDcl, typeDcl
-        char *package;
-        struct { NODE *package; NODE *topLevelDecls; } program;
-        struct { char *identifier; NODE *next; } idlist;
-        struct { int intval; NODE *type; } typeArray;
-        struct { NODE *type; } typeSlice;
-        struct { NODE *idlist; NODE *type; NODE *next; } typeStruct;
-        struct { NODE *params; NODE *type; } funcSign;
-        struct { NODE *param_list; NODE *idlist; NODE *type; } funcParams;
-        struct { NODE *part1; NODE *part2; NODE *part3; } stmtForCondition;
-        struct { NODE *simple; NODE *expr; } stmtSwitchCondition;
-        struct { NODE *expr_list; NODE *statement_list; NODE *next; } stmtSwitchCase;
-        struct {
-            union {
-                struct { NODE *idlist; NODE *type; NODE *expr_list; NODE *next; } varDcl;
-                struct { char *identifier; NODE *type; NODE *next; } typeDcl;
-                struct { char *identifier; NODE *signature; NODE *block; } funcDcl;
-                struct { char *identifier; NODE *next; } idlist;
-            } type;
-            NODE *next;
-        } toplevel;
-        struct {
-            union {
-                struct { NODE *stmts; } block;
-                struct { NODE *simple; } stmtSimple;
-                struct { NODE *expr; bool inc; } stmtInc;
-                struct { NODE *LHS_expr_list; char *assign_op; NODE *RHS_expr_list; } stmtAssign;
-                struct { NODE *LHS_expr_list; NODE *RHS_expr_list; } stmtShortDcl;
-                struct { NODE *expr_list; bool println; } print;
-                struct { NODE *expr; } stmtReturn;
-                struct { NODE *simple; NODE *expr; NODE *stmts; NODE *elseBlock; } stmtIf;
-                struct { NODE *condition; NODE *block; } stmtFor;
-                struct { NODE *condition; NODE *caselist; } stmtSwitch;
-            } type;
-            NODE *next;
-        } stmt;
-        struct {
-            union {
-                char *identifier;
-                char *runeLiteral;
-                int intLiteral;
-                float floatLiteral;
-                struct { char *stringLiteral; bool interpreted; } stringLiteral;
-                NODE *exp_unary;
-                struct { NODE *lhs; NODE *rhs; } exp_binary;
-                struct { char *identifier; NODE *expr; } expr_append;
-                struct { NODE *expr; NODE *index; } arrayIndex;
-                struct { NODE *expr; char *identifier; } structSelector;
-                struct { NODE *id; NODE *args; } funcCall;
-            } type;
-            NODE *next;
-        } expr;
-    } val;
-};
+    PACKAGE *package;
+    TOPLEVELDECL *topleveldecls;
+} PROGRAM;
 
-NODE *makePROGRAM(NODE *package, NODE *topLevelDecls);
-NODE *makePACKAGE(char *package);
-NODE *makeTOPLEVELDECLS(NODE *topLevelDecl, NODE *topLevelDecls);
-NODE *makeDCL_var(NODE *idlist, NODE *type, NODE *expr_list); // type or expr_list (but not both) can be NULL
-NODE *makeDCL_vars(NODE *varDcl, NODE *varDcls);
-NODE *makeIDLIST(char *id, NODE *nextId); // nextId can be NULL
-NODE *makeDCL_type(char *identifier, NODE *type);
-NODE *makeDCL_types(NODE *type, NODE *types);
-NODE *makeEXP_identifier(char *identifier);
-NODE *makeSlice(NODE *type);
-NODE *makeArray(int intval, NODE *type);
-NODE *makeStruct(NODE *idlist, NODE *type);
-NODE *makeStruct_members(NODE *member, NODE *members);
-NODE *makeFUNCTION(char *identifier, NODE *signature, NODE *block);
-NODE *makeFUNCTION_signature(NODE *params, NODE *type);
-NODE *makeFUNCTION_parameterList(NODE *param_list, NODE *idlist, NODE *type);
-NODE *makeBLOCK(NODE *statements);
-NODE *makeSTATEMENTS(NODE *stmt, NODE *stmts);
-NODE *makeSTATEMENT_print(NODE *expr_list, bool println); // bool println: true if println was called, false if print was called
-NODE *makeSTATEMENT_return(NODE *stmtReturn);
-NODE *makeSTATEMENT_if(NODE *simple, NODE *expr, NODE *stmts, NODE *elseBlock);
-NODE *makeSTATEMENT_for(NODE *condition, NODE *block);
-NODE *makeSTATEMENT_forCondition(NODE *part1, NODE *part2, NODE *part3);
-NODE *makeSTATEMENT_switch(NODE *condition, NODE *caselist);
-NODE *makeSTATEMENT_switchCondition(NODE *simple, NODE *expr);
-NODE *makeSTATEMENT_switchCases(NODE *givenCase, NODE *cases);
-NODE *makeSTATEMENT_switchCase(NODE *expr_list, NODE *statement_list); // a NULL expr_list means the case was DEFAULT
-NODE *makeSTATEMENT_break();
-NODE *makeSTATEMENT_continue();
-NODE *makeSTATEMENT_simple(NODE *simple);
-NODE *makeSTATEMENT_simpleIncrement(NODE *expr, bool inc); // inc: true means increment, false means decrement
-NODE *makeSTATEMENT_assign(NODE *LHS_expr_list, char *assign_op, NODE *RHS_expr_list);
-NODE *makeSTATEMENT_shortDcl(NODE *LHS_expr_list, NODE *RHS_expr_list);
-NODE *makeEXPRLIST(NODE *expr, NODE *expr_list);
-NODE *makeEXP_binary(Kind op, NODE *lhs, NODE *rhs);
-NODE *makeEXP_unary(Kind op, NODE *expr);
-NODE *makeAPPEND(char *identifier, NODE *expr);
-NODE *makeEXPRESSION_arrayIndex(NODE *expr, NODE *index);
-NODE *makeEXPRESSION_structSelector(NODE *expr, char *identifier);
-NODE *makeEXP_identifier(char *identifier);
-NODE *makeEXP_intLiteral(int intLiteral);
-NODE *makeEXP_floatLiteral(float floatLiteral);
-NODE *makeEXP_stringLiteral(char *stringLiteral, bool interpreted); // bool interpreted: true if interpreted string, false if raw string
-NODE *makeEXP_runeLiteral(char *runeLiteral);
-NODE *makeFUNCTIONCALL(NODE *id, NODE *args);
+typedef struct PACKAGE {
+    int lineno;
+    char *package;
+} PACKAGE;
+
+typedef struct TOPLEVELDECL {
+    int lineno;
+    enum { dcl_toplevel, func_dcl_toplevel } kind;
+    union {
+        DCL *dcl;
+        FUNCDCL *funcdcl;
+    } val;
+    TOPLEVELDECL *next;
+} TOPLEVELDECL;
+
+typedef struct DCL {
+    int lineno;
+    enum { var, type } kind;
+    union {
+        VARDCL *vardcl;
+        TYPEDCL *typedcl;
+    } val;
+} DCL;
+
+typedef struct VARDCL {
+    int lineno;
+    IDLIST *idlist;
+    TYPE *type;
+    EXPRLIST *exprlist;
+    VARDCL *next;
+} VARDCL;
+
+typedef struct TYPEDCL {
+    int lineno;
+    char *identifier;
+    TYPE *type;
+    TYPEDCL *next;
+} TYPEDCL;
+
+typedef struct FUNCDCL {
+    int lineno;
+    char *identifier;
+    FUNC_SIGNATURE *signature;
+    BLOCK *block;
+} FUNCDCL;
+
+typedef struct FUNC_SIGNATURE {
+    int lineno;
+    PARAM_LIST *params;
+    TYPE *type;
+} FUNC_SIGNATURE;
+
+typedef struct PARAM_LIST {
+    int lineno;
+    IDLIST *idlist;
+    TYPE *type;
+    PARAM_LIST *next;
+} PARAM_LIST;
+
+typedef struct IDLIST {
+    int lineno;
+    char *id;
+    IDLIST *next;
+} IDLIST;
+
+typedef struct TYPE {
+    int lineno;
+    enum { basic_type_kind, slice_type_kind, array_type_kind, struct_type_kind } kind;
+    union {
+        char *basic_type;
+        TYPE *slice_type;
+        struct {int size; TYPE *type;} array_type;
+        STRUCT_TYPE *struct_type;
+    } val;
+} TYPE;
+
+typedef struct STRUCT_TYPE {
+    int lineno;
+    IDLIST *idlist;
+    TYPE *type;
+    STRUCT_TYPE *next;
+} STRUCT_TYPE;
+
+typedef struct BLOCK {
+    int lineno;
+    STATEMENTS *stmts;
+} BLOCK;
+
+typedef struct STATEMENTS {
+    int lineno;
+    STATEMENT *stmt;
+    STATEMENTS *next;
+} STATEMENTS;
+
+typedef struct STATEMENT {
+    int lineno;
+    enum {dcl_s, simple_s, return_stmt_s, break_stmt_s, continue_stmt_s, block_s, if_stmt_s, switch_stmt_s, for_stmt_s, print_stmt_s, println_stmt_s} kind;
+    union {
+        DCL *dcl;
+        SIMPLE *simple;
+        EXPR *return_stmt;
+        BLOCK *block;
+        struct {
+            SIMPLE *simple;
+            EXPR *expr;
+            enum {else_if, no_else} kind_else;
+            union {
+                BLOCK *if_block;
+                struct { STATEMENTS *stmts; ELSE_BLOCK *else_block; } else_block;
+            } val;
+        } if_stmt;
+        struct {SWITCH_CONDITION *condition; SWITCH_CASELIST *caselist; } switch_stmt;
+        struct {FOR_CONDITION *condition; BLOCK *block; } for_stmt;
+        EXPRLIST *print;
+    } val;
+} STATEMENT;
+
+typedef struct ELSE_BLOCK {
+    int lineno;
+    enum {if_stmt_else, block_else} kind;
+    union {
+        STATEMENT *if_stmt;
+        BLOCK *block;
+    } val;
+} ELSE_BLOCK;
+
+typedef struct SWITCH_CONDITION {
+    int lineno;
+    SIMPLE *simple;
+    EXPR *expr;
+} SWITCH_CONDITION;
+
+typedef struct SWITCH_CASELIST {
+    int lineno;
+    bool default_case;
+    EXPRLIST *exprlist;
+    STATEMENTS *statements;
+    SWITCH_CASELIST *next;
+} SWITCH_CASELIST;
+
+typedef struct EXPRLIST {
+    int lineno;
+    EXPR *expr;
+    EXPRLIST *next;
+} EXPRLIST;
+
+typedef struct FOR_CONDITION {
+    int lineno;
+    enum { infinite, while_loop, threepart } kind;
+    union {
+        EXPR *while_expr;
+        struct {SIMPLE *init; EXPR *condition; SIMPLE *post;} threepart;
+    } val;
+} FOR_CONDITION;
+
+typedef struct SIMPLE {
+    int lineno;
+    enum { empty_stmt_kind, expr_kind, increment_kind, decrement_kind, assignment_kind, shortDcl_kind } kind;
+    union {
+        EXPR *expr; 
+        struct { EXPRLIST *LHS_expr_list; char *assign_op; EXPRLIST *RHS_expr_list; } assignment;
+        struct { EXPRLIST *LHS_expr_list; EXPRLIST *RHS_expr_list; } shortDcl;
+    } val;
+} SIMPLE;
+
+typedef enum { expressionKindPlus, expressionKindMinus, expressionKindMult, expressionKindDiv, expressionKindMod, expressionKindLT, expressionKindLT_EQ,
+       expressionKindGT, expressionKindGT_EQ, expressionKindEQ_EQ, expressionKindNotEquals, expressionKindShift_Right, expressionKindShift_Left,
+       expressionKindAnd, expressionKindAMP_XOR, expressionKindOr, expressionKindXor, expressionKindLogicalAnd, expressionKindLogicalOr,
+       expressionKindPlusUnary, expressionKindMinusUnary, expressionKindNotUnary, expressionKindXorUnary,
+       append_expr, intval, floatval, stringval, rawstringval, runeval, other_expr_kind, } exprKind;
+
+typedef struct EXPR {
+    int lineno;
+    exprKind kind;
+    union {
+        char *runeLiteral;
+        int intLiteral;
+        float floatLiteral;
+        char *stringLiteral;
+        struct { EXPR *lhs; EXPR *rhs; } binary;
+        EXPR *expr_unary;
+        struct { char *identifier; EXPR *expr; } append_expr;
+        OTHER_EXPR *other_expr;
+    } val;
+} EXPR;
+
+typedef struct OTHER_EXPR {
+    int lineno;
+    enum { identifier_kind, paren_kind, func_call_kind, index_kind, struct_access_kind } kind;
+    union {
+        EXPR *expr;
+        char *identifier;
+        struct { OTHER_EXPR *id; EXPRLIST *args; } func_call;
+        struct { OTHER_EXPR *expr; EXPR *index; } index;
+        struct { OTHER_EXPR *expr; char *identifier; } struct_access;
+    } val;
+} OTHER_EXPR;
+
+PROGRAM *makePROGRAM(PACKAGE *package, TOPLEVELDECL *topleveldecls);
+PACKAGE *makePACKAGE(char *package);
+TOPLEVELDECL *makeTOPLEVELDECLS(TOPLEVELDECL *current, TOPLEVELDECL *next);
+TOPLEVELDECL *makeTOPLEVELDECL_dcl(DCL *dcl);
+TOPLEVELDECL *makeTOPLEVELDECL_funcdcl(FUNCDCL *funcdcl);
+DCL *makeDCLTYPE_var(VARDCL *vardcl);
+DCL *makeDCLTYPE_type(TYPEDCL *typedcl);
+VARDCL *makeDCL_var(IDLIST *idlist, TYPE *type, EXPRLIST *exprlist);
+VARDCL *makeDCL_vars(VARDCL *current, VARDCL *next);
+TYPEDCL *makeDCL_type(char *identifier, TYPE *type);
+TYPEDCL *makeDCL_types(TYPEDCL *current, TYPEDCL *next);
+TYPE *makeTYPE_identifier(char *identifier);
+TYPE *makeTYPE_slice(TYPE *slice_type);
+TYPE *makeTYPE_array(int size, TYPE *type);
+TYPE *makeTYPE_struct(STRUCT_TYPE *struct_type);
+STRUCT_TYPE *makeSTRUCT(IDLIST *idlist, TYPE *type);
+STRUCT_TYPE *makeSTRUCTS(STRUCT_TYPE *current, STRUCT_TYPE *next);
+FUNCDCL *makeFUNCTION(char *identifier, FUNC_SIGNATURE *signature, BLOCK *block);
+FUNC_SIGNATURE *makeFUNCTION_signature(PARAM_LIST *params, TYPE *type);
+PARAM_LIST *makeFUNCTION_parameterList(IDLIST *idlist, TYPE *type, PARAM_LIST *next);
+IDLIST *makeIDLIST(char *id, IDLIST *next);
+BLOCK *makeBLOCK(STATEMENTS *stmts);
+STATEMENTS *makeSTATEMENTS(STATEMENT *stmt, STATEMENTS *next);
+STATEMENT *makeSTATEMENT_print(EXPRLIST *print);
+STATEMENT *makeSTATEMENT_println(EXPRLIST *print);
+STATEMENT *makeSTATEMENT_return(EXPR *return_stmt);
+STATEMENT *makeSTATEMENT_if(SIMPLE *simple, EXPR *expr, BLOCK *block);
+STATEMENT *makeSTATEMENT_ifElse(SIMPLE *simple, EXPR *expr, STATEMENTS *stmts, ELSE_BLOCK *else_block);
+ELSE_BLOCK *makeELSEBLOCK_block(BLOCK *block);
+ELSE_BLOCK *makeELSEBLOCK_if(STATEMENT *if_stmt);
+STATEMENT *makeSTATEMENT_for(FOR_CONDITION *condition, BLOCK *block);
+FOR_CONDITION *makeSTATEMENT_forCondition_infinite();
+FOR_CONDITION *makeSTATEMENT_forCondition_while(EXPR *while_expr);
+FOR_CONDITION *makeSTATEMENT_forCondition_threepart(SIMPLE *init, EXPR *condition, SIMPLE *post);
+STATEMENT *makeSTATEMENT_switch(SWITCH_CONDITION *condition, SWITCH_CASELIST *caselist);
+SWITCH_CONDITION *makeSTATEMENT_switchCondition(SIMPLE *simple, EXPR *expr);
+SWITCH_CASELIST *makeSTATEMENT_switchCase(EXPRLIST *exprlist, STATEMENTS *statements);
+SWITCH_CASELIST *makeSTATEMENT_switchCaseDefault(STATEMENTS *statements);
+SWITCH_CASELIST *makeSTATEMENT_switchCases(SWITCH_CASELIST *current, SWITCH_CASELIST *next);
+STATEMENT *makeSTATEMENT_break();
+STATEMENT *makeSTATEMENT_continue();
+STATEMENT *makeSTATEMENT_block(BLOCK *block);
+STATEMENT *makeSTATEMENT_dcl(DCL *dcl);
+STATEMENT *makeSTATEMENT_simple(SIMPLE *simple);
+SIMPLE *makeSIMPLE_expr(EXPR *expr);
+SIMPLE *makeSIMPLE_inc(EXPR *expr);
+SIMPLE *makeSIMPLE_dec(EXPR *expr);
+SIMPLE *makeSIMPLE_assignment(EXPRLIST *LHS_expr_list, char *assign_op, EXPRLIST *RHS_expr_list);
+SIMPLE *makeSIMPLE_shortdcl(EXPRLIST *LHS_expr_list, EXPRLIST *RHS_expr_list);
+SIMPLE *makeSIMPLE_empty();
+EXPRLIST *makeEXPRLIST(EXPR *expr, EXPRLIST *next);
+EXPR *makeEXPR_binary(exprKind kind, EXPR *lhs, EXPR *rhs);
+EXPR *makeEXPR_unary(exprKind kind, EXPR *expr_unary);;
+EXPR *makeEXPR_append(char *identifier, EXPR *expr);
+EXPR *makeEXPR_intLiteral(int intLiteral);
+EXPR *makeEXPR_floatLiteral(float floatLiteral);
+EXPR *makeEXPR_stringLiteral(char *stringLiteral, bool interpreted);
+EXPR *makeEXPR_runeLiteral(char *runeLiteral);
+EXPR *makeEXPR_other(OTHER_EXPR *other_expr);
+OTHER_EXPR *makeEXPR_identifier(char *identifier);
+OTHER_EXPR *makeEXPR_paren(EXPR *expr);
+OTHER_EXPR *makeEXPR_funcCall(OTHER_EXPR *id, EXPRLIST *args);
+OTHER_EXPR *makeEXPR_index(OTHER_EXPR *expr, EXPR *index);
+OTHER_EXPR *makeEXPR_structAccess(OTHER_EXPR *expr, char *identifier);
 
 #endif /* !TREE_H */

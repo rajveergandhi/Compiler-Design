@@ -7,7 +7,7 @@
 #include "tree.h"
 
 extern int yylineno;
-extern NODE *root;
+extern PROGRAM *root;
 
 int yylex();
 void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, s); exit(1); }
@@ -25,15 +25,54 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
     int int_val;
     double float_val;
     char *string_val;
-    NODE *node;
+    PROGRAM *program;
+    PACKAGE *package;
+    TOPLEVELDECL *topleveldecl;
+    DCL *dcl;
+    VARDCL *vardcl;
+    IDLIST *idlist;
+    TYPEDCL *typedcl;
+    TYPE *type;
+    STRUCT_TYPE *struct_type;
+    FUNCDCL *funcdcl;
+    FUNC_SIGNATURE *func_signature;
+    PARAM_LIST *param_list;
+    BLOCK *block;
+    STATEMENTS *statements;
+    STATEMENT *statement;
+    ELSE_BLOCK *else_block;
+    FOR_CONDITION *for_condition;
+    SWITCH_CONDITION *switch_condition;
+    SWITCH_CASELIST *switch_caselist;
+    SIMPLE *simple;
+    EXPRLIST *exprlist;
+    EXPR *expr;
+    OTHER_EXPR *other_expr;
 }
 
-%type <node> program package topLevelDecls topLevelDecl dcl varDcl varSpec varDclList idlist
-%type <node> typeDcl typeSpec type memberlist member typeDclList funcDcl signature parameter_list 
-%type <node> block statement_list statement print_stmt println_stmt return_stmt if_stmt else_block for_stmt 
-%type <node> for_condition condition switch_stmt switch_condition caselist case break_stmt continue_stmt simple_stmt 
-%type <node> simple_stmt_no_semi assignment_stmt shortDcl expr_list expr append_expr other_expressions operand 
-%type <node> function_call array_index
+%type <program> program
+%type <package> package
+%type <topleveldecl> topLevelDecl topLevelDecls
+%type <dcl> dcl
+%type <vardcl> varDcl varSpec varDclList
+%type <idlist> idlist
+%type <typedcl> typeDcl typeSpec typeDclList 
+%type <type> type
+%type <struct_type> memberlist member
+%type <funcdcl> funcDcl
+%type <func_signature> signature
+%type <param_list> parameter_list 
+%type <block> block
+%type <statements> statement_list
+%type <statement> statement print_stmt println_stmt return_stmt if_stmt for_stmt switch_stmt break_stmt continue_stmt 
+%type <else_block> else_block
+%type <for_condition> for_condition
+%type <switch_condition> switch_condition
+%type <switch_caselist> caselist case
+%type <simple> simple_stmt simple_stmt_no_semi
+%type <exprlist> expr_list
+%type <expr> expr
+%type <other_expr> other_expressions
 %type <string_val> assign_op
 
 %token <string_val> tBREAK tDEFAULT tFUNC tINTERFACE tSELECT
@@ -77,12 +116,12 @@ topLevelDecls : topLevelDecl topLevelDecls {$$ = makeTOPLEVELDECLS($1, $2);}
               | %empty {$$ = NULL;}
               ;
 
-topLevelDecl : dcl {$$ = $1;}
-             | funcDcl {$$ = $1;}
+topLevelDecl : dcl {$$ = makeTOPLEVELDECL_dcl($1);}
+             | funcDcl {$$ = makeTOPLEVELDECL_funcdcl($1);}
              ;
 
-dcl : varDcl {$$ = $1;}
-    | typeDcl {$$ = $1;}
+dcl : varDcl {$$ = makeDCLTYPE_var($1);}
+    | typeDcl {$$ = makeDCLTYPE_type($1);}
     ;
 
 varDcl : tVAR varSpec tSEMICOLON {$$ = $2;}
@@ -95,7 +134,7 @@ varSpec : idlist type {$$ = makeDCL_var($1, $2, NULL);}
         ;
 
 varDclList : varSpec tSEMICOLON varDclList {$$ = makeDCL_vars($1, $3);}
-           | %empty {$$ = makeDCL_var(NULL, NULL, NULL);}
+           | %empty {$$ = NULL;}
            ;
 
 idlist : tIDENTIFIER {$$ = makeIDLIST($1, NULL);}
@@ -109,21 +148,21 @@ typeDcl : tTYPE typeSpec tSEMICOLON {$$ = $2;}
 typeSpec : tIDENTIFIER type {$$ = makeDCL_type($1, $2);}
          ;
 
-type : tIDENTIFIER {$$ = makeEXP_identifier($1);}
-     | tOPEN_SQ tCLOSE_SQ type {$$ = makeSlice($3);}
-     | tOPEN_SQ tINTVAL tCLOSE_SQ type {$$ = makeArray($2, $4);}
-     | tSTRUCT tOPEN_BRACE memberlist tCLOSE_BRACE {$$ = $3;}
+type : tIDENTIFIER {$$ = makeTYPE_identifier($1);}
+     | tOPEN_SQ tCLOSE_SQ type {$$ = makeTYPE_slice($3);}
+     | tOPEN_SQ tINTVAL tCLOSE_SQ type {$$ = makeTYPE_array($2, $4);}
+     | tSTRUCT tOPEN_BRACE memberlist tCLOSE_BRACE {$$ = makeTYPE_struct($3);}
      ;
 
-memberlist : member memberlist {$$ = makeStruct_members($1, $2);}
-           | %empty {$$ = makeStruct(NULL, NULL);}
+memberlist : member memberlist {$$ = makeSTRUCTS($1, $2);}
+           | %empty {$$ = NULL;}
            ;
 
-member : idlist type tSEMICOLON {$$ = makeStruct($1, $2);}
+member : idlist type tSEMICOLON {$$ = makeSTRUCT($1, $2);}
        ;
 
 typeDclList : typeSpec tSEMICOLON typeDclList {$$ = makeDCL_types($1, $3);}
-            | %empty  {$$ = makeDCL_type(NULL, NULL);}
+            | %empty  {$$ = NULL;}
             ;
 
 funcDcl : tFUNC tIDENTIFIER signature block {$$ = makeFUNCTION($2, $3, $4);}
@@ -148,8 +187,8 @@ statement_list : statement statement_list {$$ = makeSTATEMENTS($1, $2);}
                | %empty {$$ = NULL;}
                ;
 
-statement : dcl {$$ = $1;}
-          | block {$$ = $1;}
+statement : dcl {$$ = makeSTATEMENT_dcl($1);}
+          | block {$$ = makeSTATEMENT_block($1);}
           | print_stmt {$$ = $1;}
           | println_stmt {$$ = $1;}
           | return_stmt {$$ = $1;}
@@ -158,41 +197,39 @@ statement : dcl {$$ = $1;}
           | switch_stmt {$$ = $1;}
           | break_stmt {$$ = $1;}
           | continue_stmt {$$ = $1;}
-          | simple_stmt {$$ = $1;}
+          | simple_stmt {$$ = makeSTATEMENT_simple($1);}
           ;
 
-print_stmt : tPRINT tOPEN_PAREN expr_list tCLOSE_PAREN tSEMICOLON {$$ = makeSTATEMENT_print($3, false);}
-           | tPRINT tOPEN_PAREN tCLOSE_PAREN tSEMICOLON {$$ = makeSTATEMENT_print(NULL, false);}
+print_stmt : tPRINT tOPEN_PAREN expr_list tCLOSE_PAREN tSEMICOLON {$$ = makeSTATEMENT_print($3);}
+           | tPRINT tOPEN_PAREN tCLOSE_PAREN tSEMICOLON {$$ = makeSTATEMENT_print(NULL);}
            ;
 
-println_stmt : tPRINTLN tOPEN_PAREN expr_list tCLOSE_PAREN tSEMICOLON {$$ = makeSTATEMENT_print($3, true);}
-             | tPRINTLN tOPEN_PAREN tCLOSE_PAREN tSEMICOLON {$$ = makeSTATEMENT_print(NULL, true);}
+println_stmt : tPRINTLN tOPEN_PAREN expr_list tCLOSE_PAREN tSEMICOLON {$$ = makeSTATEMENT_println($3);}
+             | tPRINTLN tOPEN_PAREN tCLOSE_PAREN tSEMICOLON {$$ = makeSTATEMENT_println(NULL);}
              ;
 
 return_stmt : tRETURN expr tSEMICOLON {$$ = makeSTATEMENT_return($2);}
             | tRETURN tSEMICOLON {$$ = makeSTATEMENT_return(NULL);}
             ;
 
-if_stmt : tIF simple_stmt expr block {$$ = makeSTATEMENT_if($2, $3, $4, NULL);}
-        | tIF expr block {$$ = makeSTATEMENT_if(NULL, $2, $3, NULL);}
-        | tIF simple_stmt expr tOPEN_BRACE statement_list tCLOSE_BRACE tELSE else_block {$$ = makeSTATEMENT_if($2, $3, $5, $8);}
-        | tIF expr tOPEN_BRACE statement_list tCLOSE_BRACE tELSE else_block {$$ = makeSTATEMENT_if(NULL, $2, $4, $7);}
+if_stmt : tIF simple_stmt expr block {$$ = makeSTATEMENT_if($2, $3, $4);}
+        | tIF expr block {$$ = makeSTATEMENT_if(NULL, $2, $3);}
+        | tIF simple_stmt expr tOPEN_BRACE statement_list tCLOSE_BRACE tELSE else_block {$$ = makeSTATEMENT_ifElse($2, $3, $5, $8);}
+        | tIF expr tOPEN_BRACE statement_list tCLOSE_BRACE tELSE else_block {$$ = makeSTATEMENT_ifElse(NULL, $2, $4, $7);}
         ;
 
-else_block : block {$$ = $1;}
-           | if_stmt {$$ = $1;}
+else_block : block {$$ = makeELSEBLOCK_block($1);}
+           | if_stmt {$$ = makeELSEBLOCK_if($1);}
            ;
 
 for_stmt : tFOR for_condition block {$$ = makeSTATEMENT_for($2, $3);}
          ;
 
-for_condition : condition {$$ = $1;}
-              | simple_stmt_no_semi tSEMICOLON condition tSEMICOLON simple_stmt_no_semi {$$ = makeSTATEMENT_forCondition($1, $3, $5);}
+for_condition : %empty {$$ = makeSTATEMENT_forCondition_infinite();}
+              | expr {$$ = makeSTATEMENT_forCondition_while($1);}
+              | simple_stmt_no_semi tSEMICOLON expr tSEMICOLON simple_stmt_no_semi {$$ = makeSTATEMENT_forCondition_threepart($1, $3, $5);}
+              | simple_stmt_no_semi tSEMICOLON tSEMICOLON simple_stmt_no_semi {$$ = makeSTATEMENT_forCondition_threepart($1, NULL, $4);}
               ;
-
-condition : expr {$$ = $1;}
-          | %empty {$$ = NULL;}
-          ;
 
 switch_stmt : tSWITCH switch_condition tOPEN_BRACE caselist tCLOSE_BRACE {$$ = makeSTATEMENT_switch($2, $4);}
             ;
@@ -208,7 +245,7 @@ caselist : case caselist {$$ = makeSTATEMENT_switchCases($1, $2);}
          ;
 
 case : tCASE expr_list tCOLON statement_list {$$ = makeSTATEMENT_switchCase($2, $4);}
-     | tDEFAULT tCOLON statement_list {$$ = makeSTATEMENT_switchCase(NULL, $3);}
+     | tDEFAULT tCOLON statement_list {$$ = makeSTATEMENT_switchCaseDefault($3);}
      ;
 
 break_stmt : tBREAK tSEMICOLON {$$ = makeSTATEMENT_break();}
@@ -217,78 +254,60 @@ break_stmt : tBREAK tSEMICOLON {$$ = makeSTATEMENT_break();}
 continue_stmt : tCONTINUE tSEMICOLON {$$ = makeSTATEMENT_continue();}
               ;
 
-simple_stmt : simple_stmt_no_semi tSEMICOLON {$$ = makeSTATEMENT_simple($1);}
+simple_stmt : simple_stmt_no_semi tSEMICOLON {$$ = $1;}
             ;
 
-simple_stmt_no_semi : expr {$$ = $1;}
-                    | expr tINC {$$ = makeSTATEMENT_simpleIncrement($1, true);}
-                    | expr tDEC {$$ = makeSTATEMENT_simpleIncrement($1, false);}
-                    | assignment_stmt {$$ = $1;}
-                    | shortDcl {$$ = $1;}
-                    | %empty {$$ = NULL;}
+simple_stmt_no_semi : expr {$$ = makeSIMPLE_expr($1);}
+                    | expr tINC {$$ = makeSIMPLE_inc($1);}
+                    | expr tDEC {$$ = makeSIMPLE_dec($1);}
+                    | expr_list assign_op expr_list {$$ = makeSIMPLE_assignment($1, $2, $3);}
+                    | expr_list tDECL expr_list {$$ = makeSIMPLE_shortdcl($1, $3);}
+                    | %empty {$$ = makeSIMPLE_empty();}
                     ;
 
-assignment_stmt : expr_list assign_op expr_list {$$ = makeSTATEMENT_assign($1, $2, $3);}
-                ;
-
-shortDcl : expr_list tDECL expr_list {$$ = makeSTATEMENT_shortDcl($1, $3);}
-         ;
-
-expr_list : expr {$$ = $1;}
+expr_list : expr {$$ = makeEXPRLIST($1, NULL);}
           | expr tCOMMA expr_list {$$ = makeEXPRLIST($1, $3);}
           ;
 
-expr : expr tPLUS expr {$$ = makeEXP_binary(k_expressionKindPlus, $1, $3);}
-     | expr tMINUS expr {$$ = makeEXP_binary(k_expressionKindMinus, $1, $3);}
-     | expr tMULT expr {$$ = makeEXP_binary(k_expressionKindMult, $1, $3);}
-     | expr tDIV expr {$$ = makeEXP_binary(k_expressionKindDiv, $1, $3);}
-     | expr tMOD expr {$$ = makeEXP_binary(k_expressionKindMod, $1, $3);}
-     | expr tLT expr {$$ = makeEXP_binary(k_expressionKindLT, $1, $3);}
-     | expr tLT_EQ expr {$$ = makeEXP_binary(k_expressionKindLT_EQ, $1, $3);}
-     | expr tGT expr {$$ = makeEXP_binary(k_expressionKindGT, $1, $3);}
-     | expr tGT_EQ expr {$$ = makeEXP_binary(k_expressionKindGT_EQ, $1, $3);}
-     | expr tEQ_EQ expr {$$ = makeEXP_binary(k_expressionKindEQ_EQ, $1, $3);}
-     | expr tNOT_EQUALS expr {$$ = makeEXP_binary(k_expressionKindNotEquals, $1, $3);}
-     | expr tSHIFT_RIGHT expr {$$ = makeEXP_binary(k_expressionKindShift_Right, $1, $3);}
-     | expr tSHIFT_LEFT expr {$$ = makeEXP_binary(k_expressionKindShift_Left, $1, $3);}
-     | expr tAND expr {$$ = makeEXP_binary(k_expressionKindAnd, $1, $3);}
-     | expr tAMP_XOR expr {$$ = makeEXP_binary(k_expressionKindAMP_XOR, $1, $3);}
-     | expr tOR expr {$$ = makeEXP_binary(k_expressionKindOr, $1, $3);}
-     | expr tXOR expr {$$ = makeEXP_binary(k_expressionKindXor, $1, $3);}
-     | expr tLOGICAL_AND expr {$$ = makeEXP_binary(k_expressionKindLogicalAnd, $1, $3);}
-     | expr tLOGICAL_OR expr {$$ = makeEXP_binary(k_expressionKindLogicalOr, $1, $3);}
-     | tPLUS expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindPlusUnary, $2);}
-     | tMINUS expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindMinusUnary, $2);}
-     | tNOT expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindNotUnary, $2);}
-     | tXOR expr %prec UNARY {$$ = makeEXP_unary(k_expressionKindXorUnary, $2);}
-     | append_expr {$$ = $1;}
-     | other_expressions {$$ = $1;}
+expr : expr tPLUS expr {$$ = makeEXPR_binary(expressionKindPlus, $1, $3);}
+     | expr tMINUS expr {$$ = makeEXPR_binary(expressionKindMinus, $1, $3);}
+     | expr tMULT expr {$$ = makeEXPR_binary(expressionKindMult, $1, $3);}
+     | expr tDIV expr {$$ = makeEXPR_binary(expressionKindDiv, $1, $3);}
+     | expr tMOD expr {$$ = makeEXPR_binary(expressionKindMod, $1, $3);}
+     | expr tLT expr {$$ = makeEXPR_binary(expressionKindLT, $1, $3);}
+     | expr tLT_EQ expr {$$ = makeEXPR_binary(expressionKindLT_EQ, $1, $3);}
+     | expr tGT expr {$$ = makeEXPR_binary(expressionKindGT, $1, $3);}
+     | expr tGT_EQ expr {$$ = makeEXPR_binary(expressionKindGT_EQ, $1, $3);}
+     | expr tEQ_EQ expr {$$ = makeEXPR_binary(expressionKindEQ_EQ, $1, $3);}
+     | expr tNOT_EQUALS expr {$$ = makeEXPR_binary(expressionKindNotEquals, $1, $3);}
+     | expr tSHIFT_RIGHT expr {$$ = makeEXPR_binary(expressionKindShift_Right, $1, $3);}
+     | expr tSHIFT_LEFT expr {$$ = makeEXPR_binary(expressionKindShift_Left, $1, $3);}
+     | expr tAND expr {$$ = makeEXPR_binary(expressionKindAnd, $1, $3);}
+     | expr tAMP_XOR expr {$$ = makeEXPR_binary(expressionKindAMP_XOR, $1, $3);}
+     | expr tOR expr {$$ = makeEXPR_binary(expressionKindOr, $1, $3);}
+     | expr tXOR expr {$$ = makeEXPR_binary(expressionKindXor, $1, $3);}
+     | expr tLOGICAL_AND expr {$$ = makeEXPR_binary(expressionKindLogicalAnd, $1, $3);}
+     | expr tLOGICAL_OR expr {$$ = makeEXPR_binary(expressionKindLogicalOr, $1, $3);}
+     | tPLUS expr %prec UNARY {$$ = makeEXPR_unary(expressionKindPlusUnary, $2);}
+     | tMINUS expr %prec UNARY {$$ = makeEXPR_unary(expressionKindMinusUnary, $2);}
+     | tNOT expr %prec UNARY {$$ = makeEXPR_unary(expressionKindNotUnary, $2);}
+     | tXOR expr %prec UNARY {$$ = makeEXPR_unary(expressionKindXorUnary, $2);}
+     | tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA expr tCLOSE_PAREN {$$ = makeEXPR_append($3, $5);}
+     | tINTVAL {$$ = makeEXPR_intLiteral($1);}
+     | tFLOATVAL {$$ = makeEXPR_floatLiteral($1);}
+     | tSTRINGVAL {$$ = makeEXPR_stringLiteral($1, true);}
+     | tRAWSTRVAL {$$ = makeEXPR_stringLiteral($1, false);}
+     | tRUNEVAL {$$ = makeEXPR_runeLiteral($1);}
+     | other_expressions {$$ = makeEXPR_other($1);}
      ;
 
-append_expr : tAPPEND tOPEN_PAREN tIDENTIFIER tCOMMA expr tCLOSE_PAREN {$$ = makeAPPEND($3, $5);}
-            ;
-
-other_expressions : function_call {$$ = $1;}
-                  | operand {$$ = $1;}
-                  | other_expressions array_index {$$ = makeEXPRESSION_arrayIndex($1, $2);}
-                  | other_expressions tPERIOD tIDENTIFIER {$$ = makeEXPRESSION_structSelector($1, $3);}
+other_expressions : tIDENTIFIER {$$ = makeEXPR_identifier($1);}
+                  | tOPEN_PAREN expr tCLOSE_PAREN {$$ = makeEXPR_paren($2);}
+                  | other_expressions tOPEN_PAREN expr_list tCLOSE_PAREN {$$ = makeEXPR_funcCall($1, $3);}
+                  | other_expressions tOPEN_PAREN tCLOSE_PAREN {$$ = makeEXPR_funcCall($1, NULL);}
+                  | other_expressions tOPEN_SQ expr tCLOSE_SQ {$$ = makeEXPR_index($1, $3);}
+                  | other_expressions tPERIOD tIDENTIFIER {$$ = makeEXPR_structAccess($1, $3);}
                   ;
-
-operand : tOPEN_PAREN expr tCLOSE_PAREN {$$ = $2;}
-        | tIDENTIFIER {$$ = makeEXP_identifier($1);}
-        | tINTVAL {$$ = makeEXP_intLiteral($1);}
-        | tFLOATVAL {$$ = makeEXP_floatLiteral($1);}
-        | tSTRINGVAL {$$ = makeEXP_stringLiteral($1, true);}
-        | tRAWSTRVAL {$$ = makeEXP_stringLiteral($1, false);}
-        | tRUNEVAL {$$ = makeEXP_runeLiteral($1);}
-        ;
-
-function_call : other_expressions tOPEN_PAREN expr_list tCLOSE_PAREN {$$ = makeFUNCTIONCALL($1, $3);}
-              | other_expressions tOPEN_PAREN tCLOSE_PAREN {$$ = makeFUNCTIONCALL($1, NULL);}
-              ;
-
-array_index : tOPEN_SQ expr tCLOSE_SQ {$$ = $2;}
-            ;
 
 assign_op : tASSIGN {$$ = $1;}
           | tPLUS_EQ {$$ = $1;}

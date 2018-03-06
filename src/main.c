@@ -13,7 +13,7 @@ int yylex();
 int g_tokens = 0;
 int g_symbols = 0;
 extern FILE *yyin;
-NODE *root;
+PROGRAM *root;
 FILE *codegen_file;
 
 int main(int argc, char* argv[])
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
             else if (strcmp(mode, "pretty") == 0) {
                 yyparse();
                 //weedPROGRAM(root);
-                prettyPrint(root);
+                prettyPROGRAM(root);
             }
             /*
             else if (strcmp(mode, "symbol") == 0) {
