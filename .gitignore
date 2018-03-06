@@ -8,3 +8,5 @@ y.tab.h
 *.output
 .DS_Store
 internal-testcases/
+grading.sh
+grading/
