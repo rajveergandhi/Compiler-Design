@@ -152,6 +152,7 @@ type : tIDENTIFIER {$$ = makeTYPE_identifier($1);}
      | tOPEN_SQ tCLOSE_SQ type {$$ = makeTYPE_slice($3);}
      | tOPEN_SQ tINTVAL tCLOSE_SQ type {$$ = makeTYPE_array($2, $4);}
      | tSTRUCT tOPEN_BRACE memberlist tCLOSE_BRACE {$$ = makeTYPE_struct($3);}
+     | tOPEN_PAREN type tCLOSE_PAREN {$$ = $2;}
      ;
 
 memberlist : member memberlist {$$ = makeSTRUCTS($1, $2);}
@@ -172,8 +173,6 @@ signature : tOPEN_PAREN parameter_list tCLOSE_PAREN {$$ = makeFUNCTION_signature
           | tOPEN_PAREN tCLOSE_PAREN {$$ = makeFUNCTION_signature(NULL, NULL);}
           | tOPEN_PAREN parameter_list tCLOSE_PAREN type {$$ = makeFUNCTION_signature($2, $4);}
           | tOPEN_PAREN tCLOSE_PAREN type {$$ = makeFUNCTION_signature(NULL, $3);}
-          | tOPEN_PAREN parameter_list tCLOSE_PAREN tOPEN_PAREN type tCLOSE_PAREN {$$ = makeFUNCTION_signature($2, $5);}
-          | tOPEN_PAREN tCLOSE_PAREN tOPEN_PAREN type tCLOSE_PAREN {$$ = makeFUNCTION_signature(NULL, $4);}
           ;
 
 parameter_list : idlist type tCOMMA parameter_list {$$ = makeFUNCTION_parameterList($1, $2, $4);}

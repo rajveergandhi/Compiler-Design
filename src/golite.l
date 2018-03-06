@@ -49,7 +49,7 @@ ESCAPE_SEQ_STRINGS (\\[abfnrtv"\\])
 %%
 
 [ \t\r]+     { /* whitespace is ignored */ }
-"//".*$      { /* ignore line comments */ }
+"//".*       { /* ignore line comments */ }
 "/*"([^*]|(\*+[^*/]))*\n([^*]|(\*+[^*/]))*\*+\/ { /* block comment with a newline character */ if (insertSemicolon()) { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; } }
 "/*"([^*]|(\*+[^*/]))*\*+\/ { /* ignore block comments without a newline character */ }
 \n           { if (insertSemicolon()) { if (g_tokens) printf("tSEMICOLON\n"); lastRead = tSEMICOLON; return tSEMICOLON; } }
