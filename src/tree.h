@@ -28,7 +28,7 @@ typedef struct SIMPLE SIMPLE;
 typedef struct EXPR EXPR;
 typedef struct OTHER_EXPR OTHER_EXPR;
 
-typedef enum{topSym,dclSym,methodSym,localSym} SymbolKind;
+typedef enum{topSym,formalSym} SymbolKind;
 
 typedef struct SYMBOL {
     char *name;
@@ -37,6 +37,7 @@ typedef struct SYMBOL {
       struct TOPLEVELDECL *topS;
       struct DCL *dclS;
       struct FUNCDCL *methodS;
+      struct FUNC_SIGNATURE *formalS;
     } val;
     struct SYMBOL *next;
 } SYMBOL;

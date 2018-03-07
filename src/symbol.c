@@ -20,6 +20,14 @@ SymbolTable *initSymbolTable() {
     return t;
 }
 
+SymbolTable *scopeSymbolTable(SymbolTable *s)
+{ SymbolTable *t;
+  t = initSymbolTable();
+  t->next = s;
+  return t;
+}
+
+
 SYMBOL *putSymbol(SymbolTable *t, char *name, SymbolKind kind) {
     int i = Hash(name);
     SYMBOL *s;
@@ -65,8 +73,14 @@ void symPROGRAM(PROGRAM *p) {
 void symTOPLEVELDECL(TOPLEVELDECL *p, SymbolTable *sym) {
     if (p!=NULL) {
         symTOPLEVELDECL(p->next, sym);
-        symTOPLEVELDECLVARTYPE(p->val.dcl, sym);
-        // symTOPLEVELDECLFUNC(p->val.funcdcl, sym);
+        switch (p->kind) {
+            case dcl_toplevel:
+                symTOPLEVELDECLVARTYPE(p->val.dcl, sym);
+                break;
+            case func_dcl_toplevel:
+                symTOPLEVELDECLFUNC(p->val.funcdcl, sym);
+                break;
+        }
     }
 }
 
@@ -154,6 +168,29 @@ void symTOPLEVELDECLTYPE(TYPEDCL *p, SymbolTable *sym) {
             // type num int
             s = putSymbol(sym, p->identifier, topSym);
             if (g_symbols) printf("%s: %s\n", p->identifier, p->type->val.basic_type);
+        }
+    }
+}
+
+void symTOPLEVELDECLFUNC(FUNCDCL *p, SymbolTable *sym) {
+    SymbolTable *msym;
+    if (p!=NULL) {
+        //symTOPLEVELDECLFUNC(p->next, sym);
+        msym = scopeSymbolTable(sym);
+        symFUNC_SIGNATURE(p->signature, msym);
+    }
+}
+
+void symFUNC_SIGNATURE(FUNC_SIGNATURE *p, SymbolTable *sym) {
+    SYMBOL *s;
+    if (p!=NULL) {
+        for (PARAM_LIST *i = p->params; i; i = i->next) {
+            for (IDLIST *j = i->idlist; j; j = j->next) {
+                // FORMAL PARAMETERS
+                s = putSymbol(sym, j->id, formalSym);
+                s->val.formalS = p;
+                if (g_symbols) printf("%s: %s\n", j->id, i->type->val.basic_type);
+            }
         }
     }
 }

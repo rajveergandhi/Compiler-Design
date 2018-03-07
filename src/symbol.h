@@ -12,6 +12,8 @@ typedef struct SymbolTable {
 
 SymbolTable *initSymbolTable();
 
+SymbolTable *scopeSymbolTable(SymbolTable *t);
+
 SYMBOL *putSymbol(SymbolTable *t, char *name, SymbolKind kind);
 SYMBOL *getSymbol(SymbolTable *t, char *name);
 
@@ -24,6 +26,7 @@ void symTOPLEVELDECL(TOPLEVELDECL *p, SymbolTable *sym);
 void symTOPLEVELDECLVARTYPE(DCL *p, SymbolTable *sym);
 void symTOPLEVELDECLVAR(VARDCL *p, SymbolTable *sym);
 void symTOPLEVELDECLTYPE(TYPEDCL *p, SymbolTable *sym);
-void printTYPE(TYPE *node);
+void symTOPLEVELDECLFUNC(FUNCDCL *p, SymbolTable *sym);
+void symFUNC_SIGNATURE(FUNC_SIGNATURE *p, SymbolTable *sym);
 
 #endif
