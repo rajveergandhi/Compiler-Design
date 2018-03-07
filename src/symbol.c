@@ -86,8 +86,34 @@ void symTOPLEVELDECLVARTYPE(DCL *p, SymbolTable *sym) {
 void symTOPLEVELDECLVAR(VARDCL *p, SymbolTable *sym) {
     SYMBOL *s;
     if (p!=NULL) {
-        s = putSymbol(sym, p->idlist->id, topSym);
-        if (g_symbols) printf("%s: %s\n", p->idlist->id, p->type->val.basic_type);
+        if (p->type) {
+            s = putSymbol(sym, p->idlist->id, topSym);
+            if (g_symbols) printf("%s: %s\n", p->idlist->id, p->type->val.basic_type);
+        }
+        else if (p->exprlist) {
+            switch (p->exprlist->expr->kind) {
+                case intval:
+                    s = putSymbol(sym, p->idlist->id, topSym);
+                    if (g_symbols) printf("%s: %s\n", p->idlist->id, "int");
+                    break;
+                case floatval:
+                    s = putSymbol(sym, p->idlist->id, topSym);
+                    if (g_symbols) printf("%s: %s\n", p->idlist->id, "float");
+                    break;
+                case stringval:
+                    s = putSymbol(sym, p->idlist->id, topSym);
+                    if (g_symbols) printf("%s: %s\n", p->idlist->id, "string");
+                    break;
+                case rawstringval:
+                    s = putSymbol(sym, p->idlist->id, topSym);
+                    if (g_symbols) printf("%s: %s\n", p->idlist->id, "raw string");
+                    break;
+                case runeval:
+                    s = putSymbol(sym, p->idlist->id, topSym);
+                    if (g_symbols) printf("%s: %s\n", p->idlist->id, "rune");
+                    break;
+            }
+        }
     }
 }
 
