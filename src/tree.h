@@ -28,6 +28,19 @@ typedef struct SIMPLE SIMPLE;
 typedef struct EXPR EXPR;
 typedef struct OTHER_EXPR OTHER_EXPR;
 
+typedef enum{topSym,dclSym,methodSym,localSym} SymbolKind;
+
+typedef struct SYMBOL {
+    char *name;
+    SymbolKind kind;
+    union {
+      struct TOPLEVELDECL *topS;
+      struct DCL *dclS;
+      struct FUNCDCL *methodS;
+    } val;
+    struct SYMBOL *next;
+} SYMBOL;
+
 typedef struct PROGRAM {
     int lineno;
     PACKAGE *package;
@@ -42,6 +55,7 @@ typedef struct PACKAGE {
 typedef struct TOPLEVELDECL {
     int lineno;
     enum { dcl_toplevel, func_dcl_toplevel } kind;
+    struct SymbolTable *localsym;
     union {
         DCL *dcl;
         FUNCDCL *funcdcl;
@@ -193,7 +207,7 @@ typedef struct SIMPLE {
     int lineno;
     enum { empty_stmt_kind, expr_kind, increment_kind, decrement_kind, assignment_kind, shortDcl_kind } kind;
     union {
-        EXPR *expr; 
+        EXPR *expr;
         struct { EXPRLIST *LHS_expr_list; char *assign_op; EXPRLIST *RHS_expr_list; } assignment;
         struct { EXPRLIST *LHS_expr_list; EXPRLIST *RHS_expr_list; } shortDcl;
     } val;

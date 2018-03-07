@@ -2,8 +2,8 @@
 #include <string.h>
 #include "tree.h"
 #include "pretty.h"
-/*
 #include "symbol.h"
+/*
 #include "type.h"
 #include "codegen.h"
 */
@@ -40,13 +40,12 @@ int main(int argc, char* argv[])
                 //weedPROGRAM(root);
                 prettyPROGRAM(root);
             }
-            /*
             else if (strcmp(mode, "symbol") == 0) {
                 yyparse();
-                SymbolTable *t = initSymbolTable();
                 g_symbols = 1;
-                symPROGRAM(t, root);
+                symPROGRAM(root);
             }
+            /*
             else if (strcmp(mode, "typecheck") == 0) {
                 yyparse();
                 SymbolTable *t = initSymbolTable();
