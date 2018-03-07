@@ -86,15 +86,19 @@ void symTOPLEVELDECLVARTYPE(DCL *p, SymbolTable *sym) {
 void symTOPLEVELDECLVAR(VARDCL *p, SymbolTable *sym) {
     SYMBOL *s;
     if (p!=NULL) {
+        symTOPLEVELDECLVAR(p->next, sym);
         if (p->type) {
-            //  handle cases like var x1, x2 int and var z1, z2 int = 1, 2
+            // handle cases like
+            // var x1, x2 int
+            // var z1, z2 int = 1, 2
             for (IDLIST *i = p->idlist; i; i = i->next) {
                 s = putSymbol(sym, i->id, topSym);
                 if (g_symbols) printf("%s: %s\n", i->id, p->type->val.basic_type);
             }
         }
         else if (p->exprlist) {
-            // handle cases like var y1, y2 = 42, 43
+            // handle cases like
+            // var y1, y2 = 42, 43
             switch (p->exprlist->expr->kind) {
                 case intval:
                     for (IDLIST *i = p->idlist; i; i = i->next) {
@@ -134,7 +138,18 @@ void symTOPLEVELDECLVAR(VARDCL *p, SymbolTable *sym) {
 void symTOPLEVELDECLTYPE(TYPEDCL *p, SymbolTable *sym) {
     SYMBOL *s;
     if (p!=NULL) {
-        s = putSymbol(sym, p->identifier, topSym);
-        if (g_symbols) printf("%s: %s\n", p->identifier, p->type->val.basic_type);
+        symTOPLEVELDECLTYPE(p->next, sym);
+        if (p->type->kind == struct_type_kind) {
+            for (STRUCT_TYPE *i = p->type->val.struct_type; i; i = i->next) {
+                for (IDLIST *j = i->idlist; j; j = j->next) {
+                    s = putSymbol(sym, j->id, topSym);
+                    if (g_symbols) printf("%s: %s\n", j->id, i->type->val.basic_type);
+                }
+            }
+        }
+        else {
+            s = putSymbol(sym, p->identifier, topSym);
+            if (g_symbols) printf("%s: %s\n", p->identifier, p->type->val.basic_type);
+        }
     }
 }
