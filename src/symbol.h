@@ -28,5 +28,10 @@ void symTOPLEVELDECLVAR(VARDCL *p, SymbolTable *sym);
 void symTOPLEVELDECLTYPE(TYPEDCL *p, SymbolTable *sym);
 void symTOPLEVELDECLFUNC(FUNCDCL *p, SymbolTable *sym);
 void symFUNC_SIGNATURE(FUNC_SIGNATURE *p, SymbolTable *sym);
+void symFUNC_BODY(BLOCK *p, SymbolTable *sym);
+void symSTATEMENTS(STATEMENTS *p, SymbolTable *sym);
+void symSTATEMENT(STATEMENT *p, SymbolTable *sym);
+void symSIMPLE(SIMPLE *p, SymbolTable *sym);
+void symEXPR(EXPR *p, SymbolTable *sym);
 
 #endif

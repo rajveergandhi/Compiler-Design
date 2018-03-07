@@ -178,6 +178,7 @@ void symTOPLEVELDECLFUNC(FUNCDCL *p, SymbolTable *sym) {
         //symTOPLEVELDECLFUNC(p->next, sym);
         msym = scopeSymbolTable(sym);
         symFUNC_SIGNATURE(p->signature, msym);
+        symFUNC_BODY(p->block, msym);
     }
 }
 
@@ -187,10 +188,193 @@ void symFUNC_SIGNATURE(FUNC_SIGNATURE *p, SymbolTable *sym) {
         for (PARAM_LIST *i = p->params; i; i = i->next) {
             for (IDLIST *j = i->idlist; j; j = j->next) {
                 // FORMAL PARAMETERS
-                s = putSymbol(sym, j->id, formalSym);
-                s->val.formalS = p;
-                if (g_symbols) printf("%s: %s\n", j->id, i->type->val.basic_type);
+                if (defSymbol(sym,j->id)) {
+                     fprintf(stderr, "Error: (line %d) formal %s already declared",j->lineno,j->id);
+                     exit(1);
+                }
+                else {
+                    s = putSymbol(sym, j->id, formalSym);
+                    s->val.formalS = p;
+                    if (g_symbols) printf("%s: %s\n", j->id, i->type->val.basic_type);
+                }
             }
         }
     }
+}
+
+void symFUNC_BODY(BLOCK *p, SymbolTable *sym) {
+    if (p!=NULL) {
+        symSTATEMENTS(p->stmts, sym);
+    }
+}
+
+void symSTATEMENTS(STATEMENTS *p, SymbolTable *sym) {
+    if (p!=NULL) {
+        symSTATEMENTS(p->next, sym);
+        symSTATEMENT(p->stmt, sym);
+    }
+}
+
+void symSTATEMENT(STATEMENT *p, SymbolTable *sym) {
+    if (p!=NULL) {
+        switch(p->kind) {
+            case dcl_s:
+                symTOPLEVELDECLVARTYPE(p->val.dcl, sym);
+                break;
+            case simple_s:
+                symSIMPLE(p->val.simple, sym);
+                break;
+            case return_stmt_s:
+                break;
+            case break_stmt_s:
+                break;
+            case continue_stmt_s:
+                break;
+            case block_s:
+                break;
+            case if_stmt_s:
+                break;
+            case switch_stmt_s:
+                break;
+            case for_stmt_s:
+                break;
+            case print_stmt_s:
+                break;
+            case println_stmt_s:
+                break;
+            }
+    }
+}
+
+void symSIMPLE(SIMPLE *p, SymbolTable *sym) {
+    switch (p->kind) {
+        case empty_stmt_kind:
+            break;
+        case expr_kind:
+            symEXPR(p->val.expr, sym);
+            break;
+        case increment_kind:
+            //prettyEXPR(node->val.expr);
+            break;
+        case decrement_kind:
+            //prettyEXPR(node->val.expr);
+            break;
+        case assignment_kind:
+            // prettyEXPRLIST(node->val.assignment.LHS_expr_list);
+            // prettyEXPRLIST(node->val.assignment.RHS_expr_list);
+            break;
+        case shortDcl_kind:
+            // prettyEXPRLIST(node->val.shortDcl.LHS_expr_list);
+            // prettyEXPRLIST(node->val.shortDcl.RHS_expr_list);
+            break;
+    }
+}
+
+void symEXPR(EXPR *p, SymbolTable *sym) {
+    switch (p->kind) {
+        case expressionKindPlus:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindMinus:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindMult:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindDiv:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindMod:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindLT:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindLT_EQ:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindGT:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindGT_EQ:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindEQ_EQ:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindNotEquals:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindShift_Right:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindShift_Left:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindAnd:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindAMP_XOR:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindOr:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindXor:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindLogicalAnd:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindLogicalOr:
+            // prettyEXPR(node->val.binary.lhs);
+            // prettyEXPR(node->val.binary.rhs);
+            break;
+        case expressionKindPlusUnary:
+            // prettyEXPR(node->val.expr_unary);
+            break;
+        case expressionKindMinusUnary:
+            // prettyEXPR(node->val.expr_unary);
+            break;
+        case expressionKindNotUnary:
+            // prettyEXPR(node->val.expr_unary);
+            break;
+        case expressionKindXorUnary:
+            // prettyEXPR(node->val.expr_unary);
+            break;
+        case append_expr:
+            // prettyEXPR(node->val.append_expr.expr);
+            break;
+        case intval:
+            break;
+        case floatval:
+            break;
+        case stringval:
+            break;
+        case rawstringval:
+            break;
+        case runeval:
+            break;
+        case other_expr_kind:
+            // prettyOTHER_EXPR(node->val.other_expr);
+            break;
+        }
 }

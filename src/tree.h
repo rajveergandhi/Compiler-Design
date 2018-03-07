@@ -56,7 +56,6 @@ typedef struct PACKAGE {
 typedef struct TOPLEVELDECL {
     int lineno;
     enum { dcl_toplevel, func_dcl_toplevel } kind;
-    struct SymbolTable *localsym;
     union {
         DCL *dcl;
         FUNCDCL *funcdcl;
