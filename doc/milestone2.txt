@@ -1,0 +1,69 @@
+Design decisions
+	1. Weeding pass. Catches errors like unbalanced assignment, default only in switch, valid break and continue and valid return statements
+	2. Corrected AST and pretty printer
+	3. Implemented symbol table and type checking using flex and bison
+	4. Details about symbol table creation
+	5. Details about type checking
+	6. Corrected indentation in pretty printing and symbol table
+	7. Special function like init and main
+	8. Other decisions
+
+Correction of AST and Pretty printer
+	Previous version gave segmentation faults in nested for and switch blocks. Redesigned the pretty printer and AST. 
+	AST :
+	Instead of one single convoluted NODE, we split the nodes according to purpose. The following are the nodes (one line description to follow) : 
+	PROGRAM
+	PACKAGE
+	TOPLEVELDECL
+	DCL
+	VARDCL
+	TYPEDCL
+	FUNCDCL
+	FUNC_SIGNATURE
+	PARAM_LIST
+	IDLIST
+	TYPE
+	STRUCT_TYPE
+	BLOCK
+	STATEMENTS
+	STATEMENT
+	ELSE_BLOCK
+	SWTICH_CONDITION
+	SWITCH_CASELIST
+	EXPRLIST
+	FOR_CONDITION
+	SIMPLE
+	EXPR
+	OTHER_EXPR
+
+	Pretty printing:
+	Instead of having one function having multiple cases, created seperate functions for each node in AST. More intuitive as if prints like traversing the syntax tree.
+
+Weeding
+	Default statement
+	Break and continue statements
+	Return statement
+	Blank identifiers
+	Balancing short declarations
+
+Symbol table and typechecking
+	5 base types
+	Defined types : resolved for simple types, not for compound types
+	RT()
+	
+
+
+
+
+Team member contribution
+	1. Dipanjan
+		Implemented weeder
+		Invalid programs
+		Report creation
+
+	2. Raj
+
+	3. Archit
+
+	4. Everyone
+		Document contribution
