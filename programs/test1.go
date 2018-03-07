@@ -10,6 +10,7 @@ var y1, y2 = 42, 43
 
 var (
     c1, c2 int;
+    d1, d2 float;
 )
 
 type point struct {

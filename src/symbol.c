@@ -140,6 +140,8 @@ void symTOPLEVELDECLTYPE(TYPEDCL *p, SymbolTable *sym) {
     if (p!=NULL) {
         symTOPLEVELDECLTYPE(p->next, sym);
         if (p->type->kind == struct_type_kind) {
+            // handle cases like
+            // type point struct { x, y float64 }
             for (STRUCT_TYPE *i = p->type->val.struct_type; i; i = i->next) {
                 for (IDLIST *j = i->idlist; j; j = j->next) {
                     s = putSymbol(sym, j->id, topSym);
@@ -148,6 +150,8 @@ void symTOPLEVELDECLTYPE(TYPEDCL *p, SymbolTable *sym) {
             }
         }
         else {
+            // handle cases like
+            // type num int
             s = putSymbol(sym, p->identifier, topSym);
             if (g_symbols) printf("%s: %s\n", p->identifier, p->type->val.basic_type);
         }
