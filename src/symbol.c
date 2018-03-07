@@ -87,30 +87,44 @@ void symTOPLEVELDECLVAR(VARDCL *p, SymbolTable *sym) {
     SYMBOL *s;
     if (p!=NULL) {
         if (p->type) {
-            s = putSymbol(sym, p->idlist->id, topSym);
-            if (g_symbols) printf("%s: %s\n", p->idlist->id, p->type->val.basic_type);
+            //  handle cases like var x1, x2 int and var z1, z2 int = 1, 2
+            for (IDLIST *i = p->idlist; i; i = i->next) {
+                s = putSymbol(sym, i->id, topSym);
+                if (g_symbols) printf("%s: %s\n", i->id, p->type->val.basic_type);
+            }
         }
         else if (p->exprlist) {
+            // handle cases like var y1, y2 = 42, 43
             switch (p->exprlist->expr->kind) {
                 case intval:
-                    s = putSymbol(sym, p->idlist->id, topSym);
-                    if (g_symbols) printf("%s: %s\n", p->idlist->id, "int");
+                    for (IDLIST *i = p->idlist; i; i = i->next) {
+                        s = putSymbol(sym, i->id, topSym);
+                        if (g_symbols) printf("%s: %s\n", i->id, "int");
+                    }
                     break;
                 case floatval:
-                    s = putSymbol(sym, p->idlist->id, topSym);
-                    if (g_symbols) printf("%s: %s\n", p->idlist->id, "float");
+                    for (IDLIST *i = p->idlist; i; i = i->next) {
+                        s = putSymbol(sym, i->id, topSym);
+                        if (g_symbols) printf("%s: %s\n", i->id, "float");
+                    }
                     break;
                 case stringval:
-                    s = putSymbol(sym, p->idlist->id, topSym);
-                    if (g_symbols) printf("%s: %s\n", p->idlist->id, "string");
+                    for (IDLIST *i = p->idlist; i; i = i->next) {
+                        s = putSymbol(sym, i->id, topSym);
+                        if (g_symbols) printf("%s: %s\n", i->id, "string");
+                    }
                     break;
                 case rawstringval:
-                    s = putSymbol(sym, p->idlist->id, topSym);
-                    if (g_symbols) printf("%s: %s\n", p->idlist->id, "raw string");
+                    for (IDLIST *i = p->idlist; i; i = i->next) {
+                        s = putSymbol(sym, i->id, topSym);
+                        if (g_symbols) printf("%s: %s\n", i->id, "raw string");
+                    }
                     break;
                 case runeval:
-                    s = putSymbol(sym, p->idlist->id, topSym);
-                    if (g_symbols) printf("%s: %s\n", p->idlist->id, "rune");
+                    for (IDLIST *i = p->idlist; i; i = i->next) {
+                        s = putSymbol(sym, i->id, topSym);
+                        if (g_symbols) printf("%s: %s\n", i->id, "rune");
+                    }
                     break;
             }
         }
