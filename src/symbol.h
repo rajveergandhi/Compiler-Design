@@ -33,15 +33,17 @@ int defSymbol(SymbolTable *t, char *name);
 
 void symPROGRAM(PROGRAM *p);
 void symTOPLEVELDECL(TOPLEVELDECL *p, SymbolTable *sym);
-void symTOPLEVELDECLVARTYPE(DCL *p, SymbolTable *sym);
-void symTOPLEVELDECLVAR(VARDCL *p, SymbolTable *sym);
-void symTOPLEVELDECLTYPE(TYPEDCL *p, SymbolTable *sym);
-void symTOPLEVELDECLFUNC(FUNCDCL *p, SymbolTable *sym);
+void symDCL(DCL *p, SymbolTable *sym);
+void symVARDCL(VARDCL *p, SymbolTable *sym);
+void symTYPEDCL(TYPEDCL *p, SymbolTable *sym);
+void symFUNCDCL(FUNCDCL *p, SymbolTable *sym);
+/*
 void symFUNC_SIGNATURE(FUNC_SIGNATURE *p, SymbolTable *sym);
 void symFUNC_BODY(BLOCK *p, SymbolTable *sym);
 void symSTATEMENTS(STATEMENTS *p, SymbolTable *sym);
 void symSTATEMENT(STATEMENT *p, SymbolTable *sym);
 void symSIMPLE(SIMPLE *p, SymbolTable *sym);
 void symEXPR(EXPR *p, SymbolTable *sym);
+*/
 
 #endif

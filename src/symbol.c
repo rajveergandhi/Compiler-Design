@@ -77,10 +77,10 @@ SYMBOL *putSymbol(SymbolTable *t, char *name, SymbolKind kind, TYPE *type, int l
                     printf("%s [%s] = <sliceType>\n", name, sym_kind);
                     break;
                 case array_type_kind:
-                    printf("%s [%s] = <arrayType>\n", name, sym_kind, type->val.basic_type);
+                    printf("%s [%s] = <arrayType>\n", name, sym_kind);
                     break;
                 case struct_type_kind:
-                    printf("%s [%s] = <structType>\n", name, sym_kind, type->val.basic_type);
+                    printf("%s [%s] = <structType>\n", name, sym_kind);
                     break;
             }
         }
@@ -179,7 +179,7 @@ void symTYPEDCL(TYPEDCL *node, SymbolTable *sym) {
 }
 
 void symFUNCDCL(FUNCDCL *node, SymbolTable *sym) {
-    putSymbol(sym, node->identifier, function_category, node->signature, node->lineno);
+    //putSymbol(sym, node->identifier, function_category, node->signature, node->lineno);
     //prettyBLOCK(node->block);
 }
 
