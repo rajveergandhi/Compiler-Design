@@ -1,25 +1,35 @@
 #ifndef SYMBOL_H
 #define SYMBOL_H
-
 #include "tree.h"
 
 #define HashSize 317
 
+//typedef enum { topSym, formalSym } SymbolKind;
+
+typedef enum { type_category, variable_category, function_category, constant_category, } SymbolKind;
+typedef struct SYMBOL {
+    char *name;
+    SymbolKind kind;
+    // get rid of union val
+    union {
+        TOPLEVELDECL *topS;
+        DCL *dclS;
+        FUNCDCL *methodS;
+        FUNC_SIGNATURE *formalS;
+    } val;
+    struct SYMBOL *next;
+} SYMBOL;
+
 typedef struct SymbolTable {
     SYMBOL *table[HashSize];
-    struct SymbolTable *next;
+    struct SymbolTable *parent;
 } SymbolTable;
 
 SymbolTable *initSymbolTable();
-
 SymbolTable *scopeSymbolTable(SymbolTable *t);
-
-SYMBOL *putSymbol(SymbolTable *t, char *name, SymbolKind kind);
+SYMBOL *putSymbol(SymbolTable *t, char *name, SymbolKind kind, TYPE *type, int lineno);
 SYMBOL *getSymbol(SymbolTable *t, char *name);
-
 int defSymbol(SymbolTable *t, char *name);
-
-SymbolTable *symbolTop;
 
 void symPROGRAM(PROGRAM *p);
 void symTOPLEVELDECL(TOPLEVELDECL *p, SymbolTable *sym);

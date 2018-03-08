@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(mode, "symbol") == 0) {
                 yyparse();
+                //weedPROGRAM(root);
                 g_symbols = 1;
                 symPROGRAM(root);
             }

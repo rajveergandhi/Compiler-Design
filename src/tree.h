@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+typedef struct SymbolTable SymbolTable;
+
 // forward declarations
 typedef struct PROGRAM PROGRAM;
 typedef struct PACKAGE PACKAGE;
@@ -28,24 +30,11 @@ typedef struct SIMPLE SIMPLE;
 typedef struct EXPR EXPR;
 typedef struct OTHER_EXPR OTHER_EXPR;
 
-typedef enum{topSym,formalSym} SymbolKind;
-
-typedef struct SYMBOL {
-    char *name;
-    SymbolKind kind;
-    union {
-      struct TOPLEVELDECL *topS;
-      struct DCL *dclS;
-      struct FUNCDCL *methodS;
-      struct FUNC_SIGNATURE *formalS;
-    } val;
-    struct SYMBOL *next;
-} SYMBOL;
-
 typedef struct PROGRAM {
     int lineno;
     PACKAGE *package;
     TOPLEVELDECL *topleveldecls;
+    SymbolTable *symboltable;
 } PROGRAM;
 
 typedef struct PACKAGE {
