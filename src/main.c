@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "tree.h"
+#include "weed.h"
 #include "pretty.h"
 #include "symbol.h"
 /*
