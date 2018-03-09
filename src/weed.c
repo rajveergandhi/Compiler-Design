@@ -314,90 +314,30 @@ int weedEXPRLIST(EXPRLIST *node) {
 void weedEXPR(EXPR *node) {
     switch (node->kind) {
         case expressionKindPlus:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindMinus:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindMult:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindDiv:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindMod:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindLT:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindLT_EQ:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindGT:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindGT_EQ:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindEQ_EQ:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindNotEquals:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindShift_Right:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindShift_Left:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindAnd:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindAMP_XOR:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindOr:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindXor:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindLogicalAnd:
-            weedEXPR(node->val.binary.lhs);
-            weedEXPR(node->val.binary.rhs);
-            break;
         case expressionKindLogicalOr:
             weedEXPR(node->val.binary.lhs);
             weedEXPR(node->val.binary.rhs);
             break;
         case expressionKindPlusUnary:
-            weedEXPR(node->val.expr_unary);
-            break;
         case expressionKindMinusUnary:
-            weedEXPR(node->val.expr_unary);
-            break;
         case expressionKindNotUnary:
-            weedEXPR(node->val.expr_unary);
-            break;
         case expressionKindXorUnary:
             weedEXPR(node->val.expr_unary);
             break;
@@ -405,13 +345,9 @@ void weedEXPR(EXPR *node) {
             weedEXPR(node->val.append_expr.expr);
             break;
         case intval:
-            break;
         case floatval:
-            break;
         case stringval:
-            break;
         case rawstringval:
-            break;
         case runeval:
             break;
         case other_expr_kind:
