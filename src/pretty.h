@@ -23,5 +23,7 @@ void prettyFUNC_SIGNATURE(FUNC_SIGNATURE *node);
 void prettyELSE_BLOCK(ELSE_BLOCK *node);
 void prettySIMPLE(SIMPLE *node);
 
+void symPrettyFUNC_SIGNATURE(FUNC_SIGNATURE *node);
+
 #endif /* !PRETTY_H */
 

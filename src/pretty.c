@@ -92,6 +92,23 @@ void prettyFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
     }
 }
 
+void symPrettyFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
+    printf("f2 [function] = (");
+    for (PARAM_LIST *i = node->params; i; i = i->next) {
+        prettyTYPE(i->type);
+        if (i->next)
+            printf(", ");
+    }
+    if (node->type) {
+        printf(") -> ");
+        prettyTYPE(node->type);
+    }
+    else
+        printf(") -> void ");
+
+    printf("\n");
+}
+
 void prettyIDLIST(IDLIST *node) {
     for (IDLIST *i = node; i; i = i->next) {
         printf("%s", i->id);
@@ -280,12 +297,12 @@ void prettyTYPE(TYPE *node) {
             prettyTYPE(node->val.array_type.type);
             break;
         case struct_type_kind:
-            printf("struct {\n");
+            printf("struct {");
             for (STRUCT_TYPE *i = node->val.struct_type; i; i = i->next) {
                 prettyIDLIST(i->idlist);
                 printf (" ");
                 prettyTYPE(i->type);
-                printf(";\n");
+                printf("; ");
             }
             printf("}");
             break;

@@ -122,6 +122,7 @@ typedef struct STRUCT_TYPE {
 
 typedef struct BLOCK {
     int lineno;
+    SymbolTable *symboltable;
     STATEMENTS *stmts;
 } BLOCK;
 

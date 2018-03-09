@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "symbol.h"
+#include "pretty.h"
 
 extern int g_symbols;
 
@@ -35,7 +36,23 @@ SymbolTable *scopeSymbolTable(SymbolTable *s) {
     return t;
 }
 
-SYMBOL *putSymbol(SymbolTable *t, char *name, SymbolKind kind, TYPE *type, int lineno) {
+void scopeInc() {
+    if (g_symbols) {
+        symIndent(g_symIndent);
+        printf("{\n");
+    }
+    g_symIndent++;
+}
+
+void scopeDec() {
+    g_symIndent--;
+    if (g_symbols) {
+        symIndent(g_symIndent);
+        printf("}\n");
+    }
+}
+
+SYMBOL *putSymbol(SymbolTable *t, char *name, symTYPE *data, int lineno) {
     int i = Hash(name);
     SYMBOL *s;
     for (s = t->table[i]; s; s=s->next) {
@@ -46,46 +63,60 @@ SYMBOL *putSymbol(SymbolTable *t, char *name, SymbolKind kind, TYPE *type, int l
     }
     s = malloc(sizeof(SYMBOL));
     s->name = name;
-    s->kind = kind;
+    s->data = data;
     s->next = t->table[i];
     t->table[i] = s;
 
     // if g_symbols turned on, then print symbol
     if (g_symbols) {
         symIndent(g_symIndent);
-        char *sym_kind;
-        switch (kind) {
+        char *sym_cat;
+        switch (data->category) {
             case type_category:
-                sym_kind = "type";
+                sym_cat = "type";
                 break;
             case variable_category:
-                sym_kind = "variable";
+                sym_cat = "variable";
                 break;
             case function_category:
-                sym_kind = "function";
+                sym_cat = "function";
                 break;
             case constant_category:
-                sym_kind = "constant";
+                sym_cat = "constant";
                 break;
         }
-        if (type) {
-            switch (type->kind) {
-                case basic_type_kind:
-                    printf("%s [%s] = %s\n", name, sym_kind, type->val.basic_type);
-                    break;
-                case slice_type_kind:
-                    printf("%s [%s] = <sliceType>\n", name, sym_kind);
-                    break;
-                case array_type_kind:
-                    printf("%s [%s] = <arrayType>\n", name, sym_kind);
-                    break;
-                case struct_type_kind:
-                    printf("%s [%s] = <structType>\n", name, sym_kind);
-                    break;
-            }
+
+        switch (data->symtype) {
+            case type_type:
+                if (data->val.symtype) {
+                    switch (data->val.symtype->kind) {
+                        case basic_type_kind:
+                            printf("%s [%s] = %s\n", name, sym_cat, data->val.symtype->val.basic_type);
+                            break;
+                        case slice_type_kind:
+                            printf("%s [%s] = ", name, sym_cat);
+                            prettyTYPE(data->val.symtype);
+                            printf("\n");
+                            break;
+                        case array_type_kind:
+                            printf("%s [%s] = ", name, sym_cat);
+                            prettyTYPE(data->val.symtype);
+                            printf("\n");
+                            break;
+                        case struct_type_kind:
+                            printf("%s [%s] = ", name, sym_cat);
+                            prettyTYPE(data->val.symtype);
+                            printf("\n");
+                            break;
+                    }
+                }
+                else
+                    printf("%s [%s] = <infer>\n", name, sym_cat);
+                break;
+            case func_signature_type:
+                symPrettyFUNC_SIGNATURE(data->val.symsign);
+                break;
         }
-        else
-            printf("%s [%s] = <infer>\n", name, sym_kind);
     }
 
     return s;
@@ -102,45 +133,53 @@ SYMBOL *getSymbol(SymbolTable *t, char *name) {
     return getSymbol(t->parent, name);
 }
 
-int defSymbol(SymbolTable *t, char *name) {
-    int i = Hash(name);
-    SYMBOL *s;
-    for (s = t->table[i]; s; s = s->next) {
-        if (strcmp(s->name, name)==0)
-            return 1;
+symTYPE *initSymType(SymbolCategory category, symbolType symtype, void *p) {
+    symTYPE *ret = malloc(sizeof(symTYPE));
+    ret->category = category;
+    ret->symtype = symtype;
+    switch (symtype) {
+        case type_type:
+            ret->val.symtype = (TYPE *) p;
+            break;
+        case func_signature_type:
+            ret->val.symsign = (FUNC_SIGNATURE *) p;
+            break;
     }
-    return 0;
+    return ret;
 }
 
 void symPROGRAM(PROGRAM *node) {
-    if (g_symbols) { symIndent(g_symIndent); printf("{\n"); }
-    g_symIndent++;
+    scopeInc();
 
     SymbolTable *sym = initSymbolTable();
     TYPE *type_true = malloc(sizeof(TYPE)); type_true->kind = basic_type_kind; type_true->val.basic_type = "bool";
-    putSymbol(sym, "true", constant_category, type_true, node->lineno);
+    symTYPE *sym_true = initSymType(constant_category, type_type, type_true);
+    putSymbol(sym, "true", sym_true, node->lineno);
     TYPE *type_false = malloc(sizeof(TYPE)); type_false->kind = basic_type_kind; type_false->val.basic_type = "bool";
-    putSymbol(sym, "false", constant_category, type_false, node->lineno);
-    TYPE *type_int = malloc(sizeof(TYPE)); type_int->kind = basic_type_kind; type_int->val.basic_type = "int";
-    putSymbol(sym, "int", type_category, type_int, node->lineno);
-    TYPE *type_float64 = malloc(sizeof(TYPE)); type_float64->kind = basic_type_kind; type_float64->val.basic_type = "float64";
-    putSymbol(sym, "float64", type_category, type_float64, node->lineno);
-    TYPE *type_rune = malloc(sizeof(TYPE)); type_rune->kind = basic_type_kind; type_rune->val.basic_type = "rune";
-    putSymbol(sym, "rune", type_category, type_rune, node->lineno);
+    symTYPE *sym_false = initSymType(constant_category, type_type, type_false);
+    putSymbol(sym, "false", sym_false, node->lineno);
     TYPE *type_bool = malloc(sizeof(TYPE)); type_bool->kind = basic_type_kind; type_bool->val.basic_type = "bool";
-    putSymbol(sym, "bool", type_category, type_bool, node->lineno);
+    symTYPE *sym_bool = initSymType(type_category, type_type, type_bool);
+    putSymbol(sym, "bool", sym_bool, node->lineno);
+    TYPE *type_int = malloc(sizeof(TYPE)); type_int->kind = basic_type_kind; type_int->val.basic_type = "int";
+    symTYPE *sym_int = initSymType(type_category, type_type, type_int);
+    putSymbol(sym, "int", sym_int, node->lineno);
+    TYPE *type_float64 = malloc(sizeof(TYPE)); type_float64->kind = basic_type_kind; type_float64->val.basic_type = "float64";
+    symTYPE *sym_float64 = initSymType(type_category, type_type, type_float64);
+    putSymbol(sym, "float64", sym_float64, node->lineno);
+    TYPE *type_rune = malloc(sizeof(TYPE)); type_rune->kind = basic_type_kind; type_rune->val.basic_type = "rune";
+    symTYPE *sym_rune = initSymType(type_category, type_type, type_rune);
+    putSymbol(sym, "rune", sym_rune, node->lineno);
     TYPE *type_string = malloc(sizeof(TYPE)); type_string->kind = basic_type_kind; type_string->val.basic_type = "string";
-    putSymbol(sym, "string", type_category, type_string, node->lineno);
+    symTYPE *sym_string = initSymType(type_category, type_type, type_string);
+    putSymbol(sym, "string", sym_string, node->lineno);
 
     node->symboltable = sym;
 
-    if (g_symbols) { symIndent(g_symIndent); printf("{\n"); }
-    g_symIndent++;
+    scopeInc();
     symTOPLEVELDECL(node->topleveldecls, sym);
-    g_symIndent--;
-    if (g_symbols) { symIndent(g_symIndent); printf("}\n"); }
-    g_symIndent--;
-    if (g_symbols) { symIndent(g_symIndent); printf("}\n"); }
+    scopeDec();
+    scopeDec();
 }
 
 void symTOPLEVELDECL(TOPLEVELDECL *node, SymbolTable *sym) {
@@ -168,181 +207,161 @@ void symDCL(DCL *node, SymbolTable *sym) {
 }
 
 void symVARDCL(VARDCL *node, SymbolTable *sym) {
-    for (VARDCL *i = node; i; i = i->next)
-        for (IDLIST *j = i->idlist; j; j = j->next)
-            putSymbol(sym, j->id, variable_category, i->type, node->lineno);
+    for (VARDCL *i = node; i; i = i->next) {
+        for (IDLIST *j = i->idlist; j; j = j->next) {
+            symTYPE *symvardcl = initSymType(variable_category, type_type, i->type);
+            putSymbol(sym, j->id, symvardcl, node->lineno);
+        }
+        symEXPRLIST(i->exprlist, sym);
+    }
 }
 
 void symTYPEDCL(TYPEDCL *node, SymbolTable *sym) {
-    for (TYPEDCL *i = node; i; i = i->next)
-        putSymbol(sym, i->identifier, type_category, i->type, node->lineno);
+    for (TYPEDCL *i = node; i; i = i->next) {
+        symTYPE *symtypedcl = initSymType(type_category, type_type, i->type);
+        putSymbol(sym, i->identifier, symtypedcl, node->lineno);
+    }
 }
 
 void symFUNCDCL(FUNCDCL *node, SymbolTable *sym) {
-    //putSymbol(sym, node->identifier, function_category, node->signature, node->lineno);
-    //prettyBLOCK(node->block);
-}
+    symTYPE *symfuncdcl = initSymType(function_category, func_signature_type, node->signature);
+    putSymbol(sym, node->identifier, symfuncdcl, node->lineno);
 
-/*
-void symTOPLEVELDECLVARTYPE(DCL *node, SymbolTable *sym) {
-    if (node!=NULL) {
-        switch (node->kind) {
-            case var:
-                symTOPLEVELDECLVAR(node->val.vardcl, sym);
-                break;
-            case type:
-                symTOPLEVELDECLTYPE(node->val.typedcl, sym);
-                break;
-        }
-    }
-}
+    SymbolTable *func = scopeSymbolTable(sym);
 
-void symTOPLEVELDECLVAR(VARDCL *node, SymbolTable *sym) {
-    SYMBOL *s;
-    if (node!=NULL) {
-        symTOPLEVELDECLVAR(node->next, sym);
-        if (node->type) {
-            // handle cases like
-            // var x1, x2 int
-            // var z1, z2 int = 1, 2
-            for (IDLIST *i = node->idlist; i; i = i->next) {
-                //s = putSymbol(sym, i->id, topSym);
-                if (g_symbols) printf("%s: %s\n", i->id, node->type->val.basic_type);
-            }
-        }
-        else if (node->exprlist) {
-            // handle cases like
-            // var y1, y2 = 42, 43
-            switch (node->exprlist->expr->kind) {
-                case intval:
-                    for (IDLIST *i = node->idlist; i; i = i->next) {
-                        //s = putSymbol(sym, i->id, topSym);
-                        if (g_symbols) printf("%s: %s\n", i->id, "int");
-                    }
-                    break;
-                case floatval:
-                    for (IDLIST *i = node->idlist; i; i = i->next) {
-                        //s = putSymbol(sym, i->id, topSym);
-                        if (g_symbols) printf("%s: %s\n", i->id, "float");
-                    }
-                    break;
-                case stringval:
-                    for (IDLIST *i = node->idlist; i; i = i->next) {
-                        //s = putSymbol(sym, i->id, topSym);
-                        if (g_symbols) printf("%s: %s\n", i->id, "string");
-                    }
-                    break;
-                case rawstringval:
-                    for (IDLIST *i = node->idlist; i; i = i->next) {
-                        //s = putSymbol(sym, i->id, topSym);
-                        if (g_symbols) printf("%s: %s\n", i->id, "raw string");
-                    }
-                    break;
-                case runeval:
-                    for (IDLIST *i = node->idlist; i; i = i->next) {
-                        //s = putSymbol(sym, i->id, topSym);
-                        if (g_symbols) printf("%s: %s\n", i->id, "rune");
-                    }
-                    break;
-            }
-        }
-    }
-}
+    scopeInc();
+    symFUNC_SIGNATURE(node->signature, func);
+    symBLOCK(node->block, NULL, func);
+    scopeDec();
 
-void symTOPLEVELDECLTYPE(TYPEDCL *node, SymbolTable *sym) {
-    SYMBOL *s;
-    if (node!=NULL) {
-        symTOPLEVELDECLTYPE(node->next, sym);
-        if (node->type->kind == struct_type_kind) {
-            // handle cases like
-            // type point struct { x, y float64 }
-            for (STRUCT_TYPE *i = node->type->val.struct_type; i; i = i->next) {
-                for (IDLIST *j = i->idlist; j; j = j->next) {
-                    //s = putSymbol(sym, j->id, topSym);
-                    if (g_symbols) printf("%s: %s\n", j->id, i->type->val.basic_type);
-                }
-            }
-        }
-        else {
-            // handle cases like
-            // type num int
-            //s = putSymbol(sym, node->identifier, topSym);
-            if (g_symbols) printf("%s: %s\n", node->identifier, node->type->val.basic_type);
-        }
-    }
-}
-
-void symTOPLEVELDECLFUNC(FUNCDCL *node, SymbolTable *sym) {
-    SymbolTable *msym;
-    if (node!=NULL) {
-        //symTOPLEVELDECLFUNC(node->next, sym);
-        msym = scopeSymbolTable(sym);
-        symFUNC_SIGNATURE(node->signature, msym);
-        symFUNC_BODY(node->block, msym);
-    }
 }
 
 void symFUNC_SIGNATURE(FUNC_SIGNATURE *node, SymbolTable *sym) {
-    SYMBOL *s;
-    if (node!=NULL) {
-        for (PARAM_LIST *i = node->params; i; i = i->next) {
-            for (IDLIST *j = i->idlist; j; j = j->next) {
-                // FORMAL PARAMETERS
-                if (defSymbol(sym,j->id)) {
-                     fprintf(stderr, "Error: (line %d) formal %s already declared",j->lineno,j->id);
-                     exit(1);
-                }
-                else {
-                    //s = putSymbol(sym, j->id, formalSym);
-                    s->val.formalS = node;
-                    if (g_symbols) printf("%s: %s\n", j->id, i->type->val.basic_type);
-                }
-            }
+    for (PARAM_LIST *i = node->params; i; i = i->next) {
+        for (IDLIST *j = i->idlist; j; j = j->next) {
+            symTYPE *symparamdcl = initSymType(variable_category, type_type, i->type);
+            putSymbol(sym, j->id, symparamdcl, node->lineno);
         }
     }
 }
 
-void symFUNC_BODY(BLOCK *node, SymbolTable *sym) {
-    if (node!=NULL) {
-        symSTATEMENTS(node->stmts, sym);
-    }
+void symBLOCK(BLOCK *node, SymbolTable *sym, SymbolTable *extra) {
+    scopeInc();
+    if (extra)
+        node->symboltable = extra;
+    else
+        node->symboltable = scopeSymbolTable(sym);
+
+    symSTATEMENTS(node->stmts, node->symboltable);
+    scopeDec();
 }
 
 void symSTATEMENTS(STATEMENTS *node, SymbolTable *sym) {
-    if (node!=NULL) {
-        symSTATEMENTS(node->next, sym);
-        symSTATEMENT(node->stmt, sym);
+    for (STATEMENTS *i = node; i; i = i->next) {
+        symSTATEMENT(i->stmt, sym);
     }
 }
 
 void symSTATEMENT(STATEMENT *node, SymbolTable *sym) {
-    if (node!=NULL) {
-        switch(node->kind) {
-            case dcl_s:
-                symTOPLEVELDECLVARTYPE(node->val.dcl, sym);
-                break;
-            case simple_s:
-                symSIMPLE(node->val.simple, sym);
-                break;
-            case return_stmt_s:
-                break;
-            case break_stmt_s:
-                break;
-            case continue_stmt_s:
-                break;
-            case block_s:
-                break;
-            case if_stmt_s:
-                break;
-            case switch_stmt_s:
-                break;
-            case for_stmt_s:
-                break;
-            case print_stmt_s:
-                break;
-            case println_stmt_s:
-                break;
+    switch(node->kind) {
+        case dcl_s:
+            symDCL(node->val.dcl, sym);
+            break;
+        case simple_s:
+            symSIMPLE(node->val.simple, sym);
+            break;
+        case block_s:
+            symBLOCK(node->val.block, sym, NULL);
+            break;
+        case print_stmt_s:
+        case println_stmt_s:
+            symEXPRLIST(node->val.print, sym);
+            break;
+        case if_stmt_s:
+            /*
+            scopeInc();
+            SymbolTable *switchif = scopeSymbolTable(sym);
+            if (node->val.if_stmt.simple)
+                symSIMPLE(node->val.if_stmt.simple, switchif);
+            symEXPR(node->val.if_stmt.expr, switchif);
+            switch (node->val.if_stmt.kind_else) {
+                case no_else:
+                    symBLOCK(node->val.if_stmt.val.if_block, switchif, NULL);
+                    break;
+                case else_if:
+                    scopeInc();
+                    SymbolTable *switchifelse = scopeSymbolTable(switchif);
+                    symSTATEMENTS(node->val.if_stmt.val.else_block.stmts, switchifelse);
+                    switch (node->val.if_stmt.val.else_block.else_block->kind) {
+                        case if_stmt_else:
+                            symSTATEMENT(node->val.if_stmt.val.else_block.else_block->val.if_stmt, switchifelse);
+                            break;
+                        case block_else:
+                            symBLOCK(node->val.if_stmt.val.else_block.else_block->val.block, switchifelse, NULL);
+                            break;
+                    }
+                    scopeDec();
+                    break;
+                scopeDec();
             }
+            */
+            break;
+        case switch_stmt_s:
+            scopeInc();
+            SymbolTable *switchsym = scopeSymbolTable(sym);
+            if (node->val.switch_stmt.condition->simple)
+                symSIMPLE(node->val.switch_stmt.condition->simple, switchsym);
+            if (node->val.switch_stmt.condition->expr)
+                symEXPR(node->val.switch_stmt.condition->expr, switchsym);
+            if (node->val.switch_stmt.caselist)
+                symSWITCH_CASELIST(node->val.switch_stmt.caselist, switchsym);
+                scopeDec();
+            break;
+        case for_stmt_s:
+            switch(node->val.for_stmt.condition->kind) {
+                case infinite:
+                    symBLOCK(node->val.for_stmt.block, sym, NULL);
+                    break;
+                case while_loop:
+                    symEXPR(node->val.for_stmt.condition->val.while_expr, sym);
+                    symBLOCK(node->val.for_stmt.block, sym, NULL);
+                    break;
+                case threepart:
+                    {
+                        scopeInc();
+                        SymbolTable *threepart = scopeSymbolTable(sym);
+                        if (node->val.for_stmt.condition->val.threepart.init)
+                            symSIMPLE(node->val.for_stmt.condition->val.threepart.init, threepart);
+                        if (node->val.for_stmt.condition->val.threepart.condition)
+                            symEXPR(node->val.for_stmt.condition->val.threepart.condition, threepart);
+                        if (node->val.for_stmt.condition->val.threepart.post)
+                            symSIMPLE(node->val.for_stmt.condition->val.threepart.post, threepart);
+                        symBLOCK(node->val.for_stmt.block, threepart, NULL);
+                        scopeDec();
+                    }
+                    break;
+            }
+            break;
+        case return_stmt_s:
+            if (node->val.return_stmt)
+                symEXPR(node->val.return_stmt, sym);
+            break;
+        case break_stmt_s:
+        case continue_stmt_s:
+            break;
+    }
+
+}
+
+void symSWITCH_CASELIST(SWITCH_CASELIST *node, SymbolTable *sym) {
+    for (SWITCH_CASELIST *i = node; i; i=i->next) {
+        scopeInc();
+        SymbolTable *symswitch_case = scopeSymbolTable(sym);
+        if (!(i->default_case))
+            symEXPRLIST(i->exprlist, symswitch_case);
+        if (i->statements)
+            symSTATEMENTS(i->statements, symswitch_case);
+        scopeDec();
     }
 }
 
@@ -351,7 +370,7 @@ void symSIMPLE(SIMPLE *node, SymbolTable *sym) {
         case empty_stmt_kind:
             break;
         case expr_kind:
-            symEXPR(node->val.expr, sym);
+            //symEXPR(node->val.expr, sym);
             break;
         case increment_kind:
             //prettyEXPR(node->val.expr);
@@ -369,6 +388,16 @@ void symSIMPLE(SIMPLE *node, SymbolTable *sym) {
             break;
     }
 }
+
+void symEXPR(EXPR *node, SymbolTable *sym) {
+}
+
+void symEXPRLIST(EXPRLIST *node, SymbolTable *sym) {
+    for (EXPRLIST *i = node; i; i = i->next)
+        symEXPR(i->expr, sym);
+}
+
+/*
 
 void symEXPR(EXPR *node, SymbolTable *sym) {
     switch (node->kind) {
@@ -479,3 +508,4 @@ void symEXPR(EXPR *node, SymbolTable *sym) {
         }
 }
 */
+
