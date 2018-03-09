@@ -3,9 +3,9 @@
 
 #include <stdbool.h>
 
-typedef struct SymbolTable SymbolTable;
 
 // forward declarations
+typedef struct SymbolTable SymbolTable;
 typedef struct PROGRAM PROGRAM;
 typedef struct PACKAGE PACKAGE;
 typedef struct TOPLEVELDECL TOPLEVELDECL;
@@ -44,6 +44,7 @@ typedef struct PACKAGE {
 
 typedef struct TOPLEVELDECL {
     int lineno;
+    SymbolTable *symboltable;
     enum { dcl_toplevel, func_dcl_toplevel } kind;
     union {
         DCL *dcl;
@@ -54,6 +55,7 @@ typedef struct TOPLEVELDECL {
 
 typedef struct DCL {
     int lineno;
+    SymbolTable *symboltable;
     enum { var, type } kind;
     union {
         VARDCL *vardcl;
@@ -63,6 +65,7 @@ typedef struct DCL {
 
 typedef struct VARDCL {
     int lineno;
+    SymbolTable *symboltable;
     IDLIST *idlist;
     TYPE *type;
     EXPRLIST *exprlist;
@@ -71,6 +74,7 @@ typedef struct VARDCL {
 
 typedef struct TYPEDCL {
     int lineno;
+    SymbolTable *symboltable;
     char *identifier;
     TYPE *type;
     TYPEDCL *next;
@@ -78,6 +82,7 @@ typedef struct TYPEDCL {
 
 typedef struct FUNCDCL {
     int lineno;
+    SymbolTable *symboltable;
     char *identifier;
     FUNC_SIGNATURE *signature;
     BLOCK *block;
@@ -85,6 +90,7 @@ typedef struct FUNCDCL {
 
 typedef struct FUNC_SIGNATURE {
     int lineno;
+    SymbolTable *symboltable;
     PARAM_LIST *params;
     TYPE *type;
 } FUNC_SIGNATURE;
@@ -128,12 +134,14 @@ typedef struct BLOCK {
 
 typedef struct STATEMENTS {
     int lineno;
+    SymbolTable *symboltable;
     STATEMENT *stmt;
     STATEMENTS *next;
 } STATEMENTS;
 
 typedef struct STATEMENT {
     int lineno;
+    SymbolTable *symboltable;
     enum {dcl_s, simple_s, return_stmt_s, break_stmt_s, continue_stmt_s, block_s, if_stmt_s, switch_stmt_s, for_stmt_s, print_stmt_s, println_stmt_s} kind;
     union {
         DCL *dcl;
@@ -141,15 +149,16 @@ typedef struct STATEMENT {
         EXPR *return_stmt;
         BLOCK *block;
         struct {
+            SymbolTable *symboltable;
             SIMPLE *simple;
             EXPR *expr;
             enum {else_if, no_else} kind_else;
             union {
                 BLOCK *if_block;
-                struct { STATEMENTS *stmts; ELSE_BLOCK *else_block; } else_block;
+                struct { STATEMENTS *stmts; ELSE_BLOCK *else_block; SymbolTable *symboltable; } else_block;
             } val;
         } if_stmt;
-        struct {SWITCH_CONDITION *condition; SWITCH_CASELIST *caselist; } switch_stmt;
+        struct {SWITCH_CONDITION *condition; SWITCH_CASELIST *caselist; SymbolTable *symboltable; } switch_stmt;
         struct {FOR_CONDITION *condition; BLOCK *block; } for_stmt;
         EXPRLIST *print;
     } val;
@@ -172,6 +181,7 @@ typedef struct SWITCH_CONDITION {
 
 typedef struct SWITCH_CASELIST {
     int lineno;
+    SymbolTable *symboltable;
     bool default_case;
     EXPRLIST *exprlist;
     STATEMENTS *statements;
@@ -189,12 +199,13 @@ typedef struct FOR_CONDITION {
     enum { infinite, while_loop, threepart } kind;
     union {
         EXPR *while_expr;
-        struct {SIMPLE *init; EXPR *condition; SIMPLE *post;} threepart;
+        struct {SIMPLE *init; EXPR *condition; SIMPLE *post; SymbolTable *symboltable; } threepart;
     } val;
 } FOR_CONDITION;
 
 typedef struct SIMPLE {
     int lineno;
+    SymbolTable *symboltable;
     enum { empty_stmt_kind, expr_kind, increment_kind, decrement_kind, assignment_kind, shortDcl_kind } kind;
     union {
         EXPR *expr;
@@ -211,6 +222,7 @@ typedef enum { expressionKindPlus, expressionKindMinus, expressionKindMult, expr
 
 typedef struct EXPR {
     int lineno;
+    SymbolTable *symboltable;
     exprKind kind;
     union {
         char *runeLiteral;
@@ -226,6 +238,7 @@ typedef struct EXPR {
 
 typedef struct OTHER_EXPR {
     int lineno;
+    SymbolTable *symboltable;
     enum { identifier_kind, paren_kind, func_call_kind, index_kind, struct_access_kind } kind;
     union {
         EXPR *expr;

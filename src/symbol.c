@@ -9,6 +9,7 @@ extern int g_symbols;
 // global indentation variable; it is incremented wherever necessary
 int g_symIndent = 0;
 
+// print the indentation as spaces
 void symIndent(int indent_level) {
     int indent_val = 4; // one level of indentation is defined as 4 spaces
     for (int i = 0; i < indent_val * indent_level; ++i) {
@@ -16,6 +17,7 @@ void symIndent(int indent_level) {
     }
 }
 
+// create the hash from a string
 int Hash(char *str) {
     unsigned int hash = 0;
     while (*str) hash = (hash << 1) + *str++;
@@ -36,25 +38,14 @@ SymbolTable *scopeSymbolTable(SymbolTable *s) {
     return t;
 }
 
-void scopeInc() {
-    if (g_symbols) {
-        symIndent(g_symIndent);
-        printf("{\n");
-    }
-    g_symIndent++;
-}
-
-void scopeDec() {
-    g_symIndent--;
-    if (g_symbols) {
-        symIndent(g_symIndent);
-        printf("}\n");
-    }
-}
-
 SYMBOL *putSymbol(SymbolTable *t, char *name, symTYPE *data, int lineno) {
     int i = Hash(name);
     SYMBOL *s;
+
+    // ignore blank identifiers
+    if (strcmp(name, "_") == 0)
+        return NULL;
+
     for (s = t->table[i]; s; s=s->next) {
         if (strcmp(s->name,name)==0) {
             fprintf(stderr, "Error: (line %d) \"%s\" is already declared\n", lineno, name);
@@ -68,7 +59,32 @@ SYMBOL *putSymbol(SymbolTable *t, char *name, symTYPE *data, int lineno) {
     t->table[i] = s;
 
     // if g_symbols turned on, then print symbol
+    if (g_symbols)
+        printSymbol(name, data);
+
+    return s;
+}
+
+// helper function: add indentation with braces for a new scope
+void scopeInc() {
     if (g_symbols) {
+        symIndent(g_symIndent);
+        printf("{\n");
+    }
+    g_symIndent++;
+}
+
+// helper function: add indentation with braces for a new scope
+void scopeDec() {
+    g_symIndent--;
+    if (g_symbols) {
+        symIndent(g_symIndent);
+        printf("}\n");
+    }
+}
+
+// helper function: print the symbol
+void printSymbol(char *name, symTYPE *data) {
         symIndent(g_symIndent);
         char *sym_cat;
         switch (data->category) {
@@ -85,7 +101,6 @@ SYMBOL *putSymbol(SymbolTable *t, char *name, symTYPE *data, int lineno) {
                 sym_cat = "constant";
                 break;
         }
-
         switch (data->symtype) {
             case type_type:
                 if (data->val.symtype) {
@@ -117,20 +132,33 @@ SYMBOL *putSymbol(SymbolTable *t, char *name, symTYPE *data, int lineno) {
                 symPrettyFUNC_SIGNATURE(data->val.symsign);
                 break;
         }
-    }
-
-    return s;
 }
 
-SYMBOL *getSymbol(SymbolTable *t, char *name) {
+// retreive symbol; throw an error and exit if symbol not found
+SYMBOL *getSymbol(SymbolTable *sym, char *name, int lineno) {
     int i = Hash(name);
-    for (SYMBOL *s = t->table[i]; s; s = s->next) {
+    for (SYMBOL *s = sym->table[i]; s; s = s->next) {
         if (strcmp(s->name,name) == 0)
             return s;
     }
-    if (t->parent == NULL)
-        return NULL;
-    return getSymbol(t->parent, name);
+    if (sym->parent == NULL) {
+        fprintf(stderr, "Error: (line %d) \"%s\" is not declared\n", lineno, name);
+        exit(1);
+    }
+    return getSymbol(sym->parent, name, lineno);
+}
+
+// return true if "name" is defined in "sym", return false otherwise
+bool defSymbol(SymbolTable *sym, char *name) {
+    int i = Hash(name);
+    for (SYMBOL *s = sym->table[i]; s; s = s->next) {
+        if (strcmp(s->name,name) == 0)
+            return true;
+    }
+    if (sym->parent == NULL) {
+        return false;
+    }
+    return defSymbol(sym->parent, name);
 }
 
 symTYPE *initSymType(SymbolCategory category, symbolType symtype, void *p) {
@@ -184,6 +212,7 @@ void symPROGRAM(PROGRAM *node) {
 
 void symTOPLEVELDECL(TOPLEVELDECL *node, SymbolTable *sym) {
     for (TOPLEVELDECL *i = node; i; i = i->next) {
+        i->symboltable = sym;
         switch (i->kind) {
             case dcl_toplevel:
                 symDCL(i->val.dcl, sym);
@@ -196,6 +225,7 @@ void symTOPLEVELDECL(TOPLEVELDECL *node, SymbolTable *sym) {
 }
 
 void symDCL(DCL *node, SymbolTable *sym) {
+    node->symboltable = sym;
     switch (node->kind) {
         case var:
             symVARDCL(node->val.vardcl, sym);
@@ -208,6 +238,7 @@ void symDCL(DCL *node, SymbolTable *sym) {
 
 void symVARDCL(VARDCL *node, SymbolTable *sym) {
     for (VARDCL *i = node; i; i = i->next) {
+        i->symboltable = sym;
         for (IDLIST *j = i->idlist; j; j = j->next) {
             symTYPE *symvardcl = initSymType(variable_category, type_type, i->type);
             putSymbol(sym, j->id, symvardcl, node->lineno);
@@ -218,12 +249,14 @@ void symVARDCL(VARDCL *node, SymbolTable *sym) {
 
 void symTYPEDCL(TYPEDCL *node, SymbolTable *sym) {
     for (TYPEDCL *i = node; i; i = i->next) {
+        i->symboltable = sym;
         symTYPE *symtypedcl = initSymType(type_category, type_type, i->type);
         putSymbol(sym, i->identifier, symtypedcl, node->lineno);
     }
 }
 
 void symFUNCDCL(FUNCDCL *node, SymbolTable *sym) {
+    node->symboltable = sym;
     symTYPE *symfuncdcl = initSymType(function_category, func_signature_type, node->signature);
     putSymbol(sym, node->identifier, symfuncdcl, node->lineno);
 
@@ -237,6 +270,7 @@ void symFUNCDCL(FUNCDCL *node, SymbolTable *sym) {
 }
 
 void symFUNC_SIGNATURE(FUNC_SIGNATURE *node, SymbolTable *sym) {
+    node->symboltable = sym;
     for (PARAM_LIST *i = node->params; i; i = i->next) {
         for (IDLIST *j = i->idlist; j; j = j->next) {
             symTYPE *symparamdcl = initSymType(variable_category, type_type, i->type);
@@ -246,23 +280,27 @@ void symFUNC_SIGNATURE(FUNC_SIGNATURE *node, SymbolTable *sym) {
 }
 
 void symBLOCK(BLOCK *node, SymbolTable *sym, SymbolTable *extra) {
-    scopeInc();
-    if (extra)
+    if (extra) {
         node->symboltable = extra;
-    else
+        symSTATEMENTS(node->stmts, node->symboltable);
+    }
+    else {
+        scopeInc();
         node->symboltable = scopeSymbolTable(sym);
-
-    symSTATEMENTS(node->stmts, node->symboltable);
-    scopeDec();
+        symSTATEMENTS(node->stmts, node->symboltable);
+        scopeDec();
+    }
 }
 
 void symSTATEMENTS(STATEMENTS *node, SymbolTable *sym) {
+    node->symboltable = sym;
     for (STATEMENTS *i = node; i; i = i->next) {
         symSTATEMENT(i->stmt, sym);
     }
 }
 
 void symSTATEMENT(STATEMENT *node, SymbolTable *sym) {
+    node->symboltable = sym;
     switch(node->kind) {
         case dcl_s:
             symDCL(node->val.dcl, sym);
@@ -278,9 +316,9 @@ void symSTATEMENT(STATEMENT *node, SymbolTable *sym) {
             symEXPRLIST(node->val.print, sym);
             break;
         case if_stmt_s:
-            /*
             scopeInc();
             SymbolTable *switchif = scopeSymbolTable(sym);
+            node->val.if_stmt.symboltable = switchif;
             if (node->val.if_stmt.simple)
                 symSIMPLE(node->val.if_stmt.simple, switchif);
             symEXPR(node->val.if_stmt.expr, switchif);
@@ -291,6 +329,7 @@ void symSTATEMENT(STATEMENT *node, SymbolTable *sym) {
                 case else_if:
                     scopeInc();
                     SymbolTable *switchifelse = scopeSymbolTable(switchif);
+                    node->val.if_stmt.val.else_block.symboltable = switchifelse;
                     symSTATEMENTS(node->val.if_stmt.val.else_block.stmts, switchifelse);
                     switch (node->val.if_stmt.val.else_block.else_block->kind) {
                         case if_stmt_else:
@@ -302,20 +341,20 @@ void symSTATEMENT(STATEMENT *node, SymbolTable *sym) {
                     }
                     scopeDec();
                     break;
-                scopeDec();
             }
-            */
+            scopeDec();
             break;
         case switch_stmt_s:
             scopeInc();
             SymbolTable *switchsym = scopeSymbolTable(sym);
+            node->val.switch_stmt.symboltable = switchsym;
             if (node->val.switch_stmt.condition->simple)
                 symSIMPLE(node->val.switch_stmt.condition->simple, switchsym);
             if (node->val.switch_stmt.condition->expr)
                 symEXPR(node->val.switch_stmt.condition->expr, switchsym);
             if (node->val.switch_stmt.caselist)
                 symSWITCH_CASELIST(node->val.switch_stmt.caselist, switchsym);
-                scopeDec();
+            scopeDec();
             break;
         case for_stmt_s:
             switch(node->val.for_stmt.condition->kind) {
@@ -330,6 +369,7 @@ void symSTATEMENT(STATEMENT *node, SymbolTable *sym) {
                     {
                         scopeInc();
                         SymbolTable *threepart = scopeSymbolTable(sym);
+                        node->val.for_stmt.condition->val.threepart.symboltable = threepart;
                         if (node->val.for_stmt.condition->val.threepart.init)
                             symSIMPLE(node->val.for_stmt.condition->val.threepart.init, threepart);
                         if (node->val.for_stmt.condition->val.threepart.condition)
@@ -350,13 +390,13 @@ void symSTATEMENT(STATEMENT *node, SymbolTable *sym) {
         case continue_stmt_s:
             break;
     }
-
 }
 
 void symSWITCH_CASELIST(SWITCH_CASELIST *node, SymbolTable *sym) {
     for (SWITCH_CASELIST *i = node; i; i=i->next) {
         scopeInc();
         SymbolTable *symswitch_case = scopeSymbolTable(sym);
+        i->symboltable = symswitch_case;
         if (!(i->default_case))
             symEXPRLIST(i->exprlist, symswitch_case);
         if (i->statements)
@@ -366,30 +406,42 @@ void symSWITCH_CASELIST(SWITCH_CASELIST *node, SymbolTable *sym) {
 }
 
 void symSIMPLE(SIMPLE *node, SymbolTable *sym) {
+    node->symboltable = sym;
     switch (node->kind) {
         case empty_stmt_kind:
             break;
         case expr_kind:
-            //symEXPR(node->val.expr, sym);
-            break;
         case increment_kind:
-            //prettyEXPR(node->val.expr);
-            break;
         case decrement_kind:
-            //prettyEXPR(node->val.expr);
+            symEXPR(node->val.expr, sym);
             break;
         case assignment_kind:
-            // prettyEXPRLIST(node->val.assignment.LHS_expr_list);
-            // prettyEXPRLIST(node->val.assignment.RHS_expr_list);
+            symEXPRLIST(node->val.assignment.LHS_expr_list, sym);
+            symEXPRLIST(node->val.assignment.RHS_expr_list, sym);
             break;
         case shortDcl_kind:
-            // prettyEXPRLIST(node->val.shortDcl.LHS_expr_list);
-            // prettyEXPRLIST(node->val.shortDcl.RHS_expr_list);
+            // all the expressions on the RHS must be in scope
+            symEXPRLIST(node->val.shortDcl.RHS_expr_list, sym);
+
+            // loop through LHS and add undeclared variables to the symbol table
+            bool atLeastOneVarNotDeclared = false;
+            for (EXPRLIST *i = node->val.shortDcl.LHS_expr_list; i; i = i->next) {
+                if (!(defSymbol(sym, i->expr->val.other_expr->val.identifier))) {
+                    atLeastOneVarNotDeclared  = true;
+
+                    // add to the symbol table
+                    symTYPE *symshortvardcl = initSymType(variable_category, type_type, NULL);
+                    putSymbol(sym, i->expr->val.other_expr->val.identifier, symshortvardcl, node->lineno);
+                }
+            }
+
+            // at least one variable on the LHS should not be declared in the current scope
+            if (!(atLeastOneVarNotDeclared)) {
+                fprintf(stderr, "Error: (line %d) short declaration: there must be at least one variable on the LHS not declared in the current scope\n", node->lineno);
+                exit(1);
+            }
             break;
     }
-}
-
-void symEXPR(EXPR *node, SymbolTable *sym) {
 }
 
 void symEXPRLIST(EXPRLIST *node, SymbolTable *sym) {
@@ -397,115 +449,73 @@ void symEXPRLIST(EXPRLIST *node, SymbolTable *sym) {
         symEXPR(i->expr, sym);
 }
 
-/*
-
 void symEXPR(EXPR *node, SymbolTable *sym) {
+    node->symboltable = sym;
     switch (node->kind) {
         case expressionKindPlus:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindMinus:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindMult:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindDiv:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindMod:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindLT:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindLT_EQ:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindGT:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindGT_EQ:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindEQ_EQ:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindNotEquals:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindShift_Right:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindShift_Left:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindAnd:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindAMP_XOR:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindOr:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindXor:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindLogicalAnd:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
-            break;
         case expressionKindLogicalOr:
-            // prettyEXPR(node->val.binary.lhs);
-            // prettyEXPR(node->val.binary.rhs);
+            symEXPR(node->val.binary.lhs, sym);
+            symEXPR(node->val.binary.rhs, sym);
             break;
         case expressionKindPlusUnary:
-            // prettyEXPR(node->val.expr_unary);
-            break;
         case expressionKindMinusUnary:
-            // prettyEXPR(node->val.expr_unary);
-            break;
         case expressionKindNotUnary:
-            // prettyEXPR(node->val.expr_unary);
-            break;
         case expressionKindXorUnary:
-            // prettyEXPR(node->val.expr_unary);
+            symEXPR(node->val.expr_unary, sym);
             break;
         case append_expr:
-            // prettyEXPR(node->val.append_expr.expr);
+            getSymbol(sym, node->val.append_expr.identifier, node->lineno);
+            symEXPR(node->val.append_expr.expr, sym);
             break;
         case intval:
-            break;
         case floatval:
-            break;
         case stringval:
-            break;
         case rawstringval:
-            break;
         case runeval:
             break;
         case other_expr_kind:
-            // prettyOTHER_EXPR(node->val.other_expr);
+            symOTHER_EXPR(node->val.other_expr, sym);
             break;
-        }
+    }
 }
-*/
 
+void symOTHER_EXPR(OTHER_EXPR *node, SymbolTable *sym) {
+    node->symboltable = sym;
+    switch (node->kind) {
+        case identifier_kind:
+            getSymbol(sym, node->val.identifier, node->lineno);
+            break;
+        case paren_kind:
+            symEXPR(node->val.expr, sym);
+            break;
+        case func_call_kind:
+            symOTHER_EXPR(node->val.func_call.id, sym);
+            symEXPRLIST(node->val.func_call.args, sym);
+            break;
+        case index_kind:
+            symOTHER_EXPR(node->val.index.expr, sym);
+            symEXPR(node->val.index.index, sym);
+            break;
+        case struct_access_kind:
+            symOTHER_EXPR(node->val.struct_access.expr, sym);
+            getSymbol(sym, node->val.struct_access.identifier, node->lineno);
+            break;
+    }
+}

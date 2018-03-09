@@ -1,6 +1,7 @@
 package alias
 
-var d int = 2;
+var _ int = 2;
+var _ bool = 2;
 var c = 5;
 var e = 3.2;
 var f,g,h float64 = 2.1, 3.2, 4.5;
@@ -30,7 +31,7 @@ type (
 
 
 func f2(a5 int, b5 int, c5 string, d5 int, c int) {
-
+    a5, b0 := 2, 4
     for qqqq := 4;true; qqqq++ {
         var mmmm int = 10;
         qqqq = 10

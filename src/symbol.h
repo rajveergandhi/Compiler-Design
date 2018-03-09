@@ -26,13 +26,14 @@ typedef struct SymbolTable {
     struct SymbolTable *parent;
 } SymbolTable;
 
+// symbol and symbolTable management functions
 SymbolTable *initSymbolTable();
 SymbolTable *scopeSymbolTable(SymbolTable *t);
 SYMBOL *putSymbol(SymbolTable *t, char *name, symTYPE *data, int lineno);
-SYMBOL *getSymbol(SymbolTable *t, char *name);
-int defSymbol(SymbolTable *t, char *name);
+SYMBOL *getSymbol(SymbolTable *sym, char *name, int lineno);
+bool defSymbol(SymbolTable *t, char *name);
 
-// AST recursal functions
+// AST traversal functions
 void symPROGRAM(PROGRAM *p);
 void symTOPLEVELDECL(TOPLEVELDECL *p, SymbolTable *sym);
 void symDCL(DCL *p, SymbolTable *sym);
@@ -43,13 +44,15 @@ void symFUNC_SIGNATURE(FUNC_SIGNATURE *node, SymbolTable *sym);
 void symBLOCK(BLOCK *node, SymbolTable *sym, SymbolTable *extra);
 void symSTATEMENTS(STATEMENTS *node, SymbolTable *sym);
 void symSTATEMENT(STATEMENT *node, SymbolTable *sym);
+void symSWITCH_CASELIST(SWITCH_CASELIST *node, SymbolTable *sym);
 void symSIMPLE(SIMPLE *node, SymbolTable *sym);
 void symEXPRLIST(EXPRLIST *node, SymbolTable *sym);
 void symEXPR(EXPR *node, SymbolTable *sym);
-void symSWITCH_CASELIST(SWITCH_CASELIST *node, SymbolTable *sym);
+void symOTHER_EXPR(OTHER_EXPR *node, SymbolTable *sym);
 
 // helper functions
 void scopeInc();
 void scopeDec();
+void printSymbol(char *name, symTYPE *data);
 
 #endif
