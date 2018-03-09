@@ -32,17 +32,17 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(mode, "parse") == 0) {
                 yyparse();
-                //weedPROGRAM(root);
+                weedPROGRAM(root);
                 printf("OK\n");
             }
             else if (strcmp(mode, "pretty") == 0) {
                 yyparse();
-                //weedPROGRAM(root);
+                weedPROGRAM(root);
                 prettyPROGRAM(root);
             }
             else if (strcmp(mode, "symbol") == 0) {
                 yyparse();
-                //weedPROGRAM(root);
+                weedPROGRAM(root);
                 g_symbols = 1;
                 symPROGRAM(root);
             }
