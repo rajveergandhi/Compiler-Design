@@ -1,0 +1,396 @@
+%% This is file `elsarticle-template-1-num.tex',
+%%
+%% Copyright 2009 Elsevier Ltd
+%%
+%% This file is part of the 'Elsarticle Bundle'.
+%% ---------------------------------------------
+%%
+%% It may be distributed under the conditions of the LaTeX Project Public
+%% License, either version 1.2 of this license or (at your option) any
+%% later version.  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%% and version 1.2 or later is part of all distributions of LaTeX
+%% version 1999/12/01 or later.
+%%
+%% Template article for Elsevier's document class `elsarticle'
+%% with numbered style bibliographic references
+%%
+%% $Id: elsarticle-template-1-num.tex 149 2009-10-08 05:01:15Z rishi $
+%% $URL: http://lenova.river-valley.com/svn/elsbst/trunk/elsarticle-template-1-num.tex $
+%%
+\documentclass[preprint,12pt]{elsarticle}
+
+%% Use the option review to obtain double line spacing
+%% \documentclass[preprint,review,12pt]{elsarticle}
+
+%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
+%% for a journal layout:
+%% \documentclass[final,1p,times]{elsarticle}
+%% \documentclass[final,1p,times,twocolumn]{elsarticle}
+%% \documentclass[final,3p,times]{elsarticle}
+%% \documentclass[final,3p,times,twocolumn]{elsarticle}
+%% \documentclass[final,5p,times]{elsarticle}
+%% \documentclass[final,5p,times,twocolumn]{elsarticle}
+
+%% The graphicx package provides the includegraphics command.
+\usepackage{graphicx}
+%% The amssymb package provides various useful mathematical symbols
+\usepackage{amssymb}
+%% The amsthm package provides extended theorem environments
+%% \usepackage{amsthm}
+\usepackage{paralist}
+%% The lineno packages adds line numbers. Start line numbering with
+%% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
+%% for the whole article with \linenumbers after \end{frontmatter}.
+\usepackage{lineno}
+
+%% natbib.sty is loaded by default. However, natbib options can be
+%% provided with \biboptions{...} command. Following options are
+%% valid:
+
+%%   round  -  round parentheses are used (default)
+%%   square -  square brackets are used   [option]
+%%   curly  -  curly braces are used      {option}
+%%   angle  -  angle brackets are used    <option>
+%%   semicolon  -  multiple citations separated by semi-colon
+%%   colon  - same as semicolon, an earlier confusion
+%%   comma  -  separated by comma
+%%   numbers-  selects numerical citations
+%%   super  -  numerical citations as superscripts
+%%   sort   -  sorts multiple citations according to order in ref. list
+%%   sort&compress   -  like sort, but also compresses numerical citations
+%%   compress - compresses without sorting
+%%
+%% \biboptions{comma,round}
+
+% \biboptions{}
+
+
+\begin{document}
+
+\begin{frontmatter}
+
+%% Title, authors and addresses
+
+\title{COMP 520 Milestone 2}
+
+%% use the tnoteref command within \title for footnotes;
+%% use the tnotetext command for the associated footnote;
+%% use the fnref command within \author or \address for footnotes;
+%% use the fntext command for the associated footnote;
+%% use the corref command within \author for corresponding author footnotes;
+%% use the cortext command for the associated footnote;
+%% use the ead command for the email address,
+%% and the form \ead[url] for the home page:
+%%
+%% \title{Title\tnoteref{label1}}
+%% \tnotetext[label1]{}
+%% \author{Name\corref{cor1}\fnref{label2}}
+%% \ead{email address}
+%% \ead[url]{home page}
+%% \fntext[label2]{}
+%% \cortext[cor1]{}
+%% \address{Address\fnref{label3}}
+%% \fntext[label3]{}
+
+
+%% use optional labels to link authors explicitly to addresses:
+%% \author[label1,label2]{<author name>}
+%% \address[label1]{<address>}
+%% \address[label2]{<address>}
+
+\author{Rajveer Gandhi, Archit Agnihotri, Dipanjan Dutta}
+
+\begin{abstract}
+%% Text of abstract
+This is a design and implementation report of the Milestone 2 of the GoLite project.
+\end{abstract}
+
+\end{frontmatter}
+
+%%
+%% Start line numbering here if you want
+%%
+\linenumbers
+
+%% main text
+\section{Design Decisions}
+
+Since we got less marks in the Milestone 1 report, we decided to make this report more detailed and descriptive. We decided to include the ideas we missed regarding the scanner, parser and the syntax tree in the first milestone report. 
+
+In this milestone Dipanjan created the invalid programs and was responsible for the report. Dipanjan was also responsible for creating the type-checker and the weeder that we could not implement properly in the first milestone. Archit and Raj did the script for symbol table generation and fixed the AST and Pretty printer from Milestone 1. 
+
+\section{Flex and Bison}
+
+In the last report, we mentioned that we chose flex and bison because all of us are comfortable with programming in C. Flex and Bison are frameworks in C that can generate code for C. Our program mainly consists of the following files : 
+\begin{itemize}
+\item \textbf{src\textbackslash golite.l} : Scanner
+\item \textbf{src\textbackslash golite.y} : Parser
+\item \textbf{src\textbackslash tree.h} : Header file for syntax tree
+\item \textbf{src\textbackslash tree.c} : Syntax tree generator
+\item \textbf{src\textbackslash weed.h} : Header file for the weeder
+\item \textbf{src\textbackslash weed.c} : Weeder
+\item \textbf{src\textbackslash pretty.h} : Header file for the pretty printer
+\item \textbf{src\textbackslash pretty.c} : Pretty printer
+\item \textbf{src\textbackslash main.c} : Main file which controls execution
+\item \textbf{src\textbackslash Makefile} : Script to run flex and bison to create the lexer and parser
+\item \textbf{build.sh} : Shell script to clear older versions and run the latest version of \textbf{Makefile}
+\item \textbf{run.sh} : Shell script to run \textbf{main.c} on a program file with a specified mode.
+\item \textbf{test.sh} : Shell script to test programs (used of internal testing only)
+\end{itemize}
+
+The available modes are : 
+\begin{itemize}
+\item "$scan$" : Scans the program and gives \textbf{OK} if it scans successfully, otherwise throws the error.
+\item "$tokens$" : Prints the tokens encountered in order inside the program.
+\item "$parse$" : Parses the program, creates the syntax tree and prints \textbf{OK} if successful, otherwise exits after printing the parsing error.
+\item "$pretty$" : Pretty prints the program from traversing the syntax tree.
+\end{itemize}
+
+\section{Scanner}
+
+The scanner was developed with a very standard setup. We had macros for decimal, octal and hexadecimal representations, and also for escape sequences for runes and strings. Tokens were captured with the help of regular expressions. Every operator has its individual token. We decided not to group operators in order to keep the code more transparent and interpretable.
+
+One challenge that we faced in the scanner was optional semicolons. We had to deal with this by creating a variable called \textit{lastRead}, and updating it whenever a new token is generated (before it is returned). then, when \textit{$\backslash$n} or \textbf{EOF} or block comment including a \textit{$\backslash$n} is encountered we check to see with function \textit{insertSemicolon} if there should have been a semicolon there, and we insert the semicolon in that case.
+
+Another challenge we faced was handling block comments. Dipanjan initially added a state machine implementation of the handling of block comments. However, it was too abstract and none of us knew how exactly it was handling the block comments. So we later decided to switch to regular expressions.
+
+\section{Parser}
+
+Defining the production terms was a bit complex. We had a union structure with all the types of nodes we can have in out syntax tree. We then typed the production nodes according to these node types. Thus the syntax tree was created according to the grammar rules in the parser.
+
+Tokens were aliased with the addition of \textit{t} before their natural names. Almost all the tokens were of type string except integer and float literals which had their respective types. We did not have special tokens for data types and boolean \textit{true} and \textit{false} as they were not reserved keywords in GoLite.
+
+For the error message generation and display, we used bison's error reporting function \textit{yyerror}. 
+
+Associativity and precedence was also defined in the parser. The rule of precedence chosen was (from lower to higher):
+
+\begin{itemize}
+\item $=$ (Assignment operator)
+\item $||$ (Logical OR operator)
+\item $\&\&$ (Logical AND operator)
+\item $==$, $!=$, $<$, $>$ $<=$, $>=$
+\item $+$, $-$, $|$, (XOR operator)
+\item $*$, $/$, $\%$, $<<$, $>>$, $\&$, AND-XOR Operator
+\item All unary operators
+\end{itemize}
+
+All operators are associated left-to-right, except assignment operator, which is associated right-to-left.
+
+The production rules are created by a joint agreement between all three of us. One thing Dipanjan missed was that typecasting was actually treated as a function call and not a separate expression type. Raj caught that and changed it. 
+
+\section{Syntax tree}
+
+The syntax tree that was in the first milestone had a lot of bugs so Archit decided to create the syntax tree altogether. Previously, we had one single convoluted NODE with different structs for different types. This time around, the node is split up into 23 different types of nodes. It might seem too many nodes but it helps bring clarity to the coding structure and helps traversing the syntax tree intuitive. The different types of nodes that are defined are as follows:
+\begin{itemize}
+\item $PROGRAM$ : Program node, root or beginning of the tree.
+\item $PACKAGE$ : Package declaration.
+\item $TOPLEVELDECL$ : Top level declarations. Can be one of the following:
+\begin{itemize}
+\item $FUNCDCL$ : Function declaration
+\item $DCL$ : Non-function declaration. They can be : 
+\begin{itemize}
+\item $VARDCL$ : Top level variable declaration
+\item $TYPEDCL$ : Top level type declaration
+\end{itemize}
+\end{itemize}
+\item $FUNC\_SIGNATURE$ : Function signature.
+\item $PARAM\_LIST$ : Parameter list for a function signature.
+\item $IDLIST$ : List of identifiers for short declarations, assignments and top-level declarations.
+\item $TYPE$ : Type of a declaration.
+\item $STRUCT\_TYPE$ : Block of the structure.
+\item $BLOCK$ : Block of code enclosed by braces.
+\item $STATEMENTS$ : Node acting as a linked list for consecutive statements.
+\item $STATEMENT$ : Program statement.
+\item $ELSE\_BLOCK$ : Special node for \textit{else} part of an \textit{if} block.
+\item $SWITCH\_CONDITION$ : Condition for a switch block.
+\item $SWITCH\_CASELIST$ : Linked-list like node for all the cases and default case for the switch block.
+\item $EXPRLIST$ : Linked-list like node for expressions (for multiple assignments in one line).
+\item $FOR\_CONDITION$ : Node for the condition of a for loop.
+\item $SIMPLE$ : Simple statement.
+\item $OTHER\_EXPR$ : Other statements (including function calls, struct member selector and slice indexing).
+\end{itemize}
+
+\section{Weeder}
+
+The weeder is implemented in order to catch any syntactic errors that might not have been directly caught in the parser's grammar. Dipanjan created the weeder on his own. The following checks were implemented in the weeder:
+
+\subsection{Single default case}
+The language specifies that there can only be one default case inside a single switch block. We used a local variable \textit{hasDefault} that is initailly set to zero. If a default case is encountered, it is set to one. If another default case is found while \textit{hasDefault} is 1, we throw an error. We used a local variable to correclt weed through nested switch cases which are recursive calls. Once the switch block is complete, \textit{hasDefault} is set back to zero.
+
+\subsection{Break and continue statements}
+According to the language specification, \textit{continue} statements can only appear inside a for loop and \textit{break} statements can only appear inside a for loop or switch block. We had two global static integer variables \textit{insideFor} and \textit{insideSwitch} that stores the level of depth inside a for loop and switch block, respectively ( Initial values of both are zero). When a for loop is encountered, \textit{insideFor} is incremented by 1 and control enters the for loop. When control comes back after finishing the for loop, \textit{insideFor} is decremented by 1. The behaviour is similar for \textit{insideSwitch} as well. If a \textit{continue} statement is encountered when \textit{insideFor} is zero, an error is thrown. If a \textit{break} statement is encountered when both \textit{insideFor} and \textit{insideSwitch} are zero, an error is thrown. Making \textit{insideFor} and \textit{insideSwitch} global and integer helps weed nested loops and nested blocks in a program.
+
+\subsection{Blank identifier}
+According to Go specification, blank identifiers can be used :
+\begin{itemize}
+\item as an identifier in a declaration
+\item as an operand on the left side of an assignment
+\item as an identifier on left side of $=$ assignment only
+\item as a parameter name in function declaration
+\end{itemize}
+We used a global boolean variable \textit{isBlankIdValid} that is initially set to false. It is set to true before :
+\begin{itemize}
+\item the weeding of identifier lists of a declaration
+\item \textit{LHS} of an assignment statement
+\item \textit{LHS} of a short declaration statement
+\end{itemize} 
+Whenever the recursive weeding of the above are done, the \textit{isBlankIdValid } variable is set to false. If during any expression or statement evaluation, we encounter an "$\_$" we check if \textit{isBlankIdValid} is true or false. If it is false, we throw an error.
+
+\subsection{Unbalanced assignments}
+If the \textit{LHS} and the \textit{RHS} of an assignment or declaration statement contain unequal number of operands, the compile should quit with appropriate error. This is implemented with two local variables \textit{lhsCount} and \textit{rhsCount}. The \textit{weedIDLIST} and \textit{weedEXPRLIST} functions return the number of operands in the idlist in the \textit{LHS} of an assignment or declaration, or the number of expressions in the \textit{RHS} of the same. The counters are stored in \textit{lhsCount} and \textit{rhsCount} respectively. If they do not match, an error is thrown. Otherwise, the counters are reset to zero for the next statement.
+
+\subsection{Return statements}
+The language specifies that return statements can only be inside a function body. We use a static global integer variable \textit{insideFunction} that is initially set to zero. When we are weeding the function declaration, we increment the \textit{insideFunction} variable by one and then start weeding of the function block. As soon as weeding of the block is done and control comes back, we decrement \textit{insideFuction} by one. If a return statement is encountered and the value of \textit{insideFunction} is zero, an error is thrown. Use of an integer variable allows for weeding of nested functions (which are not supported in the language yet, but its a nice provision to have).
+
+
+\section{Pretty Printer}
+
+The pretty printer is almost similar in coding structure to the syntax tree. Besides the fact that we implemented a different node structure for syntax tree,  we encountered multiple segmentation faults in Milestone 1 and several other issues. For this reason, we decided to a complete overhaul of the pretty printer. This was done by Archit. 
+
+Previously, we had a single function split into cases based on the kind of statement/expression inside one function. This time around, we created separate functions corresponding to each type of node in the syntax tree for the pretty printer. The $PROGRAM$ is the root node from where the pretty printer starts. Semicolons are printed at the end of every statement.
+
+We also have a separate function, \textit{prettyIndent}, that prints 4 spaces per level of indentation level. Indentation level is stored in a variable $g\_indent$. Every time we enter a block for pretty printing, the $g\_indent$ variable increments by one. On exiting the block, $g\_indent$ is decremented. We decided to print spaces instead of tabs because we have see tabs to create chaotic indentations in several editors. Thus to keep a standard across all platforms for pretty printing, we used spaces.
+
+
+\section{Symbol Table}
+
+The symbol table script was designed by Raj and Archit. The symbol table was created using a an array of the $SYMBOL$ struct. In a logical sense, the symbol table is designed like a stack of frames, where each frame is associated with its corresponding AST node. The check for printing the symbol table is stored in a external integer variable $g\_tokens$. 
+
+The data structure for the symbol table is as follows:
+\begin{itemize}
+\item $SymbolTable$ : The main symbol table frame structure. It consists of : 
+\begin{itemize}
+\item $SYMBOL *table[HashSize]$ : An array of $SYMBOL$ type for symbols in the symbol table. The $HashSize$ is set to be 317.
+\item $SymbolTable *parent$ : Pointer to the parent table of the current symbol table (you can think of it as pointer to the previous element in stack)
+\end{itemize}
+\item $SYMBOL$ : Data structure to define the symbol. It consists of : 
+\begin{itemize}
+\item $name$ : String to store the name of the symbol.
+\item $SYMBOL *next$ : Pointer to the next symbol in the current symbol table.
+\item $symTYPE *data$ : Type of the symbol and additional information about the symbol.
+\end{itemize}
+\item $symTYPE$ : This structure is used to store the type of the symbol. It is used for printing the symbol table and can furthur be used in typechecking. It consists of : 
+\begin{itemize}
+\item $enum SymbolCategory$ : The category of the symbol. It can be : 
+\begin{itemize}
+\item $type\_category$ : Declared type.
+\item $variable\_category$ : Declared variable.
+\item $function\_category$ : Declared function.
+\item $constant\_category$ : Used specifically for "true" and "false". It is declared and added to the root symbol table for shadowing in the future.
+\end{itemize}
+\item $enum symbolType$ : It is used to identify whether it is a function declaration or not (as they are treated differently).
+\item $union val$ : This contains a pointer to the $TYPE$ and $FUNC\_SIGNATURE$ nodes of the AST.
+\end{itemize}
+\end{itemize}
+
+In order to implement the symbol table, we defined some helper functions as well. These functions have some specific purpose, to help with printing the symbol table, to get a symbol from symbol table etc. The functions are described in the following subsections.
+
+\subsection{symIndent}
+
+The $symIndent$ function is used to print proper indentation for the symbol table printing. For every indentation level (tracked by global integer variable $g\_symIndent$) 4 spaces are printed.
+
+\subsection{Hash}
+
+This function is used to create the corresponding hash for a symbol, in order to map and store it in the symbol table. Hashing is done by Division-remainder method.
+
+\subsection{initSymbolTable}
+
+In this function, a node of type $SymbolTable$ is created and initialized. The $table$ array is initialized and all elements are set to null in order to avoid segmentation faults due to bad dereferencing. The parent of the symbol table is also set to null. The newly created symbol table is then returned.
+
+\subsection{scopeSymbolTable}
+
+This function is called when a new sub table (or sub-block or stack element) is to be created with new scope, inside the current symbol table. $initSymbolTable$ is called to create a new $SymbolTable$ frame. The parent of the $SymbolTable$ frame is set to be the symbol table frame in which the scope was at the time of this function call. The function returns the new $SymbolTable$ node.
+
+\subsection{putSymbol}
+
+This function is used to store a symbol in the current scoped $SymbolTable$ frame. 
+\begin{itemize}
+\item If the symbol is "$\_$", the symbol is not put in the symbol table and a $NULL$ is returned.
+\item If the symbol is already defined in the current scoped frame, an error is thrown.
+\end{itemize}
+Otherwise, the symbol is added to the current frame, along with its type and category. If $g\_tokens$ is 1, the symbol is printed as well. It also returns the symbol.
+
+\subsection{scopeInc and scopeDec}
+
+It increments and decrements the $g\_symIndent$ variable for printing the symbol table, respectively. It also prints the "$\{$" and "$\}$" for the opening and closing of symbol table frame.
+
+\subsection{printSymbol}
+
+This function pretty prints a symbol from the symbol table. First it prints the correct indentation (calls $g\_symIndent$). Then it finds out the category of the symbol and stores it in $sym\_cat$. It then prints according to the type of the symbol. If it is a basic, array, slice or struct type, it calls the $prettyTYPE$ function from the pretty printer. Otherwise, if it is a function declaration, it calls a special pretty printer function $symPrettyFUNC_SIGNATURE$ that prints the function symbol in proper format.
+
+\subsection{getSymbol}
+
+This function is used to fetch a symbol from the symbol table. It uses a recursive approach to traverse through the stack of frames. If, on reaching the root frame, the symbol is not found, an error is thrown stating that the symbol is not declared. If, however, the symbol is found in a frame, it immediately returns the symbol.
+
+\subsection{defSymbol}
+
+This is similar to $getSymbol$, however, it returns a boolean value. It returns true if the symbol is found, false otherwise. It is used in checks while traversing the AST to create the symbol table. The purpose of creating function is to not handle $NULL$ pointers in any check.
+
+\subsection{initSymType}
+
+This function sets the type and category of a symbol and returns a $symTYPE$ variable. It takes a void pointer $p$ that contains the type of the symbol, and the enum value of the symbol type. $p$ is casted appropriately and stored in the $val$ union of the $symTYPE$ node.
+
+$\\$ \par
+The symbol table generation is very much similar to the pretty printer or the syntax tree generation. There are, however, a few additional features. 
+\setcounter{subsection}0
+\subsection{Predeclared symbols}
+
+The symbol table contains the following predeclared symbols : 
+\begin{compactenum}
+\item \textbf{int}
+\item\textbf{float64}
+\item\textbf{rune}
+\item\textbf{string}
+\item\textbf{bool}
+\item\textbf{true}
+\item\textbf{false}
+\end{compactenum}
+
+The last two symbols are of constant type and used for shadowing purposes.
+
+\subsection{Scoping}
+
+The first challenge we faced while generating the symbol table was creating nested scopes/frames. We came up with a plan of creating a new frame (by calling $scopeSymbolTable$) every time we encounter a block of code or branching from the flow of the program. A new frame is created for every : 
+\begin{itemize}
+\item code enclosed in braces
+\item function declaration
+\item for loop
+\item switch block
+\item case in a switch block
+\item if block 
+\item else-if/else block
+\end{itemize} 
+
+All variables in parent frames can be redeclared in these frames but a variable declared in this frame cannot be redeclared in the same frame.
+
+Infinite loops and while loops also have separate frames for symbol table, but thy are essentially the same frame as created for a block of code. For loop can have declaration in the first part of the three-part, thus, we decided to create a separate condition for frame before the recursion.
+
+\subsection{Short Declarations}
+
+Another challenge we faced was to ensure that every short declaration must have at least one undeclared variable. To implement that, we used a local boolean variable $atLeastOneVarNotDeclared$ (initially set to false). We looped through the L.H.S. of the short declaration statement and checked whether a variable is defined in the symbol table or not. If we see that the variable is not defined, we add that variable to the symbol table and change the value of $atLeastOneVarNotDeclared$ to true. If, after traversing through the identifier list in the L.H.S. of the statement, the value of $atLeastOneVarNotDeclared$ is false, we throw an error and exit.
+
+%% The Appendices part is started with the command \appendix;
+%% appendix sections are then done as normal sections
+%% \appendix
+
+%% \section{}
+%% \label{}
+
+%% References
+%%
+%% Following citation commands can be used in the body text:
+%% Usage of \cite is as follows:
+%%   \cite{key}          ==>>  [#]
+%%   \cite[chap. 2]{key} ==>>  [#, chap. 2]
+%%   \citet{key}         ==>>  Author [#]
+
+%% References with bibTeX database:
+
+\bibliographystyle{model1-num-names}
+\bibliography{sample.bib}
+
+
+
+\end{document}
+
