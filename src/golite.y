@@ -259,7 +259,8 @@ simple_stmt : simple_stmt_no_semi tSEMICOLON {$$ = $1;}
 simple_stmt_no_semi : expr {$$ = makeSIMPLE_expr($1);}
                     | expr tINC {$$ = makeSIMPLE_inc($1);}
                     | expr tDEC {$$ = makeSIMPLE_dec($1);}
-                    | expr_list assign_op expr_list {$$ = makeSIMPLE_assignment($1, $2, $3);}
+                    | expr_list tASSIGN expr_list {$$ = makeSIMPLE_assignment($1, $2, $3);}
+                    | expr assign_op expr {$$ = makeSIMPLE_OPassignment($1, $2, $3);}
                     | expr_list tDECL expr_list {$$ = makeSIMPLE_shortdcl($1, $3);}
                     | %empty {$$ = makeSIMPLE_empty();}
                     ;
@@ -308,8 +309,7 @@ other_expressions : tIDENTIFIER {$$ = makeEXPR_identifier($1);}
                   | other_expressions tPERIOD tIDENTIFIER {$$ = makeEXPR_structAccess($1, $3);}
                   ;
 
-assign_op : tASSIGN {$$ = $1;}
-          | tPLUS_EQ {$$ = $1;}
+assign_op : tPLUS_EQ {$$ = $1;}
           | tMINUS_EQ {$$ = $1;}
           | tMULT_EQ {$$ = $1;}
           | tDIV_EQ {$$ = $1;}

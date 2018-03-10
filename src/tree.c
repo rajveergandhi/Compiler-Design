@@ -389,6 +389,24 @@ SIMPLE *makeSIMPLE_assignment(EXPRLIST *LHS_expr_list, char *assign_op, EXPRLIST
     return node;
 }
 
+SIMPLE *makeSIMPLE_OPassignment(EXPR *LHS_expr, char *assign_op, EXPR *RHS_expr) {
+    SIMPLE *node = malloc(sizeof(SIMPLE));
+    node->lineno = yylineno;
+    node->kind = assignment_kind;
+    EXPRLIST *lhs = malloc(sizeof(EXPRLIST));
+    lhs->expr = LHS_expr;
+    lhs->lineno = yylineno;
+    lhs->next = NULL;
+    EXPRLIST *rhs = malloc(sizeof(EXPRLIST));
+    rhs->expr = RHS_expr;
+    rhs->lineno = yylineno;
+    rhs->next = NULL;
+    node->val.assignment.LHS_expr_list = lhs;
+    node->val.assignment.assign_op = assign_op;
+    node->val.assignment.RHS_expr_list = rhs;
+    return node;
+}
+
 SIMPLE *makeSIMPLE_shortdcl(EXPRLIST *LHS_expr_list, EXPRLIST *RHS_expr_list) {
     SIMPLE *node = malloc(sizeof(SIMPLE)); 
     node->lineno = yylineno;

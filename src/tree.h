@@ -297,6 +297,7 @@ SIMPLE *makeSIMPLE_expr(EXPR *expr);
 SIMPLE *makeSIMPLE_inc(EXPR *expr);
 SIMPLE *makeSIMPLE_dec(EXPR *expr);
 SIMPLE *makeSIMPLE_assignment(EXPRLIST *LHS_expr_list, char *assign_op, EXPRLIST *RHS_expr_list);
+SIMPLE *makeSIMPLE_OPassignment(EXPR *LHS_expr, char *assign_op, EXPR *RHS_expr);
 SIMPLE *makeSIMPLE_shortdcl(EXPRLIST *LHS_expr_list, EXPRLIST *RHS_expr_list);
 SIMPLE *makeSIMPLE_empty();
 EXPRLIST *makeEXPRLIST(EXPR *expr, EXPRLIST *next);
