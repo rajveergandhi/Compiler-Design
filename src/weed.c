@@ -15,6 +15,10 @@ void weedPROGRAM(PROGRAM *node) {
 }
 
 void weedPACKAGE(PACKAGE *node) {
+    if(strcmp(node->package,"_") == 0){
+        fprintf(stderr, "Error: invalid usage of blank identifier. (line %d)\n",node->lineno);
+        exit(1);
+    }
 }
 
 void weedTOPLEVELDECL(TOPLEVELDECL *node) {
@@ -247,7 +251,8 @@ void weedSIMPLE(SIMPLE *node) {
             weedEXPR(node->val.expr);
             break;
         case assignment_kind:
-            isBlankIdValid = true;
+            if(strcmp(node->val.assignment.assign_op,"=") == 0)
+                isBlankIdValid = true;
             lhsCount = 0;
             lhsCount = weedEXPRLIST(node->val.assignment.LHS_expr_list);
             isBlankIdValid = false;
