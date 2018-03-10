@@ -212,7 +212,6 @@ void symPROGRAM(PROGRAM *node) {
 
 void symTOPLEVELDECL(TOPLEVELDECL *node, SymbolTable *sym) {
     for (TOPLEVELDECL *i = node; i; i = i->next) {
-        i->symboltable = sym;
         switch (i->kind) {
             case dcl_toplevel:
                 symDCL(i->val.dcl, sym);
@@ -225,7 +224,6 @@ void symTOPLEVELDECL(TOPLEVELDECL *node, SymbolTable *sym) {
 }
 
 void symDCL(DCL *node, SymbolTable *sym) {
-    node->symboltable = sym;
     switch (node->kind) {
         case var:
             symVARDCL(node->val.vardcl, sym);
@@ -293,7 +291,6 @@ void symBLOCK(BLOCK *node, SymbolTable *sym, SymbolTable *extra) {
 }
 
 void symSTATEMENTS(STATEMENTS *node, SymbolTable *sym) {
-    node->symboltable = sym;
     for (STATEMENTS *i = node; i; i = i->next) {
         symSTATEMENT(i->stmt, sym);
     }

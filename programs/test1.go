@@ -1,7 +1,7 @@
 package alias
 
 var _ int = 2;
-var _ bool = 2;
+var _ int
 var c = 5;
 var e = 3.2;
 var f,g,h float64 = 2.1, 3.2, 4.5;
@@ -31,13 +31,16 @@ type (
 
 
 func f2(a5 int, b5 int, c5 string, d5 int, c int) {
-    a5, b0 := 2, 4
+    a5, b0, _ := 2, 4, 2
     for qqqq := 4;true; qqqq++ {
         var mmmm int = 10;
         qqqq = 10
     }
+    var p point
+    p.x = 2
+    //_.x = 2 //BUG
+    x, y +=2, 2
 
-    nn:=2;
     var newfuncvar1 int = 10;
     var newfuncvar2 = 10;
     if (a5) {
@@ -57,6 +60,8 @@ func f2(a5 int, b5 int, c5 string, d5 int, c int) {
         case d5:
             print ("foo")
             var myint5 = 100
+        default:
+            print ("foo")
     }
 
     return a5

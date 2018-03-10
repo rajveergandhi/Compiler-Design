@@ -44,7 +44,6 @@ typedef struct PACKAGE {
 
 typedef struct TOPLEVELDECL {
     int lineno;
-    SymbolTable *symboltable;
     enum { dcl_toplevel, func_dcl_toplevel } kind;
     union {
         DCL *dcl;
@@ -55,7 +54,6 @@ typedef struct TOPLEVELDECL {
 
 typedef struct DCL {
     int lineno;
-    SymbolTable *symboltable;
     enum { var, type } kind;
     union {
         VARDCL *vardcl;
@@ -134,7 +132,6 @@ typedef struct BLOCK {
 
 typedef struct STATEMENTS {
     int lineno;
-    SymbolTable *symboltable;
     STATEMENT *stmt;
     STATEMENTS *next;
 } STATEMENTS;
