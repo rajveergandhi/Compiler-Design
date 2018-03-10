@@ -370,6 +370,98 @@ Infinite loops and while loops also have separate frames for symbol table, but t
 
 Another challenge we faced was to ensure that every short declaration must have at least one undeclared variable. To implement that, we used a local boolean variable $atLeastOneVarNotDeclared$ (initially set to false). We looped through the L.H.S. of the short declaration statement and checked whether a variable is defined in the symbol table or not. If we see that the variable is not defined, we add that variable to the symbol table and change the value of $atLeastOneVarNotDeclared$ to true. If, after traversing through the identifier list in the L.H.S. of the statement, the value of $atLeastOneVarNotDeclared$ is false, we throw an error and exit.
 
+
+\section{Invalid programs and their typing rule violation}
+\begin{enumerate}
+\item $incompatible\_type\_append\_with\_slices.go$ : $append$ is well-typed if the first term is a slice and the second term is of the same type as first type. Here, they have different type aliases (even though they derive the same base type).
+
+\item $incorrect\_number\_of\_function\_call\_arguments.go$ : A function call is well-typed if all of its arguments are well-typed and it has the same number of arguments and the types of arguments are same as corresponding types of parameters. Her, the number of arguments do not match the number of parameters.
+
+\item $incorrect\_assignment\_of\_function\_return\_value.go$ : An assignment statement is well-typed if both L.H.S. and R.H.S. are well typed and type of every pair of corresponding $lvalue$ and expression is the same. In this program, the function returns a $float64$ but the variable it is stored into is of type $int$.
+
+\item $invalid\_adding\_bool\_and\_string.go$ : A $+$ operation requires both its operands to be either numeric or string. In this program, the L.H.S. operand is of type boolean, which is a violation.
+\item $invalid\_function\_return\_value\_diff\_type\_alias\_arrays.go$ : The return statement is well typed if : 
+\begin{itemize}
+\item It has no expression and its enclosing function has no return type
+\item The type of the expression of return statement is the same as the function's return type.
+\end{itemize}
+In this program, the return type of the function is $[5]num2$ but the function returns $[5]num1$ (even though both $num1$ and $num2$ have same base types).
+
+\item $invalid\_assignment\_return\_value\_array\_size\_mismatch.go$ : Same rule as no. $3$. Here the function returns $[5]int$ but the value is stored in a variable of type $[6]int$
+
+\item $invalid\_function\_return\_statement.go$ : Same typing rule as no. $5$. Here the return type of the function is $int$ but the function does not return anything (returns a void or null, to say).
+
+\item $invalid\_function\_return\_value\_diff\_type\_alias.go$ : Same typing rule as no. $5$. In this program, the return type of the function is $num2$ but the function returns $num1$ (even though both $num1$ and $num2$ have same base types).
+
+\item $invalid\_int\_condition\_in\_if.go$ : An if statement type checks if:
+\begin{itemize}
+\item Initial declaration, if present, type checks
+\item Condition expression is well-typesd and resolves to type $bool$
+\item Statements in the $if$ block typechecks
+\item Statements in $else-if$/$else$ blocks typecheck
+\end{itemize}
+In this program, the expression is well-typed but resolves to an $int$ type instead of a $bool$ type.
+
+\item $invalid\_return\_int\_in\_void\_function.go$ : Same typing rule as no. $5$. Here, the function has no return type, but inside the function body, it return an $int$ value.
+
+\item $invalid\_return\_statement\_in\_function.go$ : Same typing rule as $5$. Here, the function has $int$ return type, but inside the function body, it return a $string$ value.
+
+\item $invalid\_short\_dec\_type\_mismatch\_declared\_var.go$ : A short declaration is well-typed if : 
+\begin{itemize}
+\item All the expressions in R.H.S. are well typed
+\item At least one variable in L.H.S. is undeclared
+\item Declared variables in L.H.S. and corresponding expressions in R.H.S. must be of the same type.
+\end{itemize}
+In this program, the third clause is violated. Variable $a$, already declared as $int$, is assigned a $string$ value.
+
+\item $invalid\_string\_decrement.go$ : Increment/decrement statements are well-typed if their expressions are well-typed and resolve to a numeric base type ($int$, $float64$ or $rune$). Here, decrement operation is done on a $string$ expression.
+
+\item $invalid\_struct\_member\_assignment.go$ : A field selection $expr.id$ is well-typed if the expression is of a type that resolves to a struct and that struct contains the $id$. Here, $p$ is of type $a$ that has an $int$ variable $x$, but it is being assigned a $string$ value.
+
+\item $invalid\_type\_assignment.go$ : Same typing rule as no. $3$. Here, $p.y$ is of type $a$ but the R.H.S. is of type $c$ ( even though the structs $a$ and $c$ have identical structure).
+
+\item $invalid\_type\_comparison.go$ : The binary expression $==$ is well typed if both the operands are comparable (both of same types). Here, the operands are of type $num1$ and $num2$ respectively, hence they are in violation (even though the base types of $num1$ and $num2$ are $int$).
+
+\item $invalid\_type\_comparison\_2.go$ : Same typing rule as no. $16$. Here the variables are of types $num1$ and $num2$, but the $num2$ type is of type $num1$. However, they are still different types, so they are in conflict with the typing rule.
+
+\item $invalid\_type\_comparison\_3.go$ : Same typing rule as no. $16$. Here the two variables compared have two different struct types.
+
+\item $invalid\_typecasting\_from\_string\_to\_int.go$ : A type cast $type(expr)$ is well typed if : 
+\begin{itemize}
+\item $type$ is well typed and resolves to a base type
+\item $expr$ is well typed and satisfies one of the three conditions : 
+\begin{enumerate}
+\item $type$ and $expr$ resolve to underlying same types
+\item $type$ and $expr$ resolve to numeric types
+\item $type$ resolves to $string$ and $expr$ resolves to $rune$ or $int$
+\end{enumerate}
+\end{itemize}
+Here, integer type casting is done in a $string$ variable, which is in violation with the above rule.
+
+\item $invalid\_unary\_not\_op\_on\_int.go$ : The unary logical $NOT$ expression is well typed if the R.H.S. expression resolves to a $bool$ value. In this program, $NOT$  is done on an $int$ variable.
+
+\item $invalid\_unary\_operation\_on\_string.go$ : The unary minus expression is well typed if the R.H.S. expression is well typed and resolves to a numeric type ($int$, $float64$ or $rune$). Here, the unary minus is implemented on a $string $ variable.
+
+\item $invalid_usage_of_variable_before_declaration.go$ : In GoLite, identifiers must be declared before they are used. In this program, $a$ is initialized with the value of $b$, but $b$ is declared after $a$.
+
+\item $invalid\_use\_of\_or\_operator.go$ : The binary operation $||$ (logical $OR$) is well typed if both its operands resolve to $bool$ types. In this program, both the operands for the $||$ operation are $int$ values, which are not supported in GoLite.
+
+\item $invalid\_variable\_array\_size\_declaration.go$ : In GoLite, arrays declared must have a constant size and the size cannot be a variable. This program is in direct conflict with that rule.
+
+\item $invalid\_while\_loop\_int\_condition.go$ : The condition for $while$ loop must resolve to a $bool$ value. However, in this program, the condition for the $while$ loop has an $int$ type.
+
+\item $mismatched\_type\_in\_op\_assignment.go$ : In Go, the "$+=$" operation requires both its operands to be of same type. In this program, L.H.S operand is of type $float64$ and R.H.S. operand is of type $int$.
+
+\item $redeclaration\_of\_variable\_in\_same\_scope.go$ : This is actually in violation of a scoping rule. According to the scoping rules, a variable declared in a higher scope can be redeclared in a lower scope, but a variable (re)declared in a certain scope cannot be redeclared in the same scope (which is what is being implemented in this program).
+
+\item $switch\_case\_expression\_type\_mismatch.go$ : In a switch statement, the case expressions must have the same type as the switch condition. In this program, the switch condition expression is of type $int$ but the case expressions are of type $rune$.
+
+\item $type\_redeclaration.go$ : This program violates the same scoping rule as no. $27$, which is applicable for types as well.
+
+\item $undeclared\_variable.go$ : A variable cannot be used or accessed without declaring it, either by $var$ or "$:=$" declarations.
+
+\item $invalid\_modulo\_op\_rune\_float.go$ : A modulo ($\%$) operation is well typed if both its operands are integer values ($int$ or $rune$). In this program, the $\%$ operation is done on a $rune$ and a $float64$ operand.
+\end{enumerate}
 %% The Appendices part is started with the command \appendix;
 %% appendix sections are then done as normal sections
 %% \appendix
