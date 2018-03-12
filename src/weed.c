@@ -385,7 +385,10 @@ void weedOTHER_EXPR(OTHER_EXPR *node) {
                 fprintf(stderr, "Error: invalid usage of blank identifier. (line %d)\n",node->lineno);
                 exit(1);
             }
+            bool copy = isBlankIdValid;
+            isBlankIdValid = false;
             weedOTHER_EXPR(node->val.struct_access.expr);
+            isBlankIdValid = copy;
             break;
     }
 }

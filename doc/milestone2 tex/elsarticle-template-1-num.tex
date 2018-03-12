@@ -111,14 +111,13 @@ This is a design and implementation report of the Milestone 2 of the GoLite proj
 %%
 %% Start line numbering here if you want
 %%
-\linenumbers
 
 %% main text
 \section{Design Decisions}
 
-Since we got less marks in the Milestone 1 report, we decided to make this report more detailed and descriptive. We decided to include the ideas we missed regarding the scanner, parser and the syntax tree in the first milestone report. 
+Since we got less marks in the Milestone 1 report, we decided to make this report more detailed and descriptive. We decided to include the ideas we missed regarding the scanner, parser and the syntax tree in the first milestone report. In this report, we went for lucidity and reproducibility and made sure that no small details are missed.
 
-In this milestone Dipanjan created the invalid programs and was responsible for the report. Dipanjan was also responsible for creating the type-checker and the weeder that we could not implement properly in the first milestone. Archit and Raj did the script for symbol table generation and fixed the AST and Pretty printer from Milestone 1. 
+In this milestone Dipanjan created the invalid programs and was responsible for the report. Since he is slow in coding and understanding the flex and bison framework and how to code exactly, Dipanjan was also responsible for creating the weeder that we could not implement properly in the first milestone and the entire report. Archit and Raj did the script for symbol table generation and fixed the AST and Pretty printer from Milestone 1. 
 
 \section{Flex and Bison}
 
@@ -145,6 +144,8 @@ The available modes are :
 \item "$tokens$" : Prints the tokens encountered in order inside the program.
 \item "$parse$" : Parses the program, creates the syntax tree and prints \textbf{OK} if successful, otherwise exits after printing the parsing error.
 \item "$pretty$" : Pretty prints the program from traversing the syntax tree.
+\item "$symbol$" : Generates and prints the symbol table
+\item "$typecheck$" : Typechecks the program and prints \textbf{OK} if successful, otherwise exits after printing the typechecking error.
 \end{itemize}
 
 \section{Scanner}
@@ -353,6 +354,7 @@ The last two symbols are of constant type and used for shadowing purposes.
 
 The first challenge we faced while generating the symbol table was creating nested scopes/frames. We came up with a plan of creating a new frame (by calling $scopeSymbolTable$) every time we encounter a block of code or branching from the flow of the program. A new frame is created for every : 
 \begin{itemize}
+\item struct body
 \item code enclosed in braces
 \item function declaration
 \item for loop
@@ -370,6 +372,135 @@ Infinite loops and while loops also have separate frames for symbol table, but t
 
 Another challenge we faced was to ensure that every short declaration must have at least one undeclared variable. To implement that, we used a local boolean variable $atLeastOneVarNotDeclared$ (initially set to false). We looped through the L.H.S. of the short declaration statement and checked whether a variable is defined in the symbol table or not. If we see that the variable is not defined, we add that variable to the symbol table and change the value of $atLeastOneVarNotDeclared$ to true. If, after traversing through the identifier list in the L.H.S. of the statement, the value of $atLeastOneVarNotDeclared$ is false, we throw an error and exit.
 
+\section{Typechecker}
+
+The typechecker was created in a fashion very similar to what was discussed in the lecture slides. The typechecker has a recursive approach where a program component is well-typed if all its sub-components are well typed and it follows its own typechecking rule.
+
+\subsection{Scoping rules}
+The scoping rules are consistent with the Milestone 2 language specifications.
+\begin{itemize}
+\item Blocks define a scope. Blocks can be : 
+\begin{itemize}
+\item struct body
+\item code enclosed in braces
+\item function declaration
+\item for loop
+\item switch block
+\item case in a switch block
+\item if block 
+\item else-if/else block
+\end{itemize} 
+\item A variable/type/function declared in a scope can be accessed in that scope
+\item A variable/type/function declared in an outer scope can be redeclared in an inner scope.
+\item A variable/type/function declared in current scope cannot be redeclared in current scope.
+\item A variable/type/function cannot be accessed before declaration. 
+\end{itemize}
+
+\subsection{Helper functions}
+
+In order to implement typechecking, we created a few helper functions to perform some tasks need for typechecking.
+\begin{itemize}
+\item $initTypes$ : Creates the types for the predeclared symbols in the symbol table. ($int$, $float64$, $rune$, $string$, $bool$, "$true$" and "$false$"). "$true$" and "$false$" are set as boolean types for shadowing.
+\item $equalTYPE$ : It checks whether two given types are equal or not. If they are equal it returns 1, otherwise it returns 0.
+\item $checkBOOL$, $checkRUNE$, $checkSTRING$, $checkINT$ : These four helper functions check whether a given type is the same as one of them or not. If it is not, it gives an error message saying the specified typed is required and returns o. Otherwise, it returns 1.
+\end{itemize}
+
+\subsection{Top-level declarations}
+
+A top level declaration can be of three types. Each has its own typechecking rule. 
+\begin{itemize}
+\item Variable declaration : For every variable declaration in the top-level, we go through the L.H.S. of the declaration ($idlist$) and we see if there is an expression on the R.H.S., it should be well-typed. Then we check for previous declaration of the variable. If undeclared, we add a mapping of the variable to the type of the R.H.S. expression. If it is declared in an outer scope, we create the new mapping as a shadow of the outer mapping. If it is declared in the current scope, we throw an error.
+\item Type declaration : Similar to variable declaration. We check if it is declared previously. If undeclared, we add a mapping of the type to the underlying type. If it is declared in an outer scope, we create the new mapping as a shadow of the outer mapping. If it is declared in the current scope, we throw an error.
+\item Function declaration : We check the function signature first. If the function of that name is already declared, we throw an error. Otherwise we typecheck the block of the function. We have two special functions that needs to be typechecked with special conditions : 
+\begin{itemize}
+\item $init$ : The $init$ function cannot have any parameters or return types. It can, however, be redeclared.
+\item $main$ : The $main$ function cannot have any parameters or return types.
+\end{itemize}
+After this we recursive typecheck the block of the function.
+\end{itemize}
+
+\subsection{Statements}
+
+Typechecking on statements is done using a linked-list like node $STATEMENTS$. For every statement, typechecking is done recursively for every component of the statement. Note that statements themselves do not have any a type of their own. 
+\begin{itemize}
+\item Variable and type declarations : Similar to top-level declarations.
+\item Blocks : Blocks are typechecked recursively. It is well typed if all the statements in a block are well typed.
+\item $break$ and $continue$ statements : These statements are trivially well-typed. Placement of these statements are checked by the prior weeding pass.
+\item $return$ statement : $return$ statements are well-typed if : 
+\begin{itemize}
+\item The $expr$ component is well-typed and the resolved type of $expr$ is the same as the enclosing function return type.
+\item There is no $expr$ and the enclosing function has no return type.
+\end{itemize}
+Also, one thing we missed initially, but caught late on, is that we should typecheck all statements after the $return$ statement, as it can be within a conditional or iterative block inside the function.
+\item $if$ block : An $if$ block is well-typed if :
+\begin{itemize}
+\item Its initial statement is well typed (typechecked recursively for statement)
+\item The conditional expression is well-typed and resolves to $bool$
+\item The statements in the blocks typecheck (done by recursively typechecking the block)
+\end{itemize}
+\item $switch$ block : A $switch$ block is well-typed if :
+\begin{itemize}
+\item Its initial statement is well typed (typechecked recursively for statement)
+\item The conditional expression is well-typed
+\item The $case$ expressions are well-typed and they resolve to the same type as the $switch$ condition, otherwise an error is thrown.
+\item All the statements under every $case$ are recursively typechecked to we well-typed
+\item If there is no $switch$ condition (the type of the condition is NULL), then all $case$ expressions must resolve to a $bool$.
+\end{itemize}
+\item $for$ loops : 
+There are 3 kinds of "$for$" loops : 
+\begin{itemize}
+\item Infinite loop : It is well-typed if its body block is well-typed.
+\item "$while$" loop : It is well typed if its conditional expression is well-typed and resolves to $bool$ and its body block is well-typed. If the condition does not resolve to $bool$, an error is thrown.
+\item $for$ loop : It has three parts : 
+\begin{itemize}
+\item The initial statement is recursively checked to be well-typed.
+\item The condition typechecks and resolves to $bool$, otherwise an error is thrown.
+\item The post-loop operation statement typechecks.
+\end{itemize}
+If the above three conditions are valid, we typecheck the body of the loop to be well-typed.
+\end{itemize}
+\item $print$ statements : $print$ and $println$ statements are well-typed if the expressions enclosed in it are all well-typed and resolves to a base type ($int$, $float64$, $rune$, $string$, $bool$). Declared types, even if derived from base types, are not allowed.
+\item Empty statements : They are trivially well-typed
+\item Increment and decrement statements : These are well-typed if the L.H.S. expression is well-typed and resolves to a numeric base type ($int$, $float64$ or $rune$)
+\item Short declarations : This was one of the trickiest typechecks. We checked that : 
+\begin{itemize}
+\item All expressions on R.H.S. and L.H.S. are well-typed (by recursion)
+\item There is one variable in the L.H.S. that is not declared in the current scope (done by using a flag). If all variables are declared in current scope, an error is thrown.
+\item The expressions in the R.H.S. must resolve to same type as the corresponding variables in L.H.S. that are declared in current scope (present in the current frame of symbol table).
+\end{itemize}
+This was one of the hardest typechecking. We performed several tessts on the reference compiler and the Golang compiler and cross-referenced with the given specifications to get it right as much as possible.
+\item Assignment statements : For all assignment statements, both L.H.S. and R.H.S. are checked to be well-typed for every corresponding pair, by iterating over the $idlist$ on L.H.S. and recursivey typechecking both L.H.S. and R.H.S. Every variable in the L.H.S. is checked to be already declared. Then for every pair, it is checked that the type of R.H.S. expression is the same as the type of L.H.S. variable as stored in the symbol table. If there is a type mismatch, an error is thrown.
+\item Op-assignment statements : Similar to assignment statements. For $v op= expr$, The operator acts as a function that has 2 operand of types $typeof(v)$ and $typeof(expr)$. Unlike assignment statements, the op-assignment returns a value of type same as $typeof(v)$.
+\end{itemize}
+
+\subsection{Expressions}
+
+Expressions are typechecked in a way similar to statements. Iterating over the linked-list like node $EXPRLIST$, we typecheck each expression recursively. The type of expression is selected using a switch-case block and typechecking is done according to whichever case is matched with the kind of expression.
+\begin{itemize}
+\item Expressions with binary operators : They are recursively typechecked for both L.H.S. and R.H.S. If they are well-typed, we check whether they resolve to same types and also, whether these types are accepted by the operator. For this, we used the specification given as reference and mimicked the behavior of the operators as specified. Finally, we return the resolved type of the binary operation according to the specification table given.
+\item Unary operations : These are typechecked similar to binary operations. We check if the R.H.S. expression is well-typed. If it is, we look at the operator and see if the R.H.S. type is compatible with the operator (as mentioned in the specification). If so, we return the resolved type of the expression, otherwise we throw an error.
+\item Literals : These are trivially well-typed. We only check that a literal node has the corresponding type correct. For example, an $int$ literal should have an $int$ type etc.
+\item Identifiers : We check the identifier name in the symbol table. If present, it is well-typed. If it is not found in the symbol table, an error is thrown. 
+\item Function calls : This was another difficult typechecking that we had to handle. Our approach was :
+\begin{itemize}
+\item Recursively check all arguments are well-typed by iterating over the argument list.
+\item The function is defined and has the parameter types same as that of the argument list (done by symbol table lookup).
+\item The function name is not "$init$" (it cannot be called)
+\item Since type casting is also handled as a function call, we handled them under this expression as well :  
+\begin{itemize}
+\item The type resolves to one of the base types (by string comparison)
+\item The expression that is to be cast must be one of the types that are allowed to be cast to the target type. This is done by recursive typechecking the expression. (according to the specification)
+\item By recursively accessing the symbol table, we find out the underlying type of the type to be cast to and match it to the type of the expression, or both of them are numeric types, or it behaves like a conversion to string, where $type$ can be $string$ and $expr$ can be an integer ($int$ or $rune$). If not, an error is thrown.
+\end{itemize}
+\end{itemize}
+\item Array or slice indexing : We checked that the name of the array or slice is well-typed and present in the symbol table. Then we checked that the index specified is of type $int$. If so, then the expression return a type same as that specified in the symbol table. We do not check for out-of-bounds access.
+\item Struct member access : For expression like $a.x$, we : 
+\begin{itemize}
+\item Checked the type of $a$ in the symbol table and if it is not a struct, we threw an error. 
+\item Checked if the nested symbol table frame of that struct has a field declared called $x$. If not, an error is thrown.
+\end{itemize}
+If both of these are valid, the expression returns the type of the variable$x$, as defined in the struct.
+\end{itemize}
 
 \section{Invalid programs and their typing rule violation}
 \begin{enumerate}
@@ -462,6 +593,31 @@ Here, integer type casting is done in a $string$ variable, which is in violation
 
 \item $invalid\_modulo\_op\_rune\_float.go$ : A modulo ($\%$) operation is well typed if both its operands are integer values ($int$ or $rune$). In this program, the $\%$ operation is done on a $rune$ and a $float64$ operand.
 \end{enumerate}
+
+\section{Team member contribution}
+\begin{itemize}
+\item \textbf{Archit Agnihotri}
+\begin{itemize}
+\item Corrected the AST and pretty printer from Milestone 1
+\item Created the symbol table
+\item Created the typechecker
+\end{itemize}
+\item \textbf{Rajveer Gandhi}
+\begin{itemize}
+\item Created the symbol table
+\item Created the typechecker
+\end{itemize}
+\item \textbf{Dipanjan Dutta}
+\begin{itemize}
+\item Corrected the weeder from Milestone 1
+\item Created the invalid programs
+\item Created the report
+\end{itemize}
+\item \textbf{All of us}
+\begin{itemize}
+\item Tested and debugged the programs
+\end{itemize}
+\end{itemize}
 %% The Appendices part is started with the command \appendix;
 %% appendix sections are then done as normal sections
 %% \appendix
