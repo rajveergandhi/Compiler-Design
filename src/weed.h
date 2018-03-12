@@ -4,7 +4,7 @@
  * 3. break statements : break statements can only be inside a for loop, switch block or if block
  * 4. continue statements : continue statements can only be inside a for loop
  * 5. assignment and short declarations : The operands on L.H.S. of a short declaration or assignment must be equal to the number of expressions in the R.H.S.
- * 6. default statement : every switch block should have exactly one default case.
+ * 6. default statement : every switch block should have at most one default case.
  */
     
 #ifndef weed_H
