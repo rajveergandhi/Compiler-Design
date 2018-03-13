@@ -95,7 +95,7 @@ void weedFUNCDCL(FUNCDCL *node) {
             if(!i->next){
                 bool terminate = isTerminating(lastStatement);
                 if(!terminate && hasReturn){
-                    fprintf(stderr, "Error: function body must end in a terminating statement. (line %d)\n",node->lineno);
+                    fprintf(stderr, "Error: function body must end in a terminating statement. (line %d)\n",lastStatement->lineno);
                     exit(1);
                 }
             }
