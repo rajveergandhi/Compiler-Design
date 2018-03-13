@@ -3,9 +3,9 @@
 
 #include <stdbool.h>
 
-
 // forward declarations
 typedef struct SymbolTable SymbolTable;
+typedef struct symTYPE symTYPE;
 typedef struct PROGRAM PROGRAM;
 typedef struct PACKAGE PACKAGE;
 typedef struct TOPLEVELDECL TOPLEVELDECL;
@@ -119,6 +119,7 @@ typedef struct TYPE {
 
 typedef struct STRUCT_TYPE {
     int lineno;
+    SymbolTable *symboltable;
     IDLIST *idlist;
     TYPE *type;
     STRUCT_TYPE *next;
@@ -220,6 +221,7 @@ typedef enum { expressionKindPlus, expressionKindMinus, expressionKindMult, expr
 typedef struct EXPR {
     int lineno;
     SymbolTable *symboltable;
+    symTYPE *base;
     exprKind kind;
     union {
         char *runeLiteral;
@@ -236,6 +238,7 @@ typedef struct EXPR {
 typedef struct OTHER_EXPR {
     int lineno;
     SymbolTable *symboltable;
+    symTYPE *base;
     enum { identifier_kind, paren_kind, func_call_kind, index_kind, struct_access_kind } kind;
     union {
         EXPR *expr;

@@ -4,8 +4,8 @@
 #include "weed.h"
 #include "pretty.h"
 #include "symbol.h"
-/*
 #include "type.h"
+/*
 #include "codegen.h"
 */
 
@@ -47,14 +47,14 @@ int main(int argc, char* argv[])
                 g_symbols = 1;
                 symPROGRAM(root);
             }
-            /*
             else if (strcmp(mode, "typecheck") == 0) {
                 yyparse();
-                SymbolTable *t = initSymbolTable();
-                symPROGRAM(t, root);
-                typeImplementationPROGRAM(t, root);
+                weedPROGRAM(root);
+                symPROGRAM(root);
+                typePROGRAM(root);
                 printf("OK\n");
             }
+            /*
             else if (strcmp(mode, "codegen") == 0) {
                 yyparse();
                 SymbolTable *t = initSymbolTable();

@@ -5,11 +5,13 @@
 #define HashSize 317
 
 typedef enum { type_category, variable_category, function_category, constant_category, } SymbolCategory;
-typedef enum { type_type, func_signature_type, } symbolType;
+typedef enum { basic_type, type_type, func_signature_type, } symbolType;
+typedef enum { k_int, k_float64, k_string, k_rune, k_bool } SymbolBaseKind;
 typedef struct symTYPE {
     SymbolCategory category;
     symbolType symtype;
     union {
+        SymbolBaseKind base;
         TYPE *symtype;
         FUNC_SIGNATURE *symsign;
     } val;
@@ -30,6 +32,7 @@ typedef struct SymbolTable {
 SymbolTable *initSymbolTable();
 SymbolTable *scopeSymbolTable(SymbolTable *t);
 SYMBOL *putSymbol(SymbolTable *t, char *name, symTYPE *data, int lineno);
+void addSymbolType(SymbolTable *t, char *name, TYPE *type);
 SYMBOL *getSymbol(SymbolTable *sym, char *name, int lineno);
 bool defSymbol(SymbolTable *t, char *name);
 
@@ -49,6 +52,7 @@ void symSIMPLE(SIMPLE *node, SymbolTable *sym);
 void symEXPRLIST(EXPRLIST *node, SymbolTable *sym);
 void symEXPR(EXPR *node, SymbolTable *sym);
 void symOTHER_EXPR(OTHER_EXPR *node, SymbolTable *sym);
+void symSTRUCT_TYPE(STRUCT_TYPE *node);
 
 // helper functions
 void scopeInc();
