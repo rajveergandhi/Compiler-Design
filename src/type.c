@@ -183,7 +183,11 @@ void typeEXPRLIST(EXPRLIST *node) {
         typeEXPR(i->expr);
 }
 
-/*
+void typeBLOCK(BLOCK *node) {
+    for (STATEMENTS *i = node->stmts; i; i = i->next)
+        typeSTATEMENT(i->stmt);
+}
+
 void typeSTATEMENT(STATEMENT *node) {
     switch(node->kind) {
         case dcl_s:
@@ -201,8 +205,6 @@ void typeSTATEMENT(STATEMENT *node) {
             }
             break;
         case break_stmt_s:
-            // trivially well-typed.
-            break;
         case continue_stmt_s:
             // trivially well-typed.
             break;
@@ -269,16 +271,14 @@ void typeSTATEMENT(STATEMENT *node) {
             typeBLOCK(node->val.for_stmt.block);
             break;
         case print_stmt_s:
-            // check if its expressions are well-typed and resolve to a base type.
-            typeEXPRLIST(node->val.print);
-            break;
         case println_stmt_s:
             // check if its expressions are well-typed and resolve to a base type.
             typeEXPRLIST(node->val.print);
-            break;
+            for (EXPRLIST *i = node->val.print; i; i = i->next)
+                if (!((i->expr->base->symtype == basic_type) || (i->expr->base->symtype == type_type && i->expr->base->val.symtype->kind == basic_type_kind)))
+                    fprintf(stderr, "Error: (line %d) incorrect type used\n", node->lineno);
     }
 }
-*/
 
 /*
 void typeTYPEDCL(TYPEDCL *node, SymbolTable *sym) {
@@ -501,7 +501,7 @@ void typeEXPR(EXPR *node) {
                 symTYPE *symtype = malloc(sizeof(symTYPE));
                 symtype->category = constant_category;
                 symtype->symtype = type_type;
-                symtype->val.symtype = s->data;
+                symtype->val.symtype = s->data->val.symtype;
                 node->base = symtype;
             }
             break;
@@ -572,12 +572,28 @@ void typeOTHER_EXPR(OTHER_EXPR *node) {
             typeEXPR(node->val.expr);
             break;
         case func_call_kind:
+            /*
             if ((node->val.func_call.id->kind == identifier_kind) && (strcmp(node->val.func_call.id->val.identifier, "init") == 0))
                 fprintf(stderr, "Error: (line %d) function \"init\" may not be called\n", node->lineno);
             //typeOTHER_EXPR(node->val.func_call.id);
             //typeEXPRLIST(node->val.func_call.args);
+            */
             break;
         case index_kind:
+                /*
+            {
+                isInteger(node->val.index.index->base, node->lineno);
+                SYMBOL *s = getSymbol(node->symboltable, node->val.append_expr.identifier, node->lineno);
+
+                hasSameType(s->data, node->val.append_expr.expr->base, node->lineno);
+
+                symTYPE *symtype = malloc(sizeof(symTYPE));
+                symtype->category = constant_category;
+                symtype->symtype = type_type;
+                symtype->val.symtype = s->data;
+                node->base = symtype;
+            }
+                */
             // expr is well-typed and resolved to []T
             // index is well-typed and resolves to int
             // result of indexing expression is T
