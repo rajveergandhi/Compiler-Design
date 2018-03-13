@@ -156,7 +156,7 @@ void typeVARDCL(VARDCL *node) {
         // loop through each variable and its corresponding expr; they should be the same length
         IDLIST *j = i->idlist;
         EXPRLIST *k= i->exprlist;
-        while (j) { 
+        while (j) {
             if (i->type) {
                 // compare the given type with expr type
                 // getbase of expr
@@ -176,6 +176,8 @@ void typeVARDCL(VARDCL *node) {
 void typeTYPEDCL(TYPEDCL *node) {
 }
 void typeFUNCDCL(FUNCDCL *node) {
+    // !!!when calling typeStATEMENT we need to pass the return type from method also
+    // typeSTATEMENT will have an extra formal parameter with the return type (need to use for return statements)
 }
 
 void typeEXPRLIST(EXPRLIST *node) {
@@ -200,8 +202,19 @@ void typeSTATEMENT(STATEMENT *node) {
             // a return statement with no expression is well-typed if enclosing fn has no return type.
             // with expr is well-typed if its expression is well-typed and type of expr = return type of function
             // also we should type check all statements after a return.
-            if (node->val.return_stmt) {
+            if (node->val.return_stmt != NULL) {
                 typeEXPR(node->val.return_stmt);
+            }
+            if ( "check if return is of type void" && node->val.return_stmt!=NULL) {
+                fprintf(stderr, "Error: (line %d) return value not allowed\n", node->lineno);
+            }
+            if ( "check if return is not of type void" && node->val.return_stmt==NULL) {
+                fprintf(stderr, "Error: (line %d) return value expected\n", node->lineno);
+            }
+            if ( "check if return is not of type void" && node->val.return_stmt!=NULL) {
+                if (!hasSameType(node->val.return_stmt->base,)) {
+                    fprintf(stderr, "Error: (line %d) illegal type of expression\n", node->lineno);
+               }
             }
             break;
         case break_stmt_s:
@@ -220,6 +233,8 @@ void typeSTATEMENT(STATEMENT *node) {
                 typeSIMPLE(node->val.if_stmt.simple);
             }
             typeEXPR(node->val.if_stmt.expr);
+            if (isBool(node->val.if_stmt.expr->base, node->lineno))
+                node->base = node->val.if_stmt.expr->base;
             switch (node->val.if_stmt.kind_else) {
                 case no_else:
                     typeBLOCK(node->val.if_stmt.val.if_block);
@@ -241,9 +256,13 @@ void typeSTATEMENT(STATEMENT *node) {
             }
             if (node->val.switch_stmt.condition->expr) {
                 typeEXPR(node->val.switch_stmt.condition->expr);
+                node->base = node->val.if_stmt.expr->base;
             }
+            else
+                node->base = NULL;
             if (node->val.switch_stmt.caselist)
-                typeSWITCH_CASELIST(node->val.switch_stmt.caselist);
+                // compare case list with node->base
+                typeSWITCH_CASELIST(node->val.switch_stmt.caselist, node->base);
             break;
         case for_stmt_s:
             switch(node->val.for_stmt.condition->kind) {
@@ -263,6 +282,8 @@ void typeSTATEMENT(STATEMENT *node) {
                     }
                     if (node->val.for_stmt.condition->val.threepart.condition) {
                         typeEXPR(node->val.for_stmt.condition->val.threepart.condition);
+                        if (isBool(node->val.for_stmt.condition->val.threepart.condition->base, node->lineno))
+                            node->base = node->val.for_stmt.condition->val.threepart.condition->base;
                     }
                     if (node->val.for_stmt.condition->val.threepart.post)
                         typeSIMPLE(node->val.for_stmt.condition->val.threepart.post);
