@@ -140,10 +140,8 @@ void weedBLOCK(BLOCK *node) {
 }
 
 void weedSTATEMENTS(STATEMENTS *node) {
-    STATEMENT *lastStatement;
     for (STATEMENTS *i = node; i; i = i->next) {
         weedSTATEMENT(i->stmt);
-        lastStatement = i->stmt;
     }
 }
 
