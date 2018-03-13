@@ -513,6 +513,13 @@ bool isTerminating(STATEMENT *node){
             }
             break;
         }
+        case dcl_s:
+        case simple_s:
+        case break_stmt_s:
+        case continue_stmt_s:
+        case println_stmt_s:
+        case print_stmt_s:
+            return 0;
     }
-    return true;
+    return 0;
 }
