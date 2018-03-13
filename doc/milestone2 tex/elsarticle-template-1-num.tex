@@ -244,6 +244,30 @@ If the \textit{LHS} and the \textit{RHS} of an assignment or declaration stateme
 \subsection{Return statements}
 The language specifies that return statements can only be inside a function body. We use a static global integer variable \textit{insideFunction} that is initially set to zero. When we are weeding the function declaration, we increment the \textit{insideFunction} variable by one and then start weeding of the function block. As soon as weeding of the block is done and control comes back, we decrement \textit{insideFuction} by one. If a return statement is encountered and the value of \textit{insideFunction} is zero, an error is thrown. Use of an integer variable allows for weeding of nested functions (which are not supported in the language yet, but its a nice provision to have).
 
+\subsection{Terminating statements}
+The language specifies that for functions that has a return type, must have a terminating statement as the last statement. We implemented it by passing through the function body after weeding the block and finding the last statement of the body. We pass that statement as parameter to the helper function $isTerminating$ in order to check if its a terminating statement or not.
+\begin{itemize}
+\item $return$ statement : If the last statement is a $return$ statement, the function returns true. 
+\item block : If the last statement is a block, we pass through the statements of the block and recursively call $isTerminating$ with the last statement of that block and returned the value returned by the recursive call.
+\item $if$ statements : We declare two local $bool$ variables : $ifTerminating$ and $elseTerminating$, both initially set to false. 
+\begin{itemize}
+\item If the $if$ statement does not have an $else$ part, the function returns zero. 
+\item If it has an empty $if$ block, zero is returned, otherwise we recursively call $isTerminating$ on the last statement of the block and store the value returned in $ifReturning$.
+\item If it has an empty $else$ block, zero is returned, otherwise we recursively call $isTerminating$ on the last statement of the block and store the value returned in $elseReturning$.
+\item If it has an empty $else-if$ block, zero is returned, otherwise we recursively call $isTerminating$ on the $if-else$ block and store the value returned in $elseReturning$.
+\end{itemize} 
+If, in the end, we return the value of $ifReturning AND elseReturnung$.
+\item $for$ loop : According to the specification, a $for$ loop is terminating if there are no $break$ statements in the body and there is no loop condition. If these conditions are satisfied, 1 is returned otherwise 0 is returned.
+\item $switch$ block : A $switch$ block can be a terminating statement if there is no $break$ in it (checked by traversing through all statements under ever $case$), it has a $default$ case (checked using a local $bool$ flag $isDefault$) and all the cases end in terminating statements (checked by recursive call on the last statement of every $case$ in the case-list). If all the conditions are satisfied, the function returns 1 otherwise it returns 0. 
+\item For all other statement types, the function returns zero.
+\end{itemize}
+If the returned value if $false$ or zero, we throw an error and exit with status code 1.
+
+Additionally : 
+\begin{itemize}
+\item If a function with non-void return type has a $return$ without an expression, an error is thrown.
+\item If a function with no return type has a $return$ statement with an expression, an error is thrown.
+\end{itemize}
 
 \section{Pretty Printer}
 
