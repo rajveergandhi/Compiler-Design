@@ -65,6 +65,17 @@ SYMBOL *putSymbol(SymbolTable *t, char *name, symTYPE *data, int lineno) {
     return s;
 }
 
+// modify an entry in the symbol table to point to the new TYPE
+void addSymbolType(SymbolTable *t, char *name, TYPE *type) {
+    int i = Hash(name);
+    for (SYMBOL *s = t->table[i]; s; s=s->next) {
+        if (strcmp(s->name,name)==0) {
+            s->data->val.symtype = type;
+            return;
+        }
+    }
+}
+
 // helper function: add indentation with braces for a new scope
 void scopeInc() {
     if (g_symbols) {
@@ -131,6 +142,9 @@ void printSymbol(char *name, symTYPE *data) {
             case func_signature_type:
                 symPrettyFUNC_SIGNATURE(data->val.symsign);
                 break;
+            case basic_type:
+                // don't do anything since symbol table doesn't print literals
+                break;
         }
 }
 
@@ -171,6 +185,9 @@ symTYPE *initSymType(SymbolCategory category, symbolType symtype, void *p) {
             break;
         case func_signature_type:
             ret->val.symsign = (FUNC_SIGNATURE *) p;
+            break;
+        case basic_type:
+            // don't do anything since symbol table doesn't handle literals
             break;
     }
     return ret;
@@ -240,6 +257,8 @@ void symVARDCL(VARDCL *node, SymbolTable *sym) {
         for (IDLIST *j = i->idlist; j; j = j->next) {
             symTYPE *symvardcl = initSymType(variable_category, type_type, i->type);
             putSymbol(sym, j->id, symvardcl, node->lineno);
+            if (i->type && i->type->kind == struct_type_kind)
+                symSTRUCT_TYPE(node->type->val.struct_type);
         }
         symEXPRLIST(i->exprlist, sym);
     }
@@ -250,6 +269,17 @@ void symTYPEDCL(TYPEDCL *node, SymbolTable *sym) {
         i->symboltable = sym;
         symTYPE *symtypedcl = initSymType(type_category, type_type, i->type);
         putSymbol(sym, i->identifier, symtypedcl, node->lineno);
+    }
+}
+
+void symSTRUCT_TYPE(STRUCT_TYPE *node) {
+    SymbolTable *symstruct = initSymbolTable();
+    node->symboltable = symstruct;
+    for (STRUCT_TYPE *i = node; i; i = i->next) {
+        for (IDLIST *j = i->idlist; j; j = j->next) {
+            symTYPE *symvardcl = initSymType(variable_category, type_type, i->type);
+            putSymbol(symstruct, j->id, symvardcl, node->lineno);
+        }
     }
 }
 
@@ -511,8 +541,16 @@ void symOTHER_EXPR(OTHER_EXPR *node, SymbolTable *sym) {
             symEXPR(node->val.index.index, sym);
             break;
         case struct_access_kind:
-            symOTHER_EXPR(node->val.struct_access.expr, sym);
-            getSymbol(sym, node->val.struct_access.identifier, node->lineno);
+            {
+                symOTHER_EXPR(node->val.struct_access.expr, sym);
+
+                // assuming "other expression" is one identifier whose type is struct; no other cases supported yet
+                if (node->val.struct_access.expr->kind == identifier_kind) {
+                    SYMBOL *s = getSymbol(sym, node->val.struct_access.expr->val.identifier, node->lineno);
+                    if ((s->data->val.symtype->kind == struct_type_kind) && (s->data->val.symtype->val.struct_type))
+                        getSymbol(s->data->val.symtype->val.struct_type->symboltable, node->val.struct_access.identifier, node->lineno);
+                }
+            }
             break;
     }
 }

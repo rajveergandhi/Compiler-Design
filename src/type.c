@@ -1,10 +1,58 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "symbol.h"
 #include "type.h"
 
-TYPE *type_true, *type_false, *type_int, *type_float64, *type_rune, *type_bool, *type_string;
+// helper functions; either return true or print error and exit
+bool isBool(symTYPE *base, int lineno) {
+    if ((base->symtype == basic_type) && (base->val.base == k_bool))
+        return true;
+    else {
+        fprintf(stderr, "Error: (line %d) incorrect type used\n", lineno);
+        exit(1);
+    }
+}
+bool isInteger(symTYPE *base, int lineno) {
+    if ((base->symtype == basic_type) && ((base->val.base == k_int) || (base->val.base == k_rune)))
+        return true;
+    else {
+        fprintf(stderr, "Error: (line %d) incorrect type used\n", lineno);
+        exit(1);
+    }
+}
+bool isNumeric(symTYPE *base, int lineno) {
+    if ((base->symtype == basic_type) && (base->val.base == k_float64))
+        return true;
+    else
+        return isInteger(base, lineno);
+}
+bool isNumericOrString(symTYPE *base, int lineno) {
+    if ((base->symtype == basic_type) && (base->val.base == k_string))
+        return true;
+    else
+        return isNumeric(base, lineno);
+}
+bool hasSameType(symTYPE *base1, symTYPE *base2, int lineno) {
+    if ((base1->symtype == basic_type) && (base2->symtype == basic_type) && (base1->val.base == base2->val.base)) {
+        return true;
+    }
+    else if ((base1->symtype == type_type) && (base2->symtype == basic_type)) {
+        if (base1->val.symtype->kind == basic_type_kind) {
+            if (((strcmp(base1->val.symtype->val.basic_type, "int")==0) && base2->val.base == k_int) ||
+                ((strcmp(base1->val.symtype->val.basic_type, "string")==0) && base2->val.base == k_string) ||
+                ((strcmp(base1->val.symtype->val.basic_type, "float64")==0) && base2->val.base == k_float64) ||
+                ((strcmp(base1->val.symtype->val.basic_type, "rune")==0) && base2->val.base == k_rune) ||
+                ((strcmp(base1->val.symtype->val.basic_type, "bool")==0) && base2->val.base == k_bool))
+                return true;
+        }
+    }
+    fprintf(stderr, "Error: (line %d) incorrect type used\n", lineno);
+    exit(1);
+}
 
+/*
+TYPE *type_true, *type_false, *type_int, *type_float64, *type_rune, *type_bool, *type_string;
 void initTypes() {
     SYMBOL *s;
     *type_true = malloc(sizeof(TYPE)); type_true->kind = basic_type_kind; type_true->val.basic_type = "bool";
@@ -67,13 +115,10 @@ int checkINT(TYPE *t, int lineno) {
 //     if (f==NULL || g==NULL) return f==NULL && g==NULL;
 //     return equalTYPE(f->type,g->type) && equalFORMAL(f->next,g->next);
 // }
-
+*/
 
 void typePROGRAM(PROGRAM *node) {
-    initTypes();
-    if (node!=NULL) {
-        typeTOPLEVELDECL(node->topleveldecls);
-    }
+    typeTOPLEVELDECL(node->topleveldecls);
 }
 
 void typeTOPLEVELDECL(TOPLEVELDECL *node) {
@@ -101,69 +146,44 @@ void typeDCL(DCL *node) {
 }
 
 void typeVARDCL(VARDCL *node) {
-    // for var x T = expr, check that expr is well-typed and T1 = T. if no T, add mapping x:T is expr is well-typed
-    // if x is already declared, but in an outer scope, new mapping will shadow previous one.
-    for (VARDCL *i = node; i; i = i->next)
-        for (IDLIST *j = i->idlist; j; j = j->next)
+    for (VARDCL *i = node; i; i = i->next) {
+        // if exprlist is not provided then there is nothing to typecheck
+        if (!(node->exprlist))
+            continue;
+        else
+            typeEXPRLIST(i->exprlist);
+
+        // loop through each variable and its corresponding expr; they should be the same length
+        IDLIST *j = i->idlist;
+        EXPRLIST *k= i->exprlist;
+        while (j) { 
+            if (i->type) {
+                // compare the given type with expr type
+                // getbase of expr
+                // do the comparison
+            }
+            else {
+                // if type not provided then use the expression's type
+                addSymbolType(i->symboltable, j->id, k->expr->base->val.symtype);
+            }
+
+            j = j->next;
+            k = k->next;
+        }
+    }
 }
 
-void typeTYPEDCL(TYPEDCL *node, SymbolTable *sym) {
-    // type T1 T2. if T1 is already declared, new mapping will shadow previous
-    for (TYPEDCL *i = node; i; i = i->next)
-        //
+void typeTYPEDCL(TYPEDCL *node) {
 }
-
 void typeFUNCDCL(FUNCDCL *node) {
-    // checks for special function (init and main). should not have parameters or return type.
-    // if function being declared twice, raise error (does not hold for init)
-    switch(node->identifier) {
-        case "init":
-            typeInitMainFUNC_SIGNATURE(node->signature);
-            typeInitMainBLOCK(node->block);
-            break;
-        case "main":
-            typeInitMainFUNC_SIGNATURE(node->signature);
-            typeInitMainBLOCK(node->block);
-            break;
-        default:
-            typeBLOCK(node->block);
-            break;
-    }
-
 }
 
-void typeInitMainFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
-    if(node->params!=NULL) {
-        //error. init and main should not have parameters
-    }
+void typeEXPRLIST(EXPRLIST *node) {
+    for (EXPRLIST *i = node; i; i = i->next)
+        typeEXPR(i->expr);
 }
 
-void typeInitMainBLOCK(BLOCK *node) {
-    typeInitMainSTATEMENTS(node->stmts);
-}
-
-void typeInitMainSTATEMENTS(STATEMENTS *node) {
-    int checkRETURN = 0;
-    for (STATEMENTS *i = node; i; i = i->next) {
-        if (i->stmt->kind == return_stmt_s)
-            checkRETURN = 1;
-    }
-    if (!checkRETURN) {
-        // error. init and main should not have a return type
-    }
-}
-
-void typeBLOCK(BLOCK *node) {
-    typeSTATEMENTS(node->stmts);
-}
-
-void typeSTATEMENTS(STATEMENTS *node) {
-    // make sure all statements are well-typed. A statement does not have a type.
-    for (STATEMENTS *i = node; i; i = i->next) {
-        typeSTATEMENT(i->stmt);
-    }
-}
-
+/*
 void typeSTATEMENT(STATEMENT *node) {
     switch(node->kind) {
         case dcl_s:
@@ -258,6 +278,66 @@ void typeSTATEMENT(STATEMENT *node) {
             break;
     }
 }
+*/
+
+/*
+void typeTYPEDCL(TYPEDCL *node, SymbolTable *sym) {
+    // type T1 T2. if T1 is already declared, new mapping will shadow previous
+    for (TYPEDCL *i = node; i; i = i->next)
+        //
+}
+
+void typeFUNCDCL(FUNCDCL *node) {
+    // checks for special function (init and main). should not have parameters or return type.
+    // if function being declared twice, raise error (does not hold for init)
+    switch(node->identifier) {
+        case "init":
+            typeInitMainFUNC_SIGNATURE(node->signature);
+            typeInitMainBLOCK(node->block);
+            break;
+        case "main":
+            typeInitMainFUNC_SIGNATURE(node->signature);
+            typeInitMainBLOCK(node->block);
+            break;
+        default:
+            typeBLOCK(node->block);
+            break;
+    }
+
+}
+
+void typeInitMainFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
+    if(node->params!=NULL) {
+        //error. init and main should not have parameters
+    }
+}
+
+void typeInitMainBLOCK(BLOCK *node) {
+    typeInitMainSTATEMENTS(node->stmts);
+}
+
+void typeInitMainSTATEMENTS(STATEMENTS *node) {
+    int checkRETURN = 0;
+    for (STATEMENTS *i = node; i; i = i->next) {
+        if (i->stmt->kind == return_stmt_s)
+            checkRETURN = 1;
+    }
+    if (!checkRETURN) {
+        // error. init and main should not have a return type
+    }
+}
+
+void typeBLOCK(BLOCK *node) {
+    typeSTATEMENTS(node->stmts);
+}
+
+void typeSTATEMENTS(STATEMENTS *node) {
+    // make sure all statements are well-typed. A statement does not have a type.
+    for (STATEMENTS *i = node; i; i = i->next) {
+        typeSTATEMENT(i->stmt);
+    }
+}
+
 
 void typeSWITCH_CASELIST(SWITCH_CASELIST *node) {
     for (SWITCH_CASELIST *i = node; i; i=i->next) {
@@ -333,169 +413,134 @@ void typeTYPE(TYPE *node) {
     }
 }
 
-void typeEXPRLIST(EXPRLIST *node) {
-    for (EXPRLIST *i = node; i; i = i->next) {
-        typeEXPR(i->expr);
-    }
-}
+*/
 
+/* make sure expression's children are well typed, and give a type to a expression itself */
 void typeEXPR(EXPR *node) {
-    // give a type to a expression itself. this type should be stored in AST as it will be queried by expressions parent
-
     switch (node->kind) {
-        // well-typed if its sub-expressions are well-typed, are of the same type and that type
-        // resolved to a type appropriate for the operation.
         case expressionKindPlus:
-            // result = numeric or string
-            // LHS = RHS = numeric or string
             typeEXPR(node->val.binary.lhs);
             typeEXPR(node->val.binary.rhs);
+            hasSameType(node->val.binary.lhs->base, node->val.binary.rhs->base, node->lineno);
+            if ((isNumericOrString(node->val.binary.lhs->base, node->lineno)) &&
+                (isNumericOrString(node->val.binary.rhs->base, node->lineno)))
+                node->base = node->val.binary.lhs->base;
             break;
         case expressionKindMinus:
-            // LHS = RHS = numeric
-            // result = numeric
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
         case expressionKindMult:
-            // LHS = RHS = numeric
-            // result = numeric
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
         case expressionKindDiv:
-            // LHS = RHS = numeric
-            // result = numeric
-            // dont handle division by 0. let executable throw appropriate error
             typeEXPR(node->val.binary.lhs);
             typeEXPR(node->val.binary.rhs);
+            hasSameType(node->val.binary.lhs->base, node->val.binary.rhs->base, node->lineno);
+            if ((isNumeric(node->val.binary.lhs->base, node->lineno)) &&
+                (isNumeric(node->val.binary.rhs->base, node->lineno)))
+                node->base = node->val.binary.lhs->base;
             break;
         case expressionKindMod:
-            // LHS = RHS = integer
-            // result = integer
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
-        case expressionKindLT:
-            // LHS = RHS = ordered
-            // result = bool
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
-        case expressionKindLT_EQ:
-            // LHS = RHS = ordered
-            // result bool
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
-        case expressionKindGT:
-            // LHS = RHS = ordered
-            // result bool
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
-        case expressionKindGT_EQ:
-            // LHS = RHS = ordered
-            // result bool
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
-        case expressionKindEQ_EQ:
-            // LHS = RHS = comparable
-            // result bool
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
-        case expressionKindNotEquals:
-            // LHS = RHS = comparable
-            // result bool
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
-        case expressionKindShift_Right:
-            // LHS = RHS = integer
-            // result int
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
-        case expressionKindShift_Left:
-            // LHS = RHS = integer
-            // result int
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
-        case expressionKindAnd:
-            // result bool
-            // LHS = RHS = bool
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
-        case expressionKindAMP_XOR:
-            // LHS = RHS = integer.
-            // result = integer
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
         case expressionKindOr:
-            // result bool
-            // LHS = RHS = bool
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
+        case expressionKindAnd:
+        case expressionKindShift_Left:
+        case expressionKindShift_Right:
+        case expressionKindAMP_XOR:
         case expressionKindXor:
-            // LHS = RHS = result = integer
             typeEXPR(node->val.binary.lhs);
             typeEXPR(node->val.binary.rhs);
+            hasSameType(node->val.binary.lhs->base, node->val.binary.rhs->base, node->lineno);
+            if ((isInteger(node->val.binary.lhs->base, node->lineno)) &&
+                (isInteger(node->val.binary.rhs->base, node->lineno)))
+                node->base = node->val.binary.lhs->base;
             break;
         case expressionKindLogicalAnd:
-            // LHS = RHS = RESULT = integer
-            typeEXPR(node->val.binary.lhs);
-            typeEXPR(node->val.binary.rhs);
-            break;
         case expressionKindLogicalOr:
-            // LHS = RHS = RESULT = integer
+            // values are not actual the correct ones. implement this properly in codegen phase
             typeEXPR(node->val.binary.lhs);
             typeEXPR(node->val.binary.rhs);
+            if ((isBool(node->val.binary.lhs->base, node->lineno)) &&
+                (isBool(node->val.binary.rhs->base, node->lineno)))
+                node->base = node->val.binary.lhs->base;
+            break;
+        case expressionKindLT:
+        case expressionKindLT_EQ:
+        case expressionKindGT:
+        case expressionKindGT_EQ:
+        case expressionKindEQ_EQ:
+        case expressionKindNotEquals:
+            // values are not actual the correct ones. implement this properly in codegen phase
+            typeEXPR(node->val.binary.lhs);
+            typeEXPR(node->val.binary.rhs);
+            {
+                symTYPE *symtype = malloc(sizeof(symTYPE));
+                symtype->category = constant_category;
+                symtype->symtype = basic_type;
+                symtype->val.base = k_bool;
+                node->base = symtype;
+            }
             break;
         case expressionKindPlusUnary:
-            // well-typed if its sub-expression is well-typed and have appropriate type for the operation.
-            // the type of a unary expression is always the same as its child.
-            // here expr must resolve to a numeric type (int float rune)
-            typeEXPR(node->val.expr_unary);
-            break;
         case expressionKindMinusUnary:
-            // here expr must resolve to a numeric type (int float rune)
             typeEXPR(node->val.expr_unary);
+            if (isNumeric(node->val.expr_unary->base, node->lineno))
+                node->base = node->val.expr_unary->base;
             break;
         case expressionKindNotUnary:
-            // here expr must resolve to bool
             typeEXPR(node->val.expr_unary);
+            if (isBool(node->val.expr_unary->base, node->lineno))
+                node->base = node->val.expr_unary->base;
             break;
         case expressionKindXorUnary:
-            // here expr must resolve to bool
-            // bitwise negation must resolve to integer type (int, rune)
             typeEXPR(node->val.expr_unary);
+            if (isInteger(node->val.expr_unary->base, node->lineno))
+                node->base = node->val.expr_unary->base;
             break;
         case append_expr:
-            // append (e1, e2)
-            // e1 is well-typed, has type S and S resolves to a []T
-            // e2 is well-typed and has type T
-            typeEXPR(node->val.append_expr.expr);
+            {
+                SYMBOL *s = getSymbol(node->symboltable, node->val.append_expr.identifier, node->lineno);
+
+                hasSameType(s->data, node->val.append_expr.expr->base, node->lineno);
+
+                symTYPE *symtype = malloc(sizeof(symTYPE));
+                symtype->category = constant_category;
+                symtype->symtype = type_type;
+                symtype->val.symtype = s->data;
+                node->base = symtype;
+            }
             break;
         case intval:
-            // int literals should have type int
+            {
+                symTYPE *symtype = malloc(sizeof(symTYPE));
+                symtype->category = constant_category;
+                symtype->symtype = basic_type;
+                symtype->val.base = k_int;
+                node->base = symtype;
+            }
             break;
         case floatval:
-            // float literals should have type float
+            {
+                symTYPE *symtype = malloc(sizeof(symTYPE));
+                symtype->category = constant_category;
+                symtype->symtype = basic_type;
+                symtype->val.base = k_float64;
+                node->base = symtype;
+            }
             break;
         case stringval:
-            // string literals should have type string
-            break;
         case rawstringval:
-            // string literals should have type string
+            {
+                symTYPE *symtype = malloc(sizeof(symTYPE));
+                symtype->category = constant_category;
+                symtype->symtype = basic_type;
+                symtype->val.base = k_string;
+                node->base = symtype;
+            }
             break;
         case runeval:
-            // rune literals should have type rune
+            {
+                symTYPE *symtype = malloc(sizeof(symTYPE));
+                symtype->category = constant_category;
+                symtype->symtype = basic_type;
+                symtype->val.base = k_rune;
+                node->base = symtype;
+            }
             break;
         case other_expr_kind:
             typeOTHER_EXPR(node->val.other_expr);
@@ -506,35 +551,46 @@ void typeEXPR(EXPR *node) {
 void typeOTHER_EXPR(OTHER_EXPR *node) {
     switch (node->kind) {
         case identifier_kind:
-            // type of identifier obtained by querying symbol table. if not found, error.
+            {
+                symTYPE *symtype = malloc(sizeof(symTYPE));
+                symtype->category = constant_category;
+                symtype->symtype = basic_type;
+                node->base = symtype;
+
+                SYMBOL* s =  getSymbol(node->symboltable, node->val.identifier, node->lineno);
+                if (strcmp(s->data->val.symtype->val.basic_type, "int") == 0)
+                    symtype->val.base = k_int;
+                else if (strcmp(s->data->val.symtype->val.basic_type, "float64") == 0)
+                    symtype->val.base = k_float64;
+                else if (strcmp(s->data->val.symtype->val.basic_type, "string") == 0)
+                    symtype->val.base = k_string;
+                else if (strcmp(s->data->val.symtype->val.basic_type, "rune") == 0)
+                    symtype->val.base = k_rune;
+            }
             break;
         case paren_kind:
             typeEXPR(node->val.expr);
             break;
         case func_call_kind:
-            // args are well typed and have typed T1, T2...Tk.
-            // expr is well-typed and has function type (T1 * T2 *..) -> Tr
-            // special function init should NOT be called.
-            // type-cast: type resolves to a base type (int float bool rune string)
-            // expr is well-typed and has a type that can be cast to type:
-            // type and expr resolve to identical underlying types;
-            // type and expr both resolve to numeric types;
-            // type resolved to a string type and expr resolves to an integer type (rune or int);
-            typeOTHER_EXPR(node->val.func_call.id);
-            typeEXPRLIST(node->val.func_call.args);
+            if ((node->val.func_call.id->kind == identifier_kind) && (strcmp(node->val.func_call.id->val.identifier, "init") == 0))
+                fprintf(stderr, "Error: (line %d) function \"init\" may not be called\n", node->lineno);
+            //typeOTHER_EXPR(node->val.func_call.id);
+            //typeEXPRLIST(node->val.func_call.args);
             break;
         case index_kind:
             // expr is well-typed and resolved to []T
             // index is well-typed and resolves to int
             // result of indexing expression is T
             // out of bounds array check done at runtime.
-            typeOTHER_EXPR(node->val.index.expr);
+            //typeOTHER_EXPR(node->val.index.expr);
             typeEXPR(node->val.index.index);
+            if (isInteger(node->val.index.index->base, node->lineno))
+               // node->base = node->val.expr_unary->base
             break;
         case struct_access_kind:
             // selecting a field in a struct. expr is well-typed and has type S. S should resolve to a
             // struct type that has a field named id.
-            typeOTHER_EXPR(node->val.struct_access.expr);
+            //typeOTHER_EXPR(node->val.struct_access.expr);
             break;
     }
 }
