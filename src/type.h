@@ -9,7 +9,10 @@ void typeFUNCDCL(FUNCDCL *node);
 void typeEXPR(EXPR *node);
 void typeOTHER_EXPR(OTHER_EXPR *node);
 void typeEXPRLIST(EXPRLIST *node);
-
+void typeBLOCK(BLOCK *node);
+void typeSTATEMENTS(STATEMENTS *node);
+void typeSTATEMENT(STATEMENT *node);
+void typeSWITCH_CASELIST(SWITCH_CASELIST *node, symTYPE *symtype);
 
 // helper functions
 bool isBool(symTYPE *base, int lineno);

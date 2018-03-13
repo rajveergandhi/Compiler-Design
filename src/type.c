@@ -186,7 +186,11 @@ void typeEXPRLIST(EXPRLIST *node) {
 }
 
 void typeBLOCK(BLOCK *node) {
-    for (STATEMENTS *i = node->stmts; i; i = i->next)
+    typeSTATEMENTS(node->stmts);
+}
+
+void typeSTATEMENTS(STATEMENTS *node) {
+    for (STATEMENTS *i = node; i; i = i->next)
         typeSTATEMENT(i->stmt);
 }
 
@@ -233,8 +237,8 @@ void typeSTATEMENT(STATEMENT *node) {
                 typeSIMPLE(node->val.if_stmt.simple);
             }
             typeEXPR(node->val.if_stmt.expr);
-            if (isBool(node->val.if_stmt.expr->base, node->lineno))
-                node->base = node->val.if_stmt.expr->base;
+            if (!isBool(node->val.if_stmt.expr->base, node->lineno))
+                fprintf(stderr, "Error: (line %d) expression does not resolve to type bool\n", node->lineno);
             switch (node->val.if_stmt.kind_else) {
                 case no_else:
                     typeBLOCK(node->val.if_stmt.val.if_block);
@@ -246,23 +250,30 @@ void typeSTATEMENT(STATEMENT *node) {
             }
             break;
         case switch_stmt_s:
+        {
             // switch init; expr { case e1: default: }
             // init type-checks, expr is well-typed.
             // e1,e2.. are well-typed and have same type as expr
             // statements under cases should type-check.
             // if no expr, e1, e2... should have type bool.
+            symTYPE *symtype = malloc(sizeof(symTYPE));
             if (node->val.switch_stmt.condition->simple) {
                 typeSIMPLE(node->val.switch_stmt.condition->simple);
             }
             if (node->val.switch_stmt.condition->expr) {
                 typeEXPR(node->val.switch_stmt.condition->expr);
-                node->base = node->val.if_stmt.expr->base;
+                symtype = node->val.if_stmt.expr->base;
             }
-            else
-                node->base = NULL;
+            else {
+                symtype->category = constant_category;
+                symtype->symtype = basic_type;
+                symtype->val.base = k_bool;
+                symtype->val.symtype->val.basic_type = "bool";
+            }
             if (node->val.switch_stmt.caselist)
                 // compare case list with node->base
-                typeSWITCH_CASELIST(node->val.switch_stmt.caselist, node->base);
+                typeSWITCH_CASELIST(node->val.switch_stmt.caselist, symtype);
+        }
             break;
         case for_stmt_s:
             switch(node->val.for_stmt.condition->kind) {
@@ -282,8 +293,8 @@ void typeSTATEMENT(STATEMENT *node) {
                     }
                     if (node->val.for_stmt.condition->val.threepart.condition) {
                         typeEXPR(node->val.for_stmt.condition->val.threepart.condition);
-                        if (isBool(node->val.for_stmt.condition->val.threepart.condition->base, node->lineno))
-                            node->base = node->val.for_stmt.condition->val.threepart.condition->base;
+                        if (!isBool(node->val.for_stmt.condition->val.threepart.condition->base, node->lineno))
+                            fprintf(stderr, "Error: (line %d) expression does not resolve to type bool\n", node->lineno);
                     }
                     if (node->val.for_stmt.condition->val.threepart.post)
                         typeSIMPLE(node->val.for_stmt.condition->val.threepart.post);
@@ -298,6 +309,26 @@ void typeSTATEMENT(STATEMENT *node) {
             for (EXPRLIST *i = node->val.print; i; i = i->next)
                 if (!((i->expr->base->symtype == basic_type) || (i->expr->base->symtype == type_type && i->expr->base->val.symtype->kind == basic_type_kind)))
                     fprintf(stderr, "Error: (line %d) incorrect type used\n", node->lineno);
+    }
+}
+
+void typeSWITCH_CASELIST(SWITCH_CASELIST *node, symTYPE *symtype) {
+    // switch init; expr { case e1: default: }
+    // init type-checks, expr is well-typed.
+    // e1,e2.. are well-typed and have same type as expr
+    // statements under cases should type-check.
+    // if no expr, e1, e2... should have type bool.
+    for (SWITCH_CASELIST *i = node; i; i=i->next) {
+        if (i->default_case) {
+        }
+        else {
+            // THIS NEEDS TO BE EXPR NOT EXPRLIST?? HOW DO WE GET CASE EXPR BASE TO COMPARE WITH SWITCH EXPR BASE
+            // can we pass symtype into typeEXPRLIST(i->exprlist); and do the check there if symtype!=NULL?
+            typeEXPRLIST(i->exprlist);
+            hasSameType(i->exprlist->base, symtype, node->lineno);
+        }
+        if (i->statements)
+            typeSTATEMENTS(i->statements);
     }
 }
 
@@ -356,19 +387,6 @@ void typeSTATEMENTS(STATEMENTS *node) {
     // make sure all statements are well-typed. A statement does not have a type.
     for (STATEMENTS *i = node; i; i = i->next) {
         typeSTATEMENT(i->stmt);
-    }
-}
-
-
-void typeSWITCH_CASELIST(SWITCH_CASELIST *node) {
-    for (SWITCH_CASELIST *i = node; i; i=i->next) {
-        if (i->default_case) {
-        }
-        else {
-            typeEXPRLIST(i->exprlist);
-        }
-        if (i->statements)
-            typeSTATEMENTS(i->statements);
     }
 }
 
