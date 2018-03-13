@@ -31,6 +31,7 @@ void weedSTATEMENT(STATEMENT *node);
 void weedFUNC_SIGNATURE(FUNC_SIGNATURE *node);
 void weedELSE_BLOCK(ELSE_BLOCK *node);
 void weedSIMPLE(SIMPLE *node);
+bool isTerminating(STATEMENT *node);
 
 #endif /* !weed_H */
 

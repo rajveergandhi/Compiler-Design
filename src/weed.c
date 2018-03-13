@@ -8,6 +8,7 @@ static int insideFor = 0;
 static int insideSwitch = 0;
 static bool isBlankIdValid = false;
 static int insideFunction = 0;
+static bool hasReturn = false;
 
 void weedPROGRAM(PROGRAM *node) {
     weedPACKAGE(node->package);
@@ -77,6 +78,33 @@ void weedFUNCDCL(FUNCDCL *node) {
     weedFUNC_SIGNATURE(node->signature);
     insideFunction++;
     weedBLOCK(node->block);
+    STATEMENT *lastStatement = NULL;
+    int ignoreSwitchCondition = 0;
+    if(node->block->stmts && hasReturn){
+        for(STATEMENTS *i = node->block->stmts; i; i = i->next){
+            if(lastStatement == NULL)
+                lastStatement = i->stmt;
+            else if(lastStatement->kind == switch_stmt_s && ignoreSwitchCondition == 0)
+                ignoreSwitchCondition = 1;
+            else if(lastStatement->kind == switch_stmt_s && ignoreSwitchCondition == 1){
+                ignoreSwitchCondition = 0;
+                lastStatement = i->stmt;
+            }else{
+                lastStatement = i->stmt;
+            }
+            if(!i->next){
+                bool terminate = isTerminating(lastStatement);
+                if(!terminate && hasReturn){
+                    fprintf(stderr, "Error: function body must end in a terminating statement. (line %d)\n",node->lineno);
+                    exit(1);
+                }
+            }
+        }
+    }else if(hasReturn){
+        fprintf(stderr, "Error: function body must end in a terminating statement. (line %d)\n",node->lineno);
+        exit(1);
+    }
+    hasReturn = false;
     insideFunction--;
 }
 
@@ -89,6 +117,7 @@ void weedFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
     }
     if (node->type) {
         isBlankIdValid = false;
+        hasReturn = true;
         weedTYPE(node->type);
     }
 }
@@ -106,12 +135,15 @@ int weedIDLIST(IDLIST *node) {
 }
 
 void weedBLOCK(BLOCK *node) {
-    weedSTATEMENTS(node->stmts);
+    if(node->stmts)
+        weedSTATEMENTS(node->stmts);
 }
 
 void weedSTATEMENTS(STATEMENTS *node) {
+    STATEMENT *lastStatement;
     for (STATEMENTS *i = node; i; i = i->next) {
         weedSTATEMENT(i->stmt);
+        lastStatement = i->stmt;
     }
 }
 
@@ -129,8 +161,14 @@ void weedSTATEMENT(STATEMENT *node) {
                 fprintf(stderr, "Error: return statement can only be inside a function. (line %d)\n",node->lineno);
                 exit(1);
             }
-            if (node->val.return_stmt) {
+            if (node->val.return_stmt && hasReturn == true) {
                 weedEXPR(node->val.return_stmt);
+            }else if(node->val.return_stmt && hasReturn == false){
+                fprintf(stderr, "Error: returning value in a function with void return type. (line %d)\n",node->lineno);
+                exit(1);
+            }else if(!node->val.return_stmt && hasReturn == true){
+                fprintf(stderr, "Error: not returning value in a function with non-void return type. (line %d)\n",node->lineno);
+                exit(1);
             }
             break;
         case break_stmt_s:
@@ -158,7 +196,8 @@ void weedSTATEMENT(STATEMENT *node) {
                     weedBLOCK(node->val.if_stmt.val.if_block);
                     break;
                 case else_if:
-                    weedSTATEMENTS(node->val.if_stmt.val.else_block.stmts);
+                    if(node->val.if_stmt.val.else_block.stmts)
+                        weedSTATEMENTS(node->val.if_stmt.val.else_block.stmts);
                     weedELSE_BLOCK(node->val.if_stmt.val.else_block.else_block);
                     break;
             }
@@ -391,4 +430,89 @@ void weedOTHER_EXPR(OTHER_EXPR *node) {
             isBlankIdValid = copy;
             break;
     }
+}
+
+bool isTerminating(STATEMENT *node){
+    switch(node->kind){
+        case return_stmt_s:
+            return 1;
+            break;
+        case block_s:
+        {
+            STATEMENTS *i = NULL;
+            if(node->val.block->stmts)
+                i = node->val.block->stmts;
+            while(i->next){
+                i = i->next;
+            }
+            return isTerminating(i->stmt);
+            break;
+        }
+        case if_stmt_s:
+        {
+            bool ifTerminating = false;
+            bool elseTerminating = false;
+            if(node->val.if_stmt.kind_else == no_else){
+                return 0;
+            }
+            if(node->val.if_stmt.val.else_block.stmts){
+                for(STATEMENTS *i = node->val.if_stmt.val.else_block.stmts; i; i = i->next){
+                    if(!i->next)
+                    ifTerminating = isTerminating(i->stmt);
+                }
+            }else{
+                return 0;
+            }
+            if(node->val.if_stmt.val.else_block.else_block->val.block->stmts && node->val.if_stmt.val.else_block.else_block->kind == block_else){
+                for(STATEMENTS *j = node->val.if_stmt.val.else_block.else_block->val.block->stmts; j; j = j->next){
+                    if(!j->next)
+                        elseTerminating = isTerminating(j->stmt);
+                }
+            }else if(node->val.if_stmt.val.else_block.else_block->kind == if_stmt_else && node->val.if_stmt.val.else_block.else_block->val.if_stmt){
+                elseTerminating = isTerminating(node->val.if_stmt.val.else_block.else_block->val.if_stmt);
+            }
+            else{
+                return 0;
+            }
+            return (ifTerminating && elseTerminating);
+            break;
+        }
+        case for_stmt_s:
+            if(node->val.for_stmt.condition->kind != threepart)
+                return 0;
+            if(node->val.for_stmt.condition->val.threepart.condition)
+                return 0;
+            for(STATEMENTS *i = node->val.for_stmt.block->stmts; i; i=i->next)
+                if(i->stmt->kind == break_stmt_s)
+                    return 0;
+            return 1;
+            break;
+        case switch_stmt_s:
+        {
+            bool isDefault = false;
+            if(node->val.switch_stmt.caselist){
+                for(SWITCH_CASELIST *i = node->val.switch_stmt.caselist;i;i=i->next){
+                    if(i->default_case)
+                        isDefault = true;
+                    if(i->statements){
+                        for (STATEMENTS *j = i->statements; j; j=j->next){
+                            if(j->stmt->kind == break_stmt_s)
+                                return 0;
+                            if(!j->next)
+                                return isTerminating(j->stmt);
+                        }
+                    }else{
+                        return 0;
+                    }
+                }
+            }else{
+                return 0;
+            }
+            if(isDefault == true){
+                return 1;
+            }
+            break;
+        }
+    }
+    return true;
 }
