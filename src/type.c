@@ -243,7 +243,31 @@ void typeSTATEMENT(STATEMENT *node) {
             break;
         case switch_stmt_s:
         {
-            
+            if(node->val.switch_stmt.condition->simple)
+                typeSIMPLE(node->val.switch_stmt.condition->simple);
+            if(node->val.switch_stmt.condition->expr)
+                typeEXPR(node->val.switch_stmt.condition->expr);
+            if(node->val.switch_stmt.caselist){
+                for (SWITCH_CASELIST *i = node->val.switch_stmt.caselist; i; i=i->next) {
+                    if(i->exprlist){
+                        typeEXPRLIST(i->exprlist);
+                        for (EXPRLIST *j = i->exprlist; j; j = j->next){
+                            if(!node->val.switch_stmt.condition->expr && !isBool(j->expr->base, j->lineno)){
+                                fprintf(stderr, "Error: (line %d) cases for non-conditional switch must resolve to bool.\n", j->lineno);
+                                exit(1);
+                            } else if (node->val.switch_stmt.condition->expr){
+                                hasSameType(node->val.switch_stmt.condition->expr->base,j->expr->base,node->lineno);
+                            }
+                        }
+                        if(i->statements)
+                            typeSTATEMENTS(i->statements);
+                    } else if (i->default_case){
+                        if(i->statements)
+                            typeSTATEMENTS(i->statements);
+                    }
+                }
+            }
+            break;
             /*
             // switch init; expr { case e1: default: }
             // init type-checks, expr is well-typed.
