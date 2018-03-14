@@ -176,14 +176,11 @@ void printSymbol(char *name, symTYPE *data) {
                 break;
         }
 }
-int p = 0;
 // retreive symbol; throw an error and exit if symbol not found
 SYMBOL *getSymbol(SymbolTable *sym, char *name, int lineno) {
     int i = Hash(name);
-        printf("%s\n\n\n",sym->table[i]->name);
         for (SYMBOL *s = sym->table[i]; s; s = s->next) {
             if (strcmp(s->name,name) == 0){
-                printf("W");
                 return s;
             }
         }
@@ -191,8 +188,6 @@ SYMBOL *getSymbol(SymbolTable *sym, char *name, int lineno) {
         fprintf(stderr, "Error: (line %d) \"%s\" is not declared\n", lineno, name);
         exit(1);
     }
-    p++;
-    printf("%d",p);
     return getSymbol(sym->parent, name, lineno);
 }
 

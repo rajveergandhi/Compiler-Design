@@ -80,6 +80,32 @@ bool hasSameType(symTYPE *base1, symTYPE *base2, int lineno) {
                 ((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "bool")==0) && base2->val.base == k_bool))
                 return true;
         }
+    } 
+    else if ((base1->symtype == type_type) && (base2->symtype == type_type)) {
+        if (base1->val.symtype->kind == basic_type_kind && base1->val.symtype->kind == basic_type_kind) {
+            if (((strcmp(base1->val.symtype->val.basic_type, "int")==0) && (strcmp(base2->val.symtype->val.basic_type, "int")==0)) ||
+                ((strcmp(base1->val.symtype->val.basic_type, "string")==0) && (strcmp(base2->val.symtype->val.basic_type, "string")==0)) ||
+                ((strcmp(base1->val.symtype->val.basic_type, "float64")==0) && (strcmp(base2->val.symtype->val.basic_type, "float64")==0)) ||
+                ((strcmp(base1->val.symtype->val.basic_type, "rune")==0) && (strcmp(base2->val.symtype->val.basic_type, "rune")==0)) ||
+                ((strcmp(base1->val.symtype->val.basic_type, "bool")==0) && (strcmp(base2->val.symtype->val.basic_type, "bool")==0)))
+                return true;
+        }
+        else if (base1->val.symtype->kind == slice_type_kind && base2->val.symtype->kind == slice_type_kind) {
+            if (((strcmp(base1->val.symtype->val.slice_type->val.basic_type, "int")==0) && (strcmp(base2->val.symtype->val.slice_type->val.basic_type, "int")==0)) ||
+                ((strcmp(base1->val.symtype->val.slice_type->val.basic_type, "string")==0) && (strcmp(base2->val.symtype->val.slice_type->val.basic_type, "string")==0)) ||
+                ((strcmp(base1->val.symtype->val.slice_type->val.basic_type, "float64")==0) && (strcmp(base2->val.symtype->val.slice_type->val.basic_type, "float64")==0)) ||
+                ((strcmp(base1->val.symtype->val.slice_type->val.basic_type, "rune")==0) && (strcmp(base2->val.symtype->val.slice_type->val.basic_type, "rune")==0)) ||
+                ((strcmp(base1->val.symtype->val.slice_type->val.basic_type, "bool")==0) && (strcmp(base2->val.symtype->val.slice_type->val.basic_type, "bool")==0)))
+                return true;
+        }
+        else if (base1->val.symtype->kind == array_type_kind) {
+            if (((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "int")==0) && (strcmp(base2->val.symtype->val.array_type.type->val.basic_type, "int")==0) && base1->val.symtype->val.array_type.size == base2->val.symtype->val.array_type.size) ||
+                ((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "string")==0) && (strcmp(base2->val.symtype->val.array_type.type->val.basic_type, "string")==0) && base1->val.symtype->val.array_type.size == base2->val.symtype->val.array_type.size) ||
+                ((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "float64")==0) && (strcmp(base2->val.symtype->val.array_type.type->val.basic_type, "float64")==0) && base1->val.symtype->val.array_type.size == base2->val.symtype->val.array_type.size) ||
+                ((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "rune")==0) && (strcmp(base2->val.symtype->val.array_type.type->val.basic_type, "rune")==0) && base1->val.symtype->val.array_type.size == base2->val.symtype->val.array_type.size) ||
+                ((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "bool")==0) && (strcmp(base2->val.symtype->val.array_type.type->val.basic_type, "bool")==0) && base1->val.symtype->val.array_type.size == base2->val.symtype->val.array_type.size))
+                return true;
+        }
     }
     fprintf(stderr, "Error: (line %d) incorrect type used\n", lineno);
     exit(1);
