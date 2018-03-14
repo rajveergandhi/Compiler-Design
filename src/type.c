@@ -206,13 +206,16 @@ void typeSTATEMENT(STATEMENT *node) {
                     typeBLOCK(node->val.if_stmt.val.if_block);
                     break;
                 case else_if:
-                    typeSTATEMENTS(node->val.if_stmt.val.else_block.stmts);
+                    if(node->val.if_stmt.val.else_block.stmts)
+                        typeSTATEMENTS(node->val.if_stmt.val.else_block.stmts);
                     switch (node->val.if_stmt.val.else_block.else_block->kind) {
                         case if_stmt_else:
-                            typeSTATEMENT(node->val.if_stmt.val.else_block.else_block->val.if_stmt);
+                            if(node->val.if_stmt.val.else_block.else_block->val.if_stmt)
+                                typeSTATEMENT(node->val.if_stmt.val.else_block.else_block->val.if_stmt);
                             break;
                         case block_else:
-                            typeBLOCK(node->val.if_stmt.val.else_block.else_block->val.block);
+                            if(node->val.if_stmt.val.else_block.else_block->val.block)
+                                typeBLOCK(node->val.if_stmt.val.else_block.else_block->val.block);
                             break;
                     }
                     break;
@@ -240,6 +243,7 @@ void typeSTATEMENT(STATEMENT *node) {
             break;
         case switch_stmt_s:
         {
+            
             /*
             // switch init; expr { case e1: default: }
             // init type-checks, expr is well-typed.
