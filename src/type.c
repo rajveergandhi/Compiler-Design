@@ -683,46 +683,48 @@ void typeOTHER_EXPR(OTHER_EXPR *node) {
             SYMBOL *s = getSymbol(node->symboltable, node->val.func_call.id->val.identifier, node->lineno);
             if(s->data->category != function_category){
                 fprintf(stderr, "Error: (line %d) invalid function call : identifier type is not a function.\n", node->lineno);
-            }
-            if(node->val.func_call.args){
-                for(EXPRLIST *e = node->val.func_call.args; e; e = e->next){
-                    typeEXPR(e->expr);
-                }
-                PARAM_LIST *p = s->data->val.symsign->params;
-                EXPRLIST *e = node->val.func_call.args;
-                IDLIST *idlist = p->idlist;
-                while(p){
-                    SYMBOL *paramSymbol = getSymbol(s->data->val.symsign->symboltable, idlist->id, e->lineno);
-                    if(paramSymbol)
-                        hasSameType(paramSymbol->data, e->expr->base,e->lineno);
+            }else{
+                if(node->val.func_call.args){
+                    for(EXPRLIST *e = node->val.func_call.args; e; e = e->next){
+                        typeEXPR(e->expr);
+                    }
+                    PARAM_LIST *p = s->data->val.symsign->params;
+                    EXPRLIST *e = node->val.func_call.args;
+                    IDLIST *idlist = p->idlist;
+                    while(p){
+                        SYMBOL *paramSymbol = getSymbol(s->data->val.symsign->symboltable, idlist->id, e->lineno);
+                        if(paramSymbol)
+                            hasSameType(paramSymbol->data, e->expr->base,e->lineno);
 
-                    if(e->next){
-                        if(!p->next && !idlist->next){
-                            fprintf(stderr, "Error: (line %d) invalid function call : number of parameters do not match number of arguments.\n", node->lineno);
-                            exit(1);
-                        } else if(idlist->next){
-                            idlist = idlist->next;
-                        } else if(p->next){
-                            p = p->next;
-                            idlist = p->idlist;
-                        }
-                        e = e->next;
-                    } else {
-                        if(p->next || idlist->next){
-                            fprintf(stderr, "Error: (line %d) invalid function call : number of parameters do not match number of arguments.\n", node->lineno);
-                            exit(1);
+                        if(e->next){
+                            if(!p->next && !idlist->next){
+                                fprintf(stderr, "Error: (line %d) invalid function call : number of parameters do not match number of arguments.\n", node->lineno);
+                                exit(1);
+                            } else if(idlist->next){
+                                idlist = idlist->next;
+                            } else if(p->next){
+                                p = p->next;
+                                idlist = p->idlist;
+                            }
+                            e = e->next;
                         } else {
-                            break;
+                            if(p->next || idlist->next){
+                                fprintf(stderr, "Error: (line %d) invalid function call : number of parameters do not match number of arguments.\n", node->lineno);
+                                exit(1);
+                            } else {
+                                break;
+                            }
                         }
                     }
                 }
-            }
-            symTYPE *symtype = malloc(sizeof(symTYPE));
-            symtype->category = type_category;
-            symtype->symtype = type_type;
-            symtype->val.symtype = s->data->val.symsign->type;
-            node->base = symtype;
+                symTYPE *symtype = malloc(sizeof(symTYPE));
+                symtype->category = type_category;
+                symtype->symtype = type_type;
+                symtype->val.symtype = s->data->val.symsign->type;
+                node->base = symtype;
 
+            }
+            
             /*
             if ((node->val.func_call.id->kind == identifier_kind) && (strcmp(node->val.func_call.id->val.identifier, "init") == 0))
                 fprintf(stderr, "Error: (line %d) function \"init\" may not be called\n", node->lineno);
