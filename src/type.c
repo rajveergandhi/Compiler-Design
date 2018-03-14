@@ -52,10 +52,12 @@ bool isStruct(symTYPE *base, int lineno) {
     }
 }
 bool hasSameType(symTYPE *base1, symTYPE *base2, int lineno) {
+    
     if ((base1->symtype == basic_type) && (base2->symtype == basic_type) && (base1->val.base == base2->val.base)) {
         return true;
     }
     else if ((base1->symtype == type_type) && (base2->symtype == basic_type)) {
+
         if (base1->val.symtype->kind == basic_type_kind) {
             if (((strcmp(base1->val.symtype->val.basic_type, "int")==0) && base2->val.base == k_int) ||
                 ((strcmp(base1->val.symtype->val.basic_type, "string")==0) && base2->val.base == k_string) ||
@@ -80,7 +82,7 @@ bool hasSameType(symTYPE *base1, symTYPE *base2, int lineno) {
                 ((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "bool")==0) && base2->val.base == k_bool))
                 return true;
         }
-    } 
+    }
     else if ((base1->symtype == type_type) && (base2->symtype == type_type)) {
         if (base1->val.symtype->kind == basic_type_kind && base1->val.symtype->kind == basic_type_kind) {
             if (((strcmp(base1->val.symtype->val.basic_type, "int")==0) && (strcmp(base2->val.symtype->val.basic_type, "int")==0)) ||
