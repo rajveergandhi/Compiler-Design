@@ -194,7 +194,29 @@ void typeSTATEMENT(STATEMENT *node) {
             typeBLOCK(node->val.block);
             break;
         case if_stmt_s:
-            typeSIMPLE(node->val.if_stmt.simple);
+            if(node->val.if_stmt.simple)
+                typeSIMPLE(node->val.if_stmt.simple);
+            typeEXPR(node->val.if_stmt.expr);
+            if(!isBool(node->val.if_stmt.expr->base,node->lineno)){
+                fprintf(stderr, "Error: (line %d) if condition does not resolve to bool.\n", node->lineno);
+                exit(1);
+            }
+            switch (node->val.if_stmt.kind_else) {
+                case no_else:
+                    typeBLOCK(node->val.if_stmt.val.if_block);
+                    break;
+                case else_if:
+                    typeSTATEMENTS(node->val.if_stmt.val.else_block.stmts);
+                    switch (node->val.if_stmt.val.else_block.else_block->kind) {
+                        case if_stmt_else:
+                            typeSTATEMENT(node->val.if_stmt.val.else_block.else_block->val.if_stmt);
+                            break;
+                        case block_else:
+                            typeBLOCK(node->val.if_stmt.val.else_block.else_block->val.block);
+                            break;
+                    }
+                    break;
+            }
             /*
             // if init; expr {} else {}
             // init type-checks, expr is well-typed and resolves to type bool
@@ -470,6 +492,7 @@ void typeEXPR(EXPR *node) {
             // values are not actual the correct ones. implement this properly in codegen phase
             typeEXPR(node->val.binary.lhs);
             typeEXPR(node->val.binary.rhs);
+            hasSameType(node->val.binary.lhs->base,node->val.binary.rhs->base, node->lineno);
             {
                 symTYPE *symtype = malloc(sizeof(symTYPE));
                 symtype->category = constant_category;
