@@ -68,16 +68,41 @@ SYMBOL *putSymbol(SymbolTable *t, char *name, symTYPE *data, int lineno) {
 // modify an entry in the symbol table to point to the new TYPE
 void addSymbolType(SymbolTable *t, char *name, symTYPE *base) {
     int i = Hash(name);
-    for (SYMBOL *s = t->table[i]; s; s=s->next) {
-        if (strcmp(s->name,name)==0) {
-            s->data = base;
+    if(!t->table[i]){
+        return;
+    }else{
+        SYMBOL *s = t->table[i];
+        while (s) {
+            if (strcmp(s->name,name)==0) {
+                switch(base->symtype){
+                    case basic_type:
+                        s->data->symtype = basic_type;
+                        s->data->val.base = base->val.base;
+                        break;
+                    case type_type:
+                        s->data->symtype = type_type;
+                        s->data->val.symtype = base->val.symtype;
+                        break;
+                    case func_signature_type:
+                        s->data->symtype = func_signature_type;
+                        s->data->val.symsign = base->val.symsign;
+                        break;
+                }
+                s->data = base;
+                //printf("%d"t->table[97]->data)
+                return;
+            }
+            if(s->next)
+                s=s->next;
+        }
+        if (!t->parent) {
+            printf("DID NOT ADD\n");
             return;
+        }else{
         }
     }
-    if (t->parent == NULL) {
-        printf("DID NOT ADD\n");
-    }
     addSymbolType(t->parent, name, base);
+    return;
 }
 
 // helper function: add indentation with braces for a new scope
@@ -151,18 +176,23 @@ void printSymbol(char *name, symTYPE *data) {
                 break;
         }
 }
-
+int p = 0;
 // retreive symbol; throw an error and exit if symbol not found
 SYMBOL *getSymbol(SymbolTable *sym, char *name, int lineno) {
     int i = Hash(name);
-    for (SYMBOL *s = sym->table[i]; s; s = s->next) {
-        if (strcmp(s->name,name) == 0)
-            return s;
-    }
+        printf("%s\n\n\n",sym->table[i]->name);
+        for (SYMBOL *s = sym->table[i]; s; s = s->next) {
+            if (strcmp(s->name,name) == 0){
+                printf("W");
+                return s;
+            }
+        }
     if (sym->parent == NULL) {
         fprintf(stderr, "Error: (line %d) \"%s\" is not declared\n", lineno, name);
         exit(1);
     }
+    p++;
+    printf("%d",p);
     return getSymbol(sym->parent, name, lineno);
 }
 
