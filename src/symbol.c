@@ -66,14 +66,18 @@ SYMBOL *putSymbol(SymbolTable *t, char *name, symTYPE *data, int lineno) {
 }
 
 // modify an entry in the symbol table to point to the new TYPE
-void addSymbolType(SymbolTable *t, char *name, TYPE *type) {
+void addSymbolType(SymbolTable *t, char *name, symTYPE *base) {
     int i = Hash(name);
     for (SYMBOL *s = t->table[i]; s; s=s->next) {
         if (strcmp(s->name,name)==0) {
-            s->data->val.symtype = type;
+            s->data = base;
             return;
         }
     }
+    if (t->parent == NULL) {
+        printf("DID NOT ADD\n");
+    }
+    addSymbolType(t->parent, name, base);
 }
 
 // helper function: add indentation with braces for a new scope

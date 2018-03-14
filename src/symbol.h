@@ -6,7 +6,7 @@
 
 typedef enum { type_category, variable_category, function_category, constant_category, } SymbolCategory;
 typedef enum { basic_type, type_type, func_signature_type, } symbolType;
-typedef enum { k_int, k_float64, k_string, k_rune, k_bool } SymbolBaseKind;
+typedef enum { k_int = 1, k_float64, k_string, k_rune, k_bool } SymbolBaseKind;
 typedef struct symTYPE {
     SymbolCategory category;
     symbolType symtype;
@@ -32,7 +32,7 @@ typedef struct SymbolTable {
 SymbolTable *initSymbolTable();
 SymbolTable *scopeSymbolTable(SymbolTable *t);
 SYMBOL *putSymbol(SymbolTable *t, char *name, symTYPE *data, int lineno);
-void addSymbolType(SymbolTable *t, char *name, TYPE *type);
+void addSymbolType(SymbolTable *t, char *name, symTYPE *base);
 SYMBOL *getSymbol(SymbolTable *sym, char *name, int lineno);
 bool defSymbol(SymbolTable *t, char *name);
 

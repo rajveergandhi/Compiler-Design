@@ -13,6 +13,7 @@ void typeBLOCK(BLOCK *node);
 void typeSTATEMENTS(STATEMENTS *node);
 void typeSTATEMENT(STATEMENT *node);
 void typeSWITCH_CASELIST(SWITCH_CASELIST *node, symTYPE *symtype);
+void typeSIMPLE(SIMPLE *node);
 
 // helper functions
 bool isBool(symTYPE *base, int lineno);

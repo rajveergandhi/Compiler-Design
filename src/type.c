@@ -33,6 +33,22 @@ bool isNumericOrString(symTYPE *base, int lineno) {
     else
         return isNumeric(base, lineno);
 }
+bool isSliceOrArray(symTYPE *base, int lineno) {
+    if ((base->symtype == type_type) && ((base->val.symtype->kind == slice_type_kind) || (base->val.symtype->kind == array_type_kind)))
+        return true;
+    else {
+        fprintf(stderr, "Error: (line %d) incorrect type used\n", lineno);
+        exit(1);
+    }
+}
+bool isStruct(symTYPE *base, int lineno) {
+    if ((base->symtype == type_type) && (base->val.symtype->kind == struct_type_kind))
+        return true;
+    else {
+        fprintf(stderr, "Error: (line %d) incorrect type used\n", lineno);
+        exit(1);
+    }
+}
 bool hasSameType(symTYPE *base1, symTYPE *base2, int lineno) {
     if ((base1->symtype == basic_type) && (base2->symtype == basic_type) && (base1->val.base == base2->val.base)) {
         return true;
@@ -46,76 +62,26 @@ bool hasSameType(symTYPE *base1, symTYPE *base2, int lineno) {
                 ((strcmp(base1->val.symtype->val.basic_type, "bool")==0) && base2->val.base == k_bool))
                 return true;
         }
+        else if (base1->val.symtype->kind == slice_type_kind) {
+            if (((strcmp(base1->val.symtype->val.slice_type->val.basic_type, "int")==0) && base2->val.base == k_int) ||
+                ((strcmp(base1->val.symtype->val.slice_type->val.basic_type, "string")==0) && base2->val.base == k_string) ||
+                ((strcmp(base1->val.symtype->val.slice_type->val.basic_type, "float64")==0) && base2->val.base == k_float64) ||
+                ((strcmp(base1->val.symtype->val.slice_type->val.basic_type, "rune")==0) && base2->val.base == k_rune) ||
+                ((strcmp(base1->val.symtype->val.slice_type->val.basic_type, "bool")==0) && base2->val.base == k_bool))
+                return true;
+        }
+        else if (base1->val.symtype->kind == array_type_kind) {
+            if (((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "int")==0) && base2->val.base == k_int) ||
+                ((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "string")==0) && base2->val.base == k_string) ||
+                ((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "float64")==0) && base2->val.base == k_float64) ||
+                ((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "rune")==0) && base2->val.base == k_rune) ||
+                ((strcmp(base1->val.symtype->val.array_type.type->val.basic_type, "bool")==0) && base2->val.base == k_bool))
+                return true;
+        }
     }
     fprintf(stderr, "Error: (line %d) incorrect type used\n", lineno);
     exit(1);
 }
-
-/*
-TYPE *type_true, *type_false, *type_int, *type_float64, *type_rune, *type_bool, *type_string;
-void initTypes() {
-    SYMBOL *s;
-    *type_true = malloc(sizeof(TYPE)); type_true->kind = basic_type_kind; type_true->val.basic_type = "bool";
-    *type_false = malloc(sizeof(TYPE)); type_true->kind = basic_type_kind; type_true->val.basic_type = "bool";
-    *type_int = malloc(sizeof(TYPE)); type_true->kind = basic_type_kind; type_true->val.basic_type = "int";
-    *type_float64 = malloc(sizeof(TYPE)); type_float64->kind = basic_type_kind; type_float64->val.basic_type = "float64";
-    *type_rune = malloc(sizeof(TYPE)); type_rune->kind = basic_type_kind; type_rune->val.basic_type = "rune";
-    *type_bool = malloc(sizeof(TYPE)); type_bool->kind = basic_type_kind; type_bool->val.basic_type = "bool";
-    *type_string = malloc(sizeof(TYPE)); type_string->kind = basic_type_kind; type_string->val.basic_type = "string";
-    // s = getSymbol(classlib,"String");
-    // if (s==NULL) {
-    //     reportGlobalError("class String not found");
-    //     noErrors();
-    // }
-}
-int equalTYPE(TYPE *s, TYPE *t) {
-    if (s->val.basic_type!=t->val.basic_type) return 0;
-    // if (s->kind==refK) {
-    //     return strcmp(s->name,t->name)==0;
-    // }
-    return 1;
-}
-int integerTYPE(TYPE *t) {
-    return t->val.basic_type=="int";
-}
-int assignTYPE(TYPE *s, TYPE *t) {
-    if (s->val.basic_type!=t->val.basic_type) return 0;
-    return 1;
-}
-
-int checkBOOL(TYPE *t, int lineno) {
-    if (t->val.basic_type!="bool") {
-        reportError("boolean type expected",lineno);
-        return 0;
-    }
-    return 1;
-}
-int checkRUNE(TYPE *t, int lineno) {
-    if (t->val.basic_type!="rune") {
-        reportError("rune type expected",lineno);
-        return 0;
-    }
-    return 1;
-}
-int checkSTRING(TYPE *t, int lineno) {
-    if (t->val.basic_type!="string") {
-        reportError("string type expected",lineno);
-        return 0;
-    }
-    return 1;
-}
-int checkINT(TYPE *t, int lineno) {
-    if (t->val.basic_type!="int") {
-        reportError("int type expected",lineno);
-        return 0;
-    }
-    return 1;
-}
-// int equalFORMAL(FORMAL *f, FORMAL *g) {
-//     if (f==NULL || g==NULL) return f==NULL && g==NULL;
-//     return equalTYPE(f->type,g->type) && equalFORMAL(f->next,g->next);
-// }
-*/
 
 void typePROGRAM(PROGRAM *node) {
     typeTOPLEVELDECL(node->topleveldecls);
@@ -148,7 +114,7 @@ void typeDCL(DCL *node) {
 void typeVARDCL(VARDCL *node) {
     for (VARDCL *i = node; i; i = i->next) {
         // if exprlist is not provided then there is nothing to typecheck
-        if (!(node->exprlist))
+        if (!(i->exprlist))
             continue;
         else
             typeEXPRLIST(i->exprlist);
@@ -157,16 +123,15 @@ void typeVARDCL(VARDCL *node) {
         IDLIST *j = i->idlist;
         EXPRLIST *k= i->exprlist;
         while (j) {
+            typeEXPR(k->expr);
             if (i->type) {
-                // compare the given type with expr type
-                // getbase of expr
-                // do the comparison
+                SYMBOL *s = getSymbol(i->symboltable, j->id, i->lineno);
+                hasSameType(s->data, k->expr->base, i->lineno);
             }
             else {
                 // if type not provided then use the expression's type
-                addSymbolType(i->symboltable, j->id, k->expr->base->val.symtype);
+                addSymbolType(i->symboltable, j->id, k->expr->base);
             }
-
             j = j->next;
             k = k->next;
         }
@@ -175,9 +140,9 @@ void typeVARDCL(VARDCL *node) {
 
 void typeTYPEDCL(TYPEDCL *node) {
 }
+
 void typeFUNCDCL(FUNCDCL *node) {
-    // !!!when calling typeStATEMENT we need to pass the return type from method also
-    // typeSTATEMENT will have an extra formal parameter with the return type (need to use for return statements)
+    typeBLOCK(node->block);
 }
 
 void typeEXPRLIST(EXPRLIST *node) {
@@ -203,9 +168,7 @@ void typeSTATEMENT(STATEMENT *node) {
             typeSIMPLE(node->val.simple);
             break;
         case return_stmt_s:
-            // a return statement with no expression is well-typed if enclosing fn has no return type.
-            // with expr is well-typed if its expression is well-typed and type of expr = return type of function
-            // also we should type check all statements after a return.
+            /*
             if (node->val.return_stmt != NULL) {
                 typeEXPR(node->val.return_stmt);
             }
@@ -216,10 +179,11 @@ void typeSTATEMENT(STATEMENT *node) {
                 fprintf(stderr, "Error: (line %d) return value expected\n", node->lineno);
             }
             if ( "check if return is not of type void" && node->val.return_stmt!=NULL) {
-                if (!hasSameType(node->val.return_stmt->base,)) {
+                if (!hasSameType(node->val.return_stmt->base)) {
                     fprintf(stderr, "Error: (line %d) illegal type of expression\n", node->lineno);
                }
             }
+            */
             break;
         case break_stmt_s:
         case continue_stmt_s:
@@ -230,6 +194,8 @@ void typeSTATEMENT(STATEMENT *node) {
             typeBLOCK(node->val.block);
             break;
         case if_stmt_s:
+            typeSIMPLE(node->val.if_stmt.simple);
+            /*
             // if init; expr {} else {}
             // init type-checks, expr is well-typed and resolves to type bool
             // statements in first and second block type-check.
@@ -248,9 +214,11 @@ void typeSTATEMENT(STATEMENT *node) {
                     typeELSE_BLOCK(node->val.if_stmt.val.else_block.else_block);
                     break;
             }
+            */
             break;
         case switch_stmt_s:
         {
+            /*
             // switch init; expr { case e1: default: }
             // init type-checks, expr is well-typed.
             // e1,e2.. are well-typed and have same type as expr
@@ -273,29 +241,22 @@ void typeSTATEMENT(STATEMENT *node) {
             if (node->val.switch_stmt.caselist)
                 // compare case list with node->base
                 typeSWITCH_CASELIST(node->val.switch_stmt.caselist, symtype);
+                */
         }
             break;
         case for_stmt_s:
             switch(node->val.for_stmt.condition->kind) {
                 case infinite:
-                    // type checks if its body type-checks.
                     break;
                 case while_loop:
-                    // its expression should be well-typed and resolved to type bool. statements should type-check.
                     typeEXPR(node->val.for_stmt.condition->val.while_expr);
+                    isBool(node->val.for_stmt.condition->val.while_expr->base, node->lineno);
                     break;
                 case threepart:
-                    // for init; expr; post {}
-                    // init type-checks, expr is well-typed and resolves to type bool.
-                    // post type checks, statements type-check
-                    if (node->val.for_stmt.condition->val.threepart.init) {
+                    if (node->val.for_stmt.condition->val.threepart.init)
                         typeSIMPLE(node->val.for_stmt.condition->val.threepart.init);
-                    }
-                    if (node->val.for_stmt.condition->val.threepart.condition) {
+                    if (node->val.for_stmt.condition->val.threepart.condition)
                         typeEXPR(node->val.for_stmt.condition->val.threepart.condition);
-                        if (!isBool(node->val.for_stmt.condition->val.threepart.condition->base, node->lineno))
-                            fprintf(stderr, "Error: (line %d) expression does not resolve to type bool\n", node->lineno);
-                    }
                     if (node->val.for_stmt.condition->val.threepart.post)
                         typeSIMPLE(node->val.for_stmt.condition->val.threepart.post);
                     break;
@@ -318,6 +279,7 @@ void typeSWITCH_CASELIST(SWITCH_CASELIST *node, symTYPE *symtype) {
     // e1,e2.. are well-typed and have same type as expr
     // statements under cases should type-check.
     // if no expr, e1, e2... should have type bool.
+    /*
     for (SWITCH_CASELIST *i = node; i; i=i->next) {
         if (i->default_case) {
         }
@@ -330,6 +292,7 @@ void typeSWITCH_CASELIST(SWITCH_CASELIST *node, symTYPE *symtype) {
         if (i->statements)
             typeSTATEMENTS(i->statements);
     }
+    */
 }
 
 /*
@@ -533,6 +496,7 @@ void typeEXPR(EXPR *node) {
             break;
         case append_expr:
             {
+                typeEXPR(node->val.append_expr.expr);
                 SYMBOL *s = getSymbol(node->symboltable, node->val.append_expr.identifier, node->lineno);
 
                 hasSameType(s->data, node->val.append_expr.expr->base, node->lineno);
@@ -583,6 +547,7 @@ void typeEXPR(EXPR *node) {
             break;
         case other_expr_kind:
             typeOTHER_EXPR(node->val.other_expr);
+            node->base = node->val.other_expr->base;
             break;
     }
 }
@@ -596,19 +561,23 @@ void typeOTHER_EXPR(OTHER_EXPR *node) {
                 symtype->symtype = basic_type;
                 node->base = symtype;
 
-                SYMBOL* s =  getSymbol(node->symboltable, node->val.identifier, node->lineno);
-                if (strcmp(s->data->val.symtype->val.basic_type, "int") == 0)
-                    symtype->val.base = k_int;
-                else if (strcmp(s->data->val.symtype->val.basic_type, "float64") == 0)
-                    symtype->val.base = k_float64;
-                else if (strcmp(s->data->val.symtype->val.basic_type, "string") == 0)
-                    symtype->val.base = k_string;
-                else if (strcmp(s->data->val.symtype->val.basic_type, "rune") == 0)
-                    symtype->val.base = k_rune;
+                SYMBOL* s = getSymbol(node->symboltable, node->val.identifier, node->lineno);
+                if (s->data->val.symtype) {
+                    //printf("%d\n", s->data->val.symtype->lineno);
+                    if (strcmp(s->data->val.symtype->val.basic_type, "int") == 0)
+                        symtype->val.base = k_int;
+                    else if (strcmp(s->data->val.symtype->val.basic_type, "float64") == 0)
+                        symtype->val.base = k_float64;
+                    else if (strcmp(s->data->val.symtype->val.basic_type, "string") == 0)
+                        symtype->val.base = k_string;
+                    else if (strcmp(s->data->val.symtype->val.basic_type, "rune") == 0)
+                        symtype->val.base = k_rune;
+                }
             }
             break;
         case paren_kind:
             typeEXPR(node->val.expr);
+            node->base = node->val.expr->base;
             break;
         case func_call_kind:
             /*
@@ -619,33 +588,89 @@ void typeOTHER_EXPR(OTHER_EXPR *node) {
             */
             break;
         case index_kind:
-                /*
             {
+                typeEXPR(node->val.index.index);
                 isInteger(node->val.index.index->base, node->lineno);
-                SYMBOL *s = getSymbol(node->symboltable, node->val.append_expr.identifier, node->lineno);
 
-                hasSameType(s->data, node->val.append_expr.expr->base, node->lineno);
+                SYMBOL *s = getSymbol(node->symboltable, node->val.index.expr->val.identifier, node->lineno);
+                isSliceOrArray(s->data, node->lineno);
 
                 symTYPE *symtype = malloc(sizeof(symTYPE));
                 symtype->category = constant_category;
                 symtype->symtype = type_type;
-                symtype->val.symtype = s->data;
+                symtype->val.symtype = s->data->val.symtype;
                 node->base = symtype;
             }
-                */
-            // expr is well-typed and resolved to []T
-            // index is well-typed and resolves to int
-            // result of indexing expression is T
-            // out of bounds array check done at runtime.
-            //typeOTHER_EXPR(node->val.index.expr);
-            typeEXPR(node->val.index.index);
-            if (isInteger(node->val.index.index->base, node->lineno))
-               // node->base = node->val.expr_unary->base
             break;
         case struct_access_kind:
-            // selecting a field in a struct. expr is well-typed and has type S. S should resolve to a
-            // struct type that has a field named id.
-            //typeOTHER_EXPR(node->val.struct_access.expr);
+            {
+                SYMBOL *s = getSymbol(node->symboltable, node->val.struct_access.expr->val.identifier, node->lineno);
+                isStruct(s->data, node->lineno);
+                SYMBOL *val = getSymbol(s->data->val.symtype->val.struct_type->symboltable, node->val.struct_access.identifier, node->lineno);
+
+                symTYPE *symtype = malloc(sizeof(symTYPE));
+                symtype->category = constant_category;
+                symtype->symtype = basic_type;
+                symtype->val.base = val->data->val.base;
+                node->base = symtype;
+            }
+            break;
+    }
+}
+
+void typeSIMPLE(SIMPLE *node) {
+    switch (node->kind) {
+        case empty_stmt_kind:
+            break;
+        case expr_kind:
+            typeEXPR(node->val.expr);
+        case increment_kind:
+        case decrement_kind:
+            typeEXPR(node->val.expr);
+            isNumeric(node->val.expr->base, node->lineno);
+            break;
+        case assignment_kind:
+            {
+                typeEXPRLIST(node->val.assignment.LHS_expr_list);
+                typeEXPRLIST(node->val.assignment.RHS_expr_list);
+
+                // loop through each variable and its corresponding expr; they should be the same length
+                EXPRLIST *j = node->val.assignment.LHS_expr_list;
+                EXPRLIST *k = node->val.assignment.RHS_expr_list;
+                while (j) {
+                    SYMBOL *s = getSymbol(j->expr->symboltable, j->expr->val.other_expr->val.identifier, j->expr->lineno);
+                    if (s->data->val.symtype) {
+                        hasSameType(s->data, k->expr->base, j->expr->lineno);
+                    }
+                    else {
+                        // if type not provided then use the expression's type
+                        addSymbolType(j->expr->symboltable, j->expr->val.other_expr->val.identifier, k->expr->base);
+                    }
+                    j = j->next;
+                    k = k->next;
+                }
+            }
+            break;
+        case shortDcl_kind:
+            {
+                typeEXPRLIST(node->val.shortDcl.RHS_expr_list);
+
+                // loop through each variable and its corresponding expr; they should be the same length
+                EXPRLIST *j = node->val.shortDcl.LHS_expr_list;
+                EXPRLIST *k = node->val.shortDcl.RHS_expr_list;
+                while (j) {
+                    SYMBOL *s = getSymbol(node->symboltable, j->expr->val.other_expr->val.identifier, j->expr->lineno);
+                    if ((s->data->val.base) || (s->data->val.symtype) || (s->data->val.symsign)) {
+                        hasSameType(s->data, k->expr->base, j->expr->lineno);
+                    }
+                    else {
+                        // if type not provided then use the expression's type
+                        addSymbolType(node->symboltable, j->expr->val.other_expr->val.identifier, k->expr->base);
+                    }
+                    j = j->next;
+                    k = k->next;
+                }
+            }
             break;
     }
 }
