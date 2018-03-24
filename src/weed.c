@@ -140,7 +140,7 @@ void weedBLOCK(BLOCK *node) {
 }
 
 void weedSTATEMENTS(STATEMENTS *node) {
-    for (STATEMENTS *i = node; i; i = i->next) {
+    for (STATEMENTS *i = node; i; i = i->next){
         weedSTATEMENT(i->stmt);
     }
 }
@@ -459,8 +459,8 @@ bool isTerminating(STATEMENT *node){
             STATEMENTS *i = NULL;
             if(node->val.block->stmts)
                 i = node->val.block->stmts;
-	    else
-		return false;;
+	        else
+		        return false;
             while(i->next){
                 i = i->next;
             }
@@ -482,33 +482,33 @@ bool isTerminating(STATEMENT *node){
             }else{
                 return 0;
             }
-            if(node->val.if_stmt.val.else_block.else_block->val.block->stmts && node->val.if_stmt.val.else_block.else_block->kind == block_else){
-                for(STATEMENTS *j = node->val.if_stmt.val.else_block.else_block->val.block->stmts; j; j = j->next){
-                    if(!j->next){
-                        elseTerminating = isTerminating(j->stmt);
-		    }
+            if(node->val.if_stmt.kind_else == else_if){
+                if(node->val.if_stmt.val.else_block.else_block->val.block->stmts && node->val.if_stmt.val.else_block.else_block->kind == block_else){
+                    for(STATEMENTS *j = node->val.if_stmt.val.else_block.else_block->val.block->stmts; j; j = j->next){
+                        if(!j->next){
+                            elseTerminating = isTerminating(j->stmt);
+                        }
+                    }
+                }else if(node->val.if_stmt.val.else_block.else_block->kind == if_stmt_else && node->val.if_stmt.val.else_block.else_block->val.if_stmt){
+                    elseTerminating = isTerminating(node->val.if_stmt.val.else_block.else_block->val.if_stmt);
                 }
-            }else if(node->val.if_stmt.val.else_block.else_block->kind == if_stmt_else && node->val.if_stmt.val.else_block.else_block->val.if_stmt){
-                elseTerminating = isTerminating(node->val.if_stmt.val.else_block.else_block->val.if_stmt);
-            }
-            else{
-                return 0;
+                else{
+                    return 0;
+                }
             }
             return (ifTerminating && elseTerminating);
             break;
         }
         case for_stmt_s:
             if(node->val.for_stmt.condition->kind != threepart && node->val.for_stmt.condition->kind != infinite){
-		return 0;
-	    }
+                return 0;
+            }
             if(node->val.for_stmt.condition->val.threepart.condition && node->val.for_stmt.condition->kind == threepart){
                 return 0;
-	    }
+            }
             for(STATEMENTS *i = node->val.for_stmt.block->stmts; i; i=i->next)
-                if(i->stmt->kind == break_stmt_s)
-                    return 0;
-		else if(!i->next)
-		    return isTerminating(i->stmt);
+                if(hasBreak(i->stmt))
+                   return 0;
             return 1;
             break;
         case switch_stmt_s:
@@ -520,7 +520,7 @@ bool isTerminating(STATEMENT *node){
                         isDefault = true;
                     if(i->statements){
                         for (STATEMENTS *j = i->statements; j; j=j->next){
-                            if(j->stmt->kind == break_stmt_s)
+                            if(hasBreak(j->stmt))
                                 return 0;
                             if(!j->next)
                                 return isTerminating(j->stmt);
@@ -546,4 +546,91 @@ bool isTerminating(STATEMENT *node){
             return 0;
     }
     return 0;
+}
+
+bool hasBreak(STATEMENT *node){
+    switch(node->kind){
+        case dcl_s:
+        case simple_s:
+        case continue_stmt_s:
+        case println_stmt_s:
+        case print_stmt_s:
+        case return_stmt_s:
+            return false;
+            break;
+        case break_stmt_s:
+            return true;
+            break;
+        case block_s:
+            {
+            STATEMENTS *i = NULL;
+            if(node->val.block->stmts)
+                i = node->val.block->stmts;
+            else
+                return false;
+            while(i->next){
+                if(hasBreak(i->stmt))
+                    return true;
+                i = i->next;
+            }
+            return false;
+            break;
+        }
+        case if_stmt_s:
+        {
+            if(node->val.if_stmt.kind_else == no_else){
+                if(node->val.if_stmt.val.if_block->stmts){
+                    for(STATEMENTS *i = node->val.if_stmt.val.if_block->stmts; i; i = i->next){
+                        if(hasBreak(i->stmt))
+                            return true;
+                    }
+                }
+            }            
+            if(node->val.if_stmt.kind_else == else_if){
+                if(node->val.if_stmt.val.else_block.stmts){
+                    for(STATEMENTS *i = node->val.if_stmt.val.else_block.stmts; i; i = i->next){
+                        if(hasBreak(i->stmt))
+                            return true;
+                    }
+                }
+                if(node->val.if_stmt.val.else_block.else_block->val.block->stmts && node->val.if_stmt.val.else_block.else_block->kind == block_else){
+                    for(STATEMENTS *j = node->val.if_stmt.val.else_block.else_block->val.block->stmts; j; j = j->next){
+                        if(hasBreak(j->stmt))
+                            return true;
+            
+                    }
+                }else if(node->val.if_stmt.val.else_block.else_block->kind == if_stmt_else && node->val.if_stmt.val.else_block.else_block->val.if_stmt){
+                    return hasBreak(node->val.if_stmt.val.else_block.else_block->val.if_stmt);
+                }
+            }
+            return false;
+            break;
+        }
+        case for_stmt_s:
+        {
+            if(node->val.for_stmt.block->stmts){
+                for(STATEMENTS *i = node->val.for_stmt.block->stmts; i; i=i->next)
+                    if(hasBreak(i->stmt))
+                        return true;
+            }
+            return false;
+            break;
+        }
+        case switch_stmt_s:
+        {
+            if(node->val.switch_stmt.caselist){
+                for(SWITCH_CASELIST *i = node->val.switch_stmt.caselist;i;i=i->next){
+                    if(i->statements){
+                        for (STATEMENTS *j = i->statements; j; j=j->next){
+                            if(hasBreak(j->stmt))
+                                return true;
+                        }
+                    }
+                }
+            }
+            return false;
+            break;
+        }
+    }
+    return false;
 }
