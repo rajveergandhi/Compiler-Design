@@ -354,6 +354,7 @@ int weedEXPRLIST(EXPRLIST *node) {
 }
 
 void weedEXPR(EXPR *node) {
+    bool copy = isBlankIdValid;
     switch (node->kind) {
         case expressionKindPlus:
         case expressionKindMinus:
@@ -374,6 +375,7 @@ void weedEXPR(EXPR *node) {
         case expressionKindXor:
         case expressionKindLogicalAnd:
         case expressionKindLogicalOr:
+	    isBlankIdValid = false;
             weedEXPR(node->val.binary.lhs);
             weedEXPR(node->val.binary.rhs);
             break;
@@ -381,9 +383,15 @@ void weedEXPR(EXPR *node) {
         case expressionKindMinusUnary:
         case expressionKindNotUnary:
         case expressionKindXorUnary:
+	    isBlankIdValid = false;
             weedEXPR(node->val.expr_unary);
             break;
         case append_expr:
+	    if(strcmp(node->val.append_expr.identifier,"_") == 0 && node->val.append_expr.identifier != NULL){
+                fprintf(stderr, "Error: invalid usage of blank identifier. (line %d)\n",node->lineno);
+                exit(1);
+            }
+	    isBlankIdValid = false;
             weedEXPR(node->val.append_expr.expr);
             break;
         case intval:
@@ -396,6 +404,7 @@ void weedEXPR(EXPR *node) {
             weedOTHER_EXPR(node->val.other_expr);
             break;
     }
+    isBlankIdValid = copy;
 }
 
 void weedOTHER_EXPR(OTHER_EXPR *node) {
@@ -410,15 +419,25 @@ void weedOTHER_EXPR(OTHER_EXPR *node) {
             weedEXPR(node->val.expr);
             break;
         case func_call_kind:
+	{
+	    bool copy = isBlankIdValid;
+	    isBlankIdValid = false;
             weedOTHER_EXPR(node->val.func_call.id);
             weedEXPRLIST(node->val.func_call.args);
+	    isBlankIdValid = copy;
             break;
+	}
         case index_kind:
+	{
+	    bool copy = isBlankIdValid;
+            isBlankIdValid = false;
             weedOTHER_EXPR(node->val.index.expr);
             weedEXPR(node->val.index.index);
+	    isBlankIdValid = copy;
             break;
+	}
         case struct_access_kind:
-            if(strcmp(node->val.struct_access.identifier,"_") == 0 && node->val.identifier != NULL){
+            if(strcmp(node->val.struct_access.identifier,"_") == 0 && node->val.struct_access.identifier != NULL){
                 fprintf(stderr, "Error: invalid usage of blank identifier. (line %d)\n",node->lineno);
                 exit(1);
             }
@@ -440,6 +459,8 @@ bool isTerminating(STATEMENT *node){
             STATEMENTS *i = NULL;
             if(node->val.block->stmts)
                 i = node->val.block->stmts;
+	    else
+		return false;;
             while(i->next){
                 i = i->next;
             }
@@ -463,8 +484,9 @@ bool isTerminating(STATEMENT *node){
             }
             if(node->val.if_stmt.val.else_block.else_block->val.block->stmts && node->val.if_stmt.val.else_block.else_block->kind == block_else){
                 for(STATEMENTS *j = node->val.if_stmt.val.else_block.else_block->val.block->stmts; j; j = j->next){
-                    if(!j->next)
+                    if(!j->next){
                         elseTerminating = isTerminating(j->stmt);
+		    }
                 }
             }else if(node->val.if_stmt.val.else_block.else_block->kind == if_stmt_else && node->val.if_stmt.val.else_block.else_block->val.if_stmt){
                 elseTerminating = isTerminating(node->val.if_stmt.val.else_block.else_block->val.if_stmt);
@@ -476,13 +498,17 @@ bool isTerminating(STATEMENT *node){
             break;
         }
         case for_stmt_s:
-            if(node->val.for_stmt.condition->kind != threepart)
+            if(node->val.for_stmt.condition->kind != threepart && node->val.for_stmt.condition->kind != infinite){
+		return 0;
+	    }
+            if(node->val.for_stmt.condition->val.threepart.condition && node->val.for_stmt.condition->kind == threepart){
                 return 0;
-            if(node->val.for_stmt.condition->val.threepart.condition)
-                return 0;
+	    }
             for(STATEMENTS *i = node->val.for_stmt.block->stmts; i; i=i->next)
                 if(i->stmt->kind == break_stmt_s)
                     return 0;
+		else if(!i->next)
+		    return isTerminating(i->stmt);
             return 1;
             break;
         case switch_stmt_s:
