@@ -1,5 +1,6 @@
 #include "tree.h"
 
+// AST traversal functions
 void typePROGRAM(PROGRAM *node);
 void typeTOPLEVELDECL(TOPLEVELDECL *node);
 void typeDCL(DCL *node);
@@ -20,10 +21,10 @@ void isInteger(DataType *base, int lineno);
 void isNumeric(DataType *base, int lineno);
 void isNumericOrString(DataType *base, int lineno);
 void isBaseType(DataType *data, int lineno);
-void mustHaveSameType(DataType *data1, DataType *data2, int lineno);
 bool isFunction(DataType *data);
-void validCast(DataType *typedata, DataType *exprdata, int lineno);
 DataType *isSlice(DataType *data, int lineno);
 DataType *isSliceOrArray(DataType *data, int lineno);
 void isStruct(DataType *data, int lineno);
+void mustHaveSameType(DataType *data1, DataType *data2, int lineno);
+void validCast(DataType *typedata, DataType *exprdata, int lineno);
 DataType *resolveType(DataType *data, SymbolTable *sym, int lineno);

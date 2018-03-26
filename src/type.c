@@ -484,7 +484,8 @@ void typeEXPR(EXPR *node) {
         case expressionKindNotEquals:
             typeEXPR(node->val.binary.lhs);
             typeEXPR(node->val.binary.rhs);
-            mustHaveSameType(resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno), resolveType(node->val.binary.rhs->data, node->symboltable, node->lineno), node->lineno);
+            //mustHaveSameType(resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno), resolveType(node->val.binary.rhs->data, node->symboltable, node->lineno), node->lineno);
+            mustHaveSameType(node->val.binary.lhs->data, node->val.binary.rhs->data, node->lineno);
             {
                 DataType *data = malloc(sizeof(DataType));
                 data->category = constant_category;
