@@ -12,12 +12,18 @@ void typeEXPRLIST(EXPRLIST *node);
 void typeBLOCK(BLOCK *node);
 void typeSTATEMENTS(STATEMENTS *node);
 void typeSTATEMENT(STATEMENT *node);
-void typeSWITCH_CASELIST(SWITCH_CASELIST *node, symTYPE *symtype);
 void typeSIMPLE(SIMPLE *node);
 
 // helper functions
-bool isBool(symTYPE *base, int lineno);
-bool isInteger(symTYPE *base, int lineno);
-bool isNumeric(symTYPE *base, int lineno);
-bool isNumericOrString(symTYPE *base, int lineno);
-bool hasSameType(symTYPE *base1, symTYPE *base2, int lineno);
+void isBool(DataType *base, int lineno);
+void isInteger(DataType *base, int lineno);
+void isNumeric(DataType *base, int lineno);
+void isNumericOrString(DataType *base, int lineno);
+void isBaseType(DataType *data, int lineno);
+void mustHaveSameType(DataType *data1, DataType *data2, int lineno);
+bool isFunction(DataType *data);
+void validCast(DataType *typedata, DataType *exprdata, int lineno);
+DataType *isSlice(DataType *data, int lineno);
+DataType *isSliceOrArray(DataType *data, int lineno);
+void isStruct(DataType *data, int lineno);
+DataType *resolveType(DataType *data, SymbolTable *sym, int lineno);

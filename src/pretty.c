@@ -93,7 +93,6 @@ void prettyFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
 }
 
 void symPrettyFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
-    printf("f2 [function] = (");
     for (PARAM_LIST *i = node->params; i; i = i->next) {
         prettyTYPE(i->type);
         if (i->next)
@@ -272,7 +271,7 @@ void prettySIMPLE(SIMPLE *node) {
             printf("\n");
             break;
         case shortDcl_kind:
-            prettyEXPRLIST(node->val.shortDcl.LHS_expr_list);
+            prettyIDLIST(node->val.shortDcl.LHS_idlist);
             printf(" := ");
             prettyEXPRLIST(node->val.shortDcl.RHS_expr_list);
             printf(";");

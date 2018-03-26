@@ -305,7 +305,7 @@ void weedSIMPLE(SIMPLE *node) {
         case shortDcl_kind:
             isBlankIdValid = true;
             lhsCount = 0;
-            lhsCount = weedEXPRLIST(node->val.shortDcl.LHS_expr_list);
+            lhsCount = weedIDLIST(node->val.shortDcl.LHS_idlist);
             isBlankIdValid = false;
             rhsCount = 0;
             rhsCount = weedEXPRLIST(node->val.shortDcl.RHS_expr_list);

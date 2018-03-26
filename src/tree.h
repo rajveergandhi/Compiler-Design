@@ -5,7 +5,7 @@
 
 // forward declarations
 typedef struct SymbolTable SymbolTable;
-typedef struct symTYPE symTYPE;
+typedef struct DataType DataType;
 typedef struct PROGRAM PROGRAM;
 typedef struct PACKAGE PACKAGE;
 typedef struct TOPLEVELDECL TOPLEVELDECL;
@@ -208,7 +208,7 @@ typedef struct SIMPLE {
     union {
         EXPR *expr;
         struct { EXPRLIST *LHS_expr_list; char *assign_op; EXPRLIST *RHS_expr_list; } assignment;
-        struct { EXPRLIST *LHS_expr_list; EXPRLIST *RHS_expr_list; } shortDcl;
+        struct { IDLIST *LHS_idlist; EXPRLIST *RHS_expr_list; } shortDcl;
     } val;
 } SIMPLE;
 
@@ -221,7 +221,7 @@ typedef enum { expressionKindPlus, expressionKindMinus, expressionKindMult, expr
 typedef struct EXPR {
     int lineno;
     SymbolTable *symboltable;
-    symTYPE *base;
+    DataType *data;
     exprKind kind;
     union {
         char *runeLiteral;
@@ -238,7 +238,7 @@ typedef struct EXPR {
 typedef struct OTHER_EXPR {
     int lineno;
     SymbolTable *symboltable;
-    symTYPE *base;
+    DataType *data;
     enum { identifier_kind, paren_kind, func_call_kind, index_kind, struct_access_kind } kind;
     union {
         EXPR *expr;
@@ -298,7 +298,7 @@ SIMPLE *makeSIMPLE_inc(EXPR *expr);
 SIMPLE *makeSIMPLE_dec(EXPR *expr);
 SIMPLE *makeSIMPLE_assignment(EXPRLIST *LHS_expr_list, char *assign_op, EXPRLIST *RHS_expr_list);
 SIMPLE *makeSIMPLE_OPassignment(EXPR *LHS_expr, char *assign_op, EXPR *RHS_expr);
-SIMPLE *makeSIMPLE_shortdcl(EXPRLIST *LHS_expr_list, EXPRLIST *RHS_expr_list);
+SIMPLE *makeSIMPLE_shortdcl(IDLIST *LHS_idlist, EXPRLIST *RHS_expr_list);
 SIMPLE *makeSIMPLE_empty();
 EXPRLIST *makeEXPRLIST(EXPR *expr, EXPRLIST *next);
 EXPR *makeEXPR_binary(exprKind kind, EXPR *lhs, EXPR *rhs);

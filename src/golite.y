@@ -261,7 +261,7 @@ simple_stmt_no_semi : expr {$$ = makeSIMPLE_expr($1);}
                     | expr tDEC {$$ = makeSIMPLE_dec($1);}
                     | expr_list tASSIGN expr_list {$$ = makeSIMPLE_assignment($1, $2, $3);}
                     | expr assign_op expr {$$ = makeSIMPLE_OPassignment($1, $2, $3);}
-                    | expr_list tDECL expr_list {$$ = makeSIMPLE_shortdcl($1, $3);}
+                    | idlist tDECL expr_list {$$ = makeSIMPLE_shortdcl($1, $3);}
                     | %empty {$$ = makeSIMPLE_empty();}
                     ;
 

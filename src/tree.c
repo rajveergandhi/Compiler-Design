@@ -407,11 +407,11 @@ SIMPLE *makeSIMPLE_OPassignment(EXPR *LHS_expr, char *assign_op, EXPR *RHS_expr)
     return node;
 }
 
-SIMPLE *makeSIMPLE_shortdcl(EXPRLIST *LHS_expr_list, EXPRLIST *RHS_expr_list) {
+SIMPLE *makeSIMPLE_shortdcl(IDLIST *LHS_idlist, EXPRLIST *RHS_expr_list) {
     SIMPLE *node = malloc(sizeof(SIMPLE)); 
     node->lineno = yylineno;
     node->kind = shortDcl_kind;
-    node->val.shortDcl.LHS_expr_list = LHS_expr_list;
+    node->val.shortDcl.LHS_idlist = LHS_idlist;
     node->val.shortDcl.RHS_expr_list = RHS_expr_list;
     return node;
 }
