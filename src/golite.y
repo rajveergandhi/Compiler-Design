@@ -137,8 +137,8 @@ varDclList : varSpec tSEMICOLON varDclList {$$ = makeDCL_vars($1, $3);}
            | %empty {$$ = NULL;}
            ;
 
-idlist : tIDENTIFIER {$$ = makeIDLIST($1, NULL);}
-       | tIDENTIFIER tCOMMA idlist {$$ = makeIDLIST($1, $3);}
+idlist : tIDENTIFIER tCOMMA idlist {$$ = makeIDLIST($1, $3);}
+       | tIDENTIFIER {$$ = makeIDLIST($1, NULL);}
        ;
 
 typeDcl : tTYPE typeSpec tSEMICOLON {$$ = $2;}
@@ -256,11 +256,10 @@ continue_stmt : tCONTINUE tSEMICOLON {$$ = makeSTATEMENT_continue();}
 simple_stmt : simple_stmt_no_semi tSEMICOLON {$$ = $1;}
             ;
 
-simple_stmt_no_semi : expr {$$ = makeSIMPLE_expr($1);}
-                    | expr tINC {$$ = makeSIMPLE_inc($1);}
-                    | expr tDEC {$$ = makeSIMPLE_dec($1);}
-                    | expr_list tASSIGN expr_list {$$ = makeSIMPLE_assignment($1, $2, $3);}
-                    | expr assign_op expr {$$ = makeSIMPLE_OPassignment($1, $2, $3);}
+simple_stmt_no_semi : tIDENTIFIER tINC {$$ = makeSIMPLE_inc($1);}
+                    | tIDENTIFIER tDEC {$$ = makeSIMPLE_dec($1);}
+                    | idlist tASSIGN expr_list {$$ = makeSIMPLE_assignment($1, $2, $3);}
+                    | tIDENTIFIER assign_op expr {$$ = makeSIMPLE_OPassignment($1, $2, $3);}
                     | idlist tDECL expr_list {$$ = makeSIMPLE_shortdcl($1, $3);}
                     | %empty {$$ = makeSIMPLE_empty();}
                     ;
