@@ -271,7 +271,7 @@ void prettySIMPLE(SIMPLE *node) {
             printf("\n");
             break;
         case shortDcl_kind:
-            prettyIDLIST(node->val.shortDcl.LHS_idlist);
+            prettyEXPRLIST(node->val.shortDcl.LHS_idlist);
             printf(" := ");
             prettyEXPRLIST(node->val.shortDcl.RHS_expr_list);
             printf(";");

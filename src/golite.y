@@ -56,15 +56,15 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
 %type <dcl> dcl
 %type <vardcl> varDcl varSpec varDclList
 %type <idlist> idlist
-%type <typedcl> typeDcl typeSpec typeDclList
+%type <typedcl> typeDcl typeSpec typeDclList 
 %type <type> type
 %type <struct_type> memberlist member
 %type <funcdcl> funcDcl
 %type <func_signature> signature
-%type <param_list> parameter_list
+%type <param_list> parameter_list 
 %type <block> block
 %type <statements> statement_list
-%type <statement> statement print_stmt println_stmt return_stmt if_stmt for_stmt switch_stmt break_stmt continue_stmt
+%type <statement> statement print_stmt println_stmt return_stmt if_stmt for_stmt switch_stmt break_stmt continue_stmt 
 %type <else_block> else_block
 %type <for_condition> for_condition
 %type <switch_condition> switch_condition
@@ -137,8 +137,8 @@ varDclList : varSpec tSEMICOLON varDclList {$$ = makeDCL_vars($1, $3);}
            | %empty {$$ = NULL;}
            ;
 
-idlist : tIDENTIFIER tCOMMA idlist {$$ = makeIDLIST($1, $3);}
-       | tIDENTIFIER {$$ = makeIDLIST($1, NULL);}
+idlist : tIDENTIFIER {$$ = makeIDLIST($1, NULL);}
+       | tIDENTIFIER tCOMMA idlist {$$ = makeIDLIST($1, $3);}
        ;
 
 typeDcl : tTYPE typeSpec tSEMICOLON {$$ = $2;}
@@ -256,11 +256,12 @@ continue_stmt : tCONTINUE tSEMICOLON {$$ = makeSTATEMENT_continue();}
 simple_stmt : simple_stmt_no_semi tSEMICOLON {$$ = $1;}
             ;
 
-simple_stmt_no_semi : tIDENTIFIER tINC {$$ = makeSIMPLE_inc($1);}
-                    | tIDENTIFIER tDEC {$$ = makeSIMPLE_dec($1);}
-                    | idlist tASSIGN expr_list {$$ = makeSIMPLE_assignment($1, $2, $3);}
-                    | tIDENTIFIER assign_op expr {$$ = makeSIMPLE_OPassignment($1, $2, $3);}
-                    | idlist tDECL expr_list {$$ = makeSIMPLE_shortdcl($1, $3);}
+simple_stmt_no_semi : expr {$$ = makeSIMPLE_expr($1);}
+                    | expr tINC {$$ = makeSIMPLE_inc($1);}
+                    | expr tDEC {$$ = makeSIMPLE_dec($1);}
+                    | expr_list tASSIGN expr_list {$$ = makeSIMPLE_assignment($1, $2, $3);}
+                    | expr assign_op expr {$$ = makeSIMPLE_OPassignment($1, $2, $3);}
+                    | expr_list tDECL expr_list {$$ = makeSIMPLE_shortdcl($1, $3);}
                     | %empty {$$ = makeSIMPLE_empty();}
                     ;
 

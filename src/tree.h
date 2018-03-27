@@ -208,7 +208,7 @@ typedef struct SIMPLE {
     union {
         EXPR *expr;
         struct { EXPRLIST *LHS_expr_list; char *assign_op; EXPRLIST *RHS_expr_list; } assignment;
-        struct { IDLIST *LHS_idlist; EXPRLIST *RHS_expr_list; } shortDcl;
+        struct { EXPRLIST *LHS_idlist; EXPRLIST *RHS_expr_list; } shortDcl;
     } val;
 } SIMPLE;
 
@@ -298,7 +298,7 @@ SIMPLE *makeSIMPLE_inc(EXPR *expr);
 SIMPLE *makeSIMPLE_dec(EXPR *expr);
 SIMPLE *makeSIMPLE_assignment(EXPRLIST *LHS_expr_list, char *assign_op, EXPRLIST *RHS_expr_list);
 SIMPLE *makeSIMPLE_OPassignment(EXPR *LHS_expr, char *assign_op, EXPR *RHS_expr);
-SIMPLE *makeSIMPLE_shortdcl(IDLIST *LHS_idlist, EXPRLIST *RHS_expr_list);
+SIMPLE *makeSIMPLE_shortdcl(EXPRLIST *LHS_idlist, EXPRLIST *RHS_expr_list);
 SIMPLE *makeSIMPLE_empty();
 EXPRLIST *makeEXPRLIST(EXPR *expr, EXPRLIST *next);
 EXPR *makeEXPR_binary(exprKind kind, EXPR *lhs, EXPR *rhs);
