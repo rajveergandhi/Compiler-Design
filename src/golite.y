@@ -56,15 +56,15 @@ void yyerror(char const *s) {fprintf(stderr, "Error: (line %d) %s\n", yylineno, 
 %type <dcl> dcl
 %type <vardcl> varDcl varSpec varDclList
 %type <idlist> idlist
-%type <typedcl> typeDcl typeSpec typeDclList 
+%type <typedcl> typeDcl typeSpec typeDclList
 %type <type> type
 %type <struct_type> memberlist member
 %type <funcdcl> funcDcl
 %type <func_signature> signature
-%type <param_list> parameter_list 
+%type <param_list> parameter_list
 %type <block> block
 %type <statements> statement_list
-%type <statement> statement print_stmt println_stmt return_stmt if_stmt for_stmt switch_stmt break_stmt continue_stmt 
+%type <statement> statement print_stmt println_stmt return_stmt if_stmt for_stmt switch_stmt break_stmt continue_stmt
 %type <else_block> else_block
 %type <for_condition> for_condition
 %type <switch_condition> switch_condition
