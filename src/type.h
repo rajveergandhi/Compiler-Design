@@ -28,3 +28,4 @@ void isStruct(DataType *data, int lineno);
 void mustHaveSameType(DataType *data1, DataType *data2, int lineno);
 void validCast(DataType *typedata, DataType *exprdata, int lineno);
 DataType *resolveType(DataType *data, SymbolTable *sym, int lineno);
+void handleSpecialFunctions(FUNCDCL *node);

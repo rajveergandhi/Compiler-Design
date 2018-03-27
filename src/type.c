@@ -206,6 +206,16 @@ void mustHaveSameType(DataType *data1, DataType *data2, int lineno) {
     }
 }
 
+void handleSpecialFunctions(FUNCDCL *node) {
+    // functions named "init" and "main" cannot have parameters or return types
+    if ((strcmp(node->identifier, "main")==0) || (strcmp(node->identifier, "init")==0)) {
+        if (node->signature->params || node->signature->type) {
+            fprintf(stderr, "Error: (line %d) functions \"init\" and \"main\" cannot have paramaters or return type\n", node->signature->lineno);
+            exit(1);
+        }
+    }
+}
+
 void typePROGRAM(PROGRAM *node) {
     typeTOPLEVELDECL(node->topleveldecls);
 }
@@ -271,6 +281,7 @@ void typeVARDCL(VARDCL *node) {
 }
 
 void typeFUNCDCL(FUNCDCL *node) {
+    handleSpecialFunctions(node);
     func_return_type = malloc(sizeof(DataType));
     func_return_type->valKind = type_type;
     func_return_type->val.type = node->signature->type;
@@ -613,8 +624,12 @@ void typeOTHER_EXPR(OTHER_EXPR *node) {
     switch (node->kind) {
         case identifier_kind:
             {
-                SYMBOL* s = getSymbol(node->symboltable, node->val.identifier, node->lineno);
-                node->data = s->data;
+                // ignore requests for blank identifier in symbol table; in typechecking this can only happen in vardcl, assignment, shortdcl
+                // all other invalid cases would already have been weeded out
+                if (strcmp(node->val.identifier, "_") != 0) {
+                    SYMBOL* s = getSymbol(node->symboltable, node->val.identifier, node->lineno);
+                    node->data = s->data;
+                }
             }
             break;
         case paren_kind:
@@ -734,11 +749,13 @@ void typeSIMPLE(SIMPLE *node) {
                 while (j) {
                     //SYMBOL *s = getSymbol(j->expr->symboltable, j->expr->val.other_expr->val.identifier, j->expr->lineno);
                     //mustHaveSameType(s->data, k->expr->data, j->expr->lineno);
-                    if (j->expr->data->category != variable_category) {
-                        fprintf(stderr, "Error: (line %d) assignment expected lvalue\n", j->expr->lineno);
-                        exit(1);
+                    if (j->expr->data) {
+                        if (j->expr->data->category != variable_category) {
+                            fprintf(stderr, "Error: (line %d) assignment expected lvalue\n", j->expr->lineno);
+                            exit(1);
+                        }
+                        mustHaveSameType(j->expr->data, k->expr->data, j->expr->lineno);
                     }
-                    mustHaveSameType(j->expr->data, k->expr->data, j->expr->lineno);
                     j = j->next;
                     k = k->next;
                 }
@@ -749,23 +766,22 @@ void typeSIMPLE(SIMPLE *node) {
                 typeEXPRLIST(node->val.shortDcl.RHS_expr_list);
 
                 // loop through each variable and its corresponding expr; the lists should be the same length
-                IDLIST *j = node->val.shortDcl.LHS_idlist;
+                EXPRLIST *j = node->val.shortDcl.LHS_idlist;
                 EXPRLIST *k = node->val.shortDcl.RHS_expr_list;
                 while (j) {
+                    char *id = j->expr->val.other_expr->val.identifier;
+
                     // ignore requests for blank identifier in symbol table
-                    if (strcmp(j->id, "_") != 0) {
-                        SYMBOL *s = getSymbol(node->symboltable, j->id, j->lineno);
+                    if (strcmp(id, "_") != 0) {
+                        SYMBOL *s = getSymbol(node->symboltable, id, j->lineno);
 
                         // if variable has a declared type then check that expr type is the same
                         if (s->data->val.type) { 
-                            // ignore requests for blank identifier in symbol table
-                            if (strcmp(j->id, "_") != 0) {
-                                mustHaveSameType(s->data, k->expr->data, j->lineno);
-                            }
+                            mustHaveSameType(s->data, k->expr->data, j->lineno);
                         }
                         else {
                             // if variable does not have a declared type then just use the expression's type and add to symbol table
-                            addSymbolType(node->symboltable, j->id, k->expr->data);
+                            addSymbolType(node->symboltable, id, k->expr->data);
                         }
                     }
                     j = j->next;

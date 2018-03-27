@@ -46,6 +46,12 @@ SYMBOL *putSymbol(SymbolTable *t, char *name, SymbolCategory category, typeKind 
     // do not put blank identifiers in the symbol table
     if (strcmp(name, "_") == 0)
         return NULL;
+    // identifiers named "init" or "main" must be functions
+    if (((strcmp(name, "init") == 0) || (strcmp(name, "main") == 0)) && (category != function_category)) {
+        fprintf(stderr, "Error: (line %d) \"init\" and \"main\" can only be declared as functions\n", lineno);
+        exit(1);
+    }
+
 
     for (s = t->table[i]; s; s=s->next) {
         if (strcmp(s->name,name)==0) {
@@ -326,8 +332,10 @@ void symFUNCDCL(FUNCDCL *node, SymbolTable *sym) {
 void symFUNC_SIGNATURE(FUNC_SIGNATURE *node, SymbolTable *sym) {
     node->symboltable = sym;
     for (PARAM_LIST *i = node->params; i; i = i->next)
-        for (IDLIST *j = i->idlist; j; j = j->next)
+        for (IDLIST *j = i->idlist; j; j = j->next) {
+            symTYPE(i->type, sym);
             putSymbol(sym, j->id, variable_category, type_type, i->type, node->lineno);
+        }
 }
 
 void symBLOCK(BLOCK *node, SymbolTable *sym, SymbolTable *extra) {
@@ -475,12 +483,12 @@ void symSIMPLE(SIMPLE *node, SymbolTable *sym) {
 
             // loop through LHS and add undeclared variables to the symbol table
             bool atLeastOneVarNotDeclared = false;
-            for (IDLIST *i = node->val.shortDcl.LHS_idlist; i; i = i->next) {
-                if (!(defSymbol(sym, i->id))) {
+            for (EXPRLIST *i = node->val.shortDcl.LHS_idlist; i; i = i->next) {
+                if (!(defSymbol(sym, i->expr->val.other_expr->val.identifier))) {
                     atLeastOneVarNotDeclared  = true;
 
                     // add to the symbol table
-                    putSymbol(sym, i->id, variable_category, type_type, NULL, node->lineno);
+                    putSymbol(sym, i->expr->val.other_expr->val.identifier, variable_category, type_type, NULL, node->lineno);
                 }
             }
 
@@ -545,7 +553,8 @@ void symOTHER_EXPR(OTHER_EXPR *node, SymbolTable *sym) {
     node->symboltable = sym;
     switch (node->kind) {
         case identifier_kind:
-            getSymbol(sym, node->val.identifier, node->lineno);
+            if (strcmp(node->val.identifier, "_") != 0)
+                getSymbol(sym, node->val.identifier, node->lineno);
             break;
         case paren_kind:
             symEXPR(node->val.expr, sym);
