@@ -5,6 +5,7 @@
 #include "pretty.h"
 #include "symbol.h"
 #include "type.h"
+#include "weed2.h"
 /*
 #include "codegen.h"
 */
@@ -52,6 +53,7 @@ int main(int argc, char* argv[])
                 weedPROGRAM(root);
                 symPROGRAM(root);
                 typePROGRAM(root);
+                weed2PROGRAM(root);
                 printf("OK\n");
             }
             /*
