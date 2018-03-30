@@ -23,7 +23,8 @@ void weed2TOPLEVELDECL(TOPLEVELDECL *node) {
 }
 
 void weed2FUNCDCL(FUNCDCL *node) {
-    weed2FUNC_SIGNATURE(node->signature);
+    if(node->signature)
+        weed2FUNC_SIGNATURE(node->signature);
     STATEMENT *lastStatement = NULL;
     int ignoreSwitchInit = 0;
     if(node->block->stmts && hasReturn){

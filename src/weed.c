@@ -75,9 +75,11 @@ void weedTYPEDCL(TYPEDCL *node) {
 }
 
 void weedFUNCDCL(FUNCDCL *node) {
-    weedFUNC_SIGNATURE(node->signature);
+    if(node->signature)
+        weedFUNC_SIGNATURE(node->signature);
     insideFunction++;
-    weedBLOCK(node->block);
+    if(node->block)
+        weedBLOCK(node->block);
     insideFunction--;
 }
 
