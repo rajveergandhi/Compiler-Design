@@ -74,8 +74,10 @@ do
 
 			COUNT=0
 			COUNT_PASSED=0
+			
+			TESTS=`find $DIR_TYPE -type f \( -name "*.go" \)`
 
-			for TEST in $DIR_TYPE*
+			for TEST in $TESTS
 			do
 				((COUNT++))
 
@@ -137,7 +139,7 @@ do
 						echo "$TEST: $OUTPUT [$STATUS_TEXT]" >> ${PHASE_NAME}_${TYPE}.log
 					fi
 				fi
-			done
+			done                                 
 			if [ $VERBOSE -eq 1 ]
 			then
 				if [ $COUNT -gt 0 ]

@@ -9,3 +9,4 @@ y.tab.h
 .DS_Store
 internal-testcases/
 *-grading
+programs/3-semantics+codegen/valid/*py

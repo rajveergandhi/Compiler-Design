@@ -2,13 +2,11 @@
 #include <string.h>
 #include "tree.h"
 #include "weed.h"
+#include "weed2.h"
 #include "pretty.h"
 #include "symbol.h"
 #include "type.h"
-#include "weed2.h"
-/*
 #include "codegen.h"
-*/
 
 void yyparse();
 int yylex();
@@ -56,25 +54,25 @@ int main(int argc, char* argv[])
                 weed2PROGRAM(root);
                 printf("OK\n");
             }
-            /*
             else if (strcmp(mode, "codegen") == 0) {
                 yyparse();
-                SymbolTable *t = initSymbolTable();
-                symPROGRAM(t, root);
-                typeImplementationPROGRAM(t, root);
+                weedPROGRAM(root);
+                symPROGRAM(root);
+                typePROGRAM(root);
+                weed2PROGRAM(root);
 
                 // create the new filepath for the codegen output file
                 char *codegen_filepath = strdup(argv[2]);
                 int i;
                 for (i = strlen(codegen_filepath)-1; codegen_filepath[i] != '.'; --i);
-                codegen_filepath[i+1] = 'c';
-                codegen_filepath[i+2] = '\0';
+                codegen_filepath[i+1] = 'p';
+                codegen_filepath[i+2] = 'y';
+                codegen_filepath[i+3] = '\0';
                 codegen_file = fopen(codegen_filepath, "w");
 
-                codegen(root);
+                codegenPROGRAM(root);
                 printf("OK\n");
             }
-            */
         }
         else {
             printf("Error opening file: %s\n", argv[2]);
