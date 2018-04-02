@@ -19,9 +19,41 @@ void codegenPrettyIndent(int indent_level) {
 }
 
 void codegenPROGRAM(PROGRAM *node) {
-    //fprintf(codegen_file, "print \"foobar\"\n");
+    codegenTOPLEVELDECL(node->topleveldecls);
 }
 
+void codegenTOPLEVELDECL(TOPLEVELDECL *node) {
+    for (TOPLEVELDECL *i = node; i; i = i->next) {
+        switch (i->kind) {
+            case dcl_toplevel:
+                codegenDCL(i->val.dcl);
+                break;
+            case func_dcl_toplevel:
+                codegenFUNCDCL(i->val.funcdcl);
+                break;
+        }
+    }
+}
+
+void codegenDCL(DCL *node) {
+    switch (node->kind) {
+        case var:
+            codegenVARDCL(node->val.vardcl);
+            break;
+        case type:
+            codegenTYPEDCL(node->val.typedcl);
+            break;
+    }
+}
+
+void codegenVARDCL(VARDCL *node) {
+}
+
+void codegenTYPEDCL(FUNCDCL *node) {
+}
+
+void codegenFUNCDCL(FUNCDCL *node) {
+}
 
 
 
