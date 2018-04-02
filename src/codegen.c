@@ -52,7 +52,7 @@ void codegenVARDCL(VARDCL *node) {
             codegenIDLIST(i->idlist);
             fprintf(codegen_file, " = ");
             codegenEXPRLIST(i->exprlist);
-            fprintf(codegen_file, ";\n");
+            fprintf(codegen_file, "\n");
         }
     }
 }
@@ -98,7 +98,7 @@ void codegenSTATEMENT(STATEMENT *node) {
             codegenDCL(node->val.dcl);
             break;
         case simple_s:
-            // prettySIMPLE(node->val.simple);
+            codegenSIMPLE(node->val.simple);
             break;
         case return_stmt_s:
             // printf("return");
@@ -173,14 +173,44 @@ void codegenSTATEMENT(STATEMENT *node) {
             // prettyBLOCK(node->val.for_stmt.block);
             break;
         case print_stmt_s:
-            // printf("print (");
-            // prettyEXPRLIST(node->val.print);
-            // printf(")\n");
+            fprintf(codegen_file, "print ");
+            codegenEXPRLIST(node->val.print);
+            fprintf(codegen_file, ",\n");
             break;
         case println_stmt_s:
-            // printf("println (");
-            // prettyEXPRLIST(node->val.print);
-            // printf(")\n");
+            fprintf(codegen_file, "print ");
+            codegenEXPRLIST(node->val.print);
+            fprintf(codegen_file, "\n");
+            break;
+    }
+}
+
+void codegenSIMPLE(SIMPLE *node) {
+    switch (node->kind) {
+        case empty_stmt_kind:
+            break;
+        case expr_kind:
+            codegenEXPR(node->val.expr);
+            break;
+        case increment_kind:
+            codegenEXPR(node->val.expr);
+            fprintf(codegen_file, "++");
+            break;
+        case decrement_kind:
+            codegenEXPR(node->val.expr);
+            fprintf(codegen_file, "--");
+            break;
+        case assignment_kind:
+            codegenEXPRLIST(node->val.assignment.LHS_expr_list);
+            fprintf(codegen_file, " %s ", node->val.assignment.assign_op);
+            codegenEXPRLIST(node->val.assignment.RHS_expr_list);
+            fprintf(codegen_file, "\n");
+            break;
+        case shortDcl_kind:
+            // codegenEXPRLIST(node->val.shortDcl.LHS_idlist);
+            // printf(" := ");
+            // codegenEXPRLIST(node->val.shortDcl.RHS_expr_list);
+            // printf(";");
             break;
     }
 }
@@ -461,7 +491,34 @@ void codegenEXPR(EXPR *node) {
             fprintf(codegen_file, "%s", node->val.runeLiteral);
             break;
         case other_expr_kind:
-            // prettyOTHER_EXPR(node->val.other_expr);
+            codegenOTHER_EXPR(node->val.other_expr);
+            break;
+    }
+}
+
+void codegenOTHER_EXPR(OTHER_EXPR *node) {
+    switch (node->kind) {
+        case identifier_kind:
+            fprintf(codegen_file, "%s", node->val.identifier);
+            break;
+        case paren_kind:
+            // prettyEXPR(node->val.expr);
+            break;
+        case func_call_kind:
+            // prettyOTHER_EXPR(node->val.func_call.id);
+            // printf("(");
+            // prettyEXPRLIST(node->val.func_call.args);
+            // printf(")");
+            break;
+        case index_kind:
+            // prettyOTHER_EXPR(node->val.index.expr);
+            // printf("[");
+            // prettyEXPR(node->val.index.index);
+            // printf("]");
+            break;
+        case struct_access_kind:
+            // prettyOTHER_EXPR(node->val.struct_access.expr);
+            // printf(".%s", node->val.struct_access.identifier);
             break;
     }
 }
