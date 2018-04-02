@@ -12,7 +12,7 @@ int c_indent = 0;
 // function for indenting code
 void codegenPrettyIndent(int indent_level) {
     // one level of indentation is defined as 4 spaces
-    int indent_val = 4; 
+    int indent_val = 4;
     for (int i = 0; i < indent_val * indent_level; ++i) {
         fprintf(codegen_file, " ");
     }
@@ -47,16 +47,424 @@ void codegenDCL(DCL *node) {
 }
 
 void codegenVARDCL(VARDCL *node) {
+    for (VARDCL *i = node; i; i = i->next) {
+        if (i->exprlist) {
+            codegenIDLIST(i->idlist);
+            fprintf(codegen_file, " = ");
+            codegenEXPRLIST(i->exprlist);
+            fprintf(codegen_file, ";\n");
+        }
+    }
 }
 
-void codegenTYPEDCL(FUNCDCL *node) {
+void codegenTYPEDCL(TYPEDCL *node) {
 }
 
 void codegenFUNCDCL(FUNCDCL *node) {
+    fprintf(codegen_file, "def %s", node->identifier);
+    codegenFUNC_SIGNATURE(node->signature);
+    codegenBLOCK(node->block);
 }
 
+void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
+    fprintf(codegen_file, "(");
+    // for (PARAM_LIST *i = node->params; i; i = i->next) {
+    //     codegenIDLIST(i->idlist);
+    //     printf(" ");
+    //     codegenTYPE(i->type);
+    //     if (i->next)
+    //         printf(", ");
+    // }
+    fprintf(codegen_file, "):\n");
+    // if (node->type) {
+    //     printf(" ");
+    //     codegenTYPE(node->type);
+    // }
+}
 
+void codegenBLOCK(BLOCK *node) {
+    codegenSTATEMENTS(node->stmts);
+}
 
+void codegenSTATEMENTS(STATEMENTS *node) {
+    for (STATEMENTS *i = node; i; i = i->next) {
+        codegenSTATEMENT(i->stmt);
+    }
+}
+
+void codegenSTATEMENT(STATEMENT *node) {
+    switch(node->kind) {
+        case dcl_s:
+            codegenDCL(node->val.dcl);
+            break;
+        case simple_s:
+            // prettySIMPLE(node->val.simple);
+            break;
+        case return_stmt_s:
+            // printf("return");
+            // if (node->val.return_stmt) {
+            //     printf(" ");
+            //     prettyEXPR(node->val.return_stmt);
+            // }
+            // printf("\n");
+            break;
+        case break_stmt_s:
+            // printf("break\n");
+            break;
+        case continue_stmt_s:
+            // printf("continue\n");
+            break;
+        case block_s:
+            // prettyBLOCK(node->val.block);
+            break;
+        case if_stmt_s:
+            // printf("if ");
+            // if (node->val.if_stmt.simple) {
+            //     prettySIMPLE(node->val.if_stmt.simple);
+            //     printf("; ");
+            // }
+            // prettyEXPR(node->val.if_stmt.expr);
+            // switch (node->val.if_stmt.kind_else) {
+            //     case no_else:
+            //         prettyBLOCK(node->val.if_stmt.val.if_block);
+            //         break;
+            //     case else_if:
+            //         printf("{\n");
+            //         prettySTATEMENTS(node->val.if_stmt.val.else_block.stmts);
+            //         printf("}");
+            //         prettyELSE_BLOCK(node->val.if_stmt.val.else_block.else_block);
+            //         break;
+            // }
+            break;
+        case switch_stmt_s:
+            // printf("switch ");
+            // if (node->val.switch_stmt.condition->simple) {
+            //     prettySIMPLE(node->val.switch_stmt.condition->simple);
+            //     printf("; ");
+            // }
+            // if (node->val.switch_stmt.condition->expr) {
+            //     prettyEXPR(node->val.switch_stmt.condition->expr);
+            //     printf(" ");
+            // }
+            // if (node->val.switch_stmt.caselist)
+            //     prettySWITCH_CASELIST(node->val.switch_stmt.caselist);
+            break;
+        case for_stmt_s:
+            // printf("for ");
+            // switch(node->val.for_stmt.condition->kind) {
+            //     case infinite:
+            //         break;
+            //     case while_loop:
+            //         prettyEXPR(node->val.for_stmt.condition->val.while_expr);
+            //         break;
+            //     case threepart:
+            //         if (node->val.for_stmt.condition->val.threepart.init) {
+            //             prettySIMPLE(node->val.for_stmt.condition->val.threepart.init);
+            //             printf(" ");
+            //         }
+            //         if (node->val.for_stmt.condition->val.threepart.condition) {
+            //             prettyEXPR(node->val.for_stmt.condition->val.threepart.condition);
+            //             printf(";");
+            //         }
+            //         if (node->val.for_stmt.condition->val.threepart.post)
+            //             prettySIMPLE(node->val.for_stmt.condition->val.threepart.post);
+            //         break;
+            // }
+            // prettyBLOCK(node->val.for_stmt.block);
+            break;
+        case print_stmt_s:
+            // printf("print (");
+            // prettyEXPRLIST(node->val.print);
+            // printf(")\n");
+            break;
+        case println_stmt_s:
+            // printf("println (");
+            // prettyEXPRLIST(node->val.print);
+            // printf(")\n");
+            break;
+    }
+}
+
+void codegenIDLIST(IDLIST *node) {
+    for (IDLIST *i = node; i; i = i->next) {
+        if (strcmp(i->id, "True") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_TRUE");
+        }
+        else if (strcmp(i->id, "False") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_FALSE");
+        }
+        else if (strcmp(i->id, "None") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_NONE");
+        }
+        else if (strcmp(i->id, "and") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_AND");
+        }
+        else if (strcmp(i->id, "or") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_OR");
+        }
+        else if (strcmp(i->id, "not") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_NOT");
+        }
+        else if (strcmp(i->id, "as") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_AS");
+        }
+        else if (strcmp(i->id, "assert") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_ASSERT");
+        }
+        else if (strcmp(i->id, "break") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_BREAK");
+        }
+        else if (strcmp(i->id, "continue") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_CONTINUE");
+        }
+        else if (strcmp(i->id, "class") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_CLASS");
+        }
+        else if (strcmp(i->id, "def") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_DEF");
+        }
+        else if (strcmp(i->id, "del") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_DEL");
+        }
+        else if (strcmp(i->id, "elif") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_ELIF");
+        }
+        else if (strcmp(i->id, "except") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_EXCEPT");
+        }
+        else if (strcmp(i->id, "raise") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_RAISE");
+        }
+        else if (strcmp(i->id, "try") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_TRY");
+        }
+        else if (strcmp(i->id, "finally") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_FINALLY");
+        }
+        else if (strcmp(i->id, "from") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_FROM");
+        }
+        else if (strcmp(i->id, "import") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_IMPORT");
+        }
+        else if (strcmp(i->id, "global") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_GLOBAL");
+        }
+        else if (strcmp(i->id, "in") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_IN");
+        }
+        else if (strcmp(i->id, "is") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_IS");
+        }
+        else if (strcmp(i->id, "lambda") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_LAMBDA");
+        }
+        else if (strcmp(i->id, "nonlocal") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_NONLOCAL");
+        }
+        else if (strcmp(i->id, "pass") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_PASS");
+        }
+        else if (strcmp(i->id, "with") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_WITH");
+        }
+        else if (strcmp(i->id, "yield") == 0 ) {
+            fprintf(codegen_file, "$$_GOLITE_YIELD");
+        }
+        else {
+            fprintf(codegen_file, "%s", i->id);
+        }
+        if (i->next) fprintf(codegen_file, ", ");
+    }
+}
+
+void codegenEXPRLIST(EXPRLIST *node) {
+    for (EXPRLIST *i = node; i; i = i->next) {
+        codegenEXPR(i->expr);
+        if (i->next) fprintf(codegen_file, ", ");
+    }
+}
+
+void codegenEXPR(EXPR *node) {
+    switch (node->kind) {
+        case expressionKindPlus:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " + ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindMinus:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " - ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindMult:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " * ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindDiv:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " / ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindMod:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " %% ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindLT:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " < ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindLT_EQ:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " <= ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindGT:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " > ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindGT_EQ:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " >= ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindEQ_EQ:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " == ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindNotEquals:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " != ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindShift_Right:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " >> ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindShift_Left:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " << ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindAnd:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " & ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindAMP_XOR:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " &^ ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindOr:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " | ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindXor:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " ^ ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindLogicalAnd:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " && ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindLogicalOr:
+            fprintf(codegen_file, "(");
+            codegenEXPR(node->val.binary.lhs);
+            fprintf(codegen_file, " || ");
+            codegenEXPR(node->val.binary.rhs);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindPlusUnary:
+            fprintf(codegen_file, "(+(");
+            codegenEXPR(node->val.expr_unary);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindMinusUnary:
+            fprintf(codegen_file, "(-(");
+            codegenEXPR(node->val.expr_unary);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindNotUnary:
+            fprintf(codegen_file, "(!(");
+            codegenEXPR(node->val.expr_unary);
+            fprintf(codegen_file, ")");
+            break;
+        case expressionKindXorUnary:
+            fprintf(codegen_file, "(^(");
+            codegenEXPR(node->val.expr_unary);
+            fprintf(codegen_file, ")");
+            break;
+        case append_expr:
+            fprintf(codegen_file, "append(%s, ", node->val.append_expr.identifier);
+            codegenEXPR(node->val.append_expr.expr);
+            fprintf(codegen_file, ")\n");
+            break;
+        case intval:
+            fprintf(codegen_file, "%d", node->val.intLiteral);
+            break;
+        case floatval:
+            fprintf(codegen_file, "%f", node->val.floatLiteral);
+            break;
+        case stringval:
+            fprintf(codegen_file, "%s", node->val.stringLiteral);
+            break;
+        case rawstringval:
+            fprintf(codegen_file, "%s", node->val.stringLiteral);
+            break;
+        case runeval:
+            fprintf(codegen_file, "%s", node->val.runeLiteral);
+            break;
+        case other_expr_kind:
+            // prettyOTHER_EXPR(node->val.other_expr);
+            break;
+    }
+}
     /*
     switch (node->kind) {
         case k_program:
