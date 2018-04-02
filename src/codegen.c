@@ -10,7 +10,7 @@ extern FILE *codegen_file;
 int c_indent = 0;
 
 // function for indenting code
-void codegenPrettyIndent(int indent_level) {
+void codegenIndent(int indent_level) {
     // one level of indentation is defined as 4 spaces
     int indent_val = 4;
     for (int i = 0; i < indent_val * indent_level; ++i) {
@@ -20,6 +20,7 @@ void codegenPrettyIndent(int indent_level) {
 
 void codegenPROGRAM(PROGRAM *node) {
     codegenTOPLEVELDECL(node->topleveldecls);
+    fprintf(codegen_file, "\nif __name__== \"__main__\":\n\tmain()");
 }
 
 void codegenTOPLEVELDECL(TOPLEVELDECL *node) {
@@ -61,9 +62,11 @@ void codegenTYPEDCL(TYPEDCL *node) {
 }
 
 void codegenFUNCDCL(FUNCDCL *node) {
+    c_indent++;
     fprintf(codegen_file, "def %s", node->identifier);
     codegenFUNC_SIGNATURE(node->signature);
     codegenBLOCK(node->block);
+    c_indent--;
 }
 
 void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
@@ -95,9 +98,11 @@ void codegenSTATEMENTS(STATEMENTS *node) {
 void codegenSTATEMENT(STATEMENT *node) {
     switch(node->kind) {
         case dcl_s:
+            codegenIndent(c_indent);
             codegenDCL(node->val.dcl);
             break;
         case simple_s:
+            codegenIndent(c_indent);
             codegenSIMPLE(node->val.simple);
             break;
         case return_stmt_s:
@@ -173,11 +178,13 @@ void codegenSTATEMENT(STATEMENT *node) {
             // prettyBLOCK(node->val.for_stmt.block);
             break;
         case print_stmt_s:
+            codegenIndent(c_indent);
             fprintf(codegen_file, "print ");
             codegenEXPRLIST(node->val.print);
             fprintf(codegen_file, ",\n");
             break;
         case println_stmt_s:
+            codegenIndent(c_indent);
             fprintf(codegen_file, "print ");
             codegenEXPRLIST(node->val.print);
             fprintf(codegen_file, "\n");
