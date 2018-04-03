@@ -62,9 +62,9 @@ void codegenTYPEDCL(TYPEDCL *node) {
 }
 
 void codegenFUNCDCL(FUNCDCL *node) {
-    c_indent++;
     fprintf(codegen_file, "def %s", node->identifier);
     codegenFUNC_SIGNATURE(node->signature);
+    c_indent++;
     codegenBLOCK(node->block);
     c_indent--;
 }
@@ -86,7 +86,10 @@ void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
 }
 
 void codegenBLOCK(BLOCK *node) {
+    //codegenIndent(c_indent);
+    // fprintf(codegen_file, "\n");
     codegenSTATEMENTS(node->stmts);
+    // fprintf(codegen_file, "\n");
 }
 
 void codegenSTATEMENTS(STATEMENTS *node) {
@@ -96,13 +99,12 @@ void codegenSTATEMENTS(STATEMENTS *node) {
 }
 
 void codegenSTATEMENT(STATEMENT *node) {
+    codegenIndent(c_indent);
     switch(node->kind) {
         case dcl_s:
-            codegenIndent(c_indent);
             codegenDCL(node->val.dcl);
             break;
         case simple_s:
-            codegenIndent(c_indent);
             codegenSIMPLE(node->val.simple);
             break;
         case return_stmt_s:
@@ -120,26 +122,29 @@ void codegenSTATEMENT(STATEMENT *node) {
             // printf("continue\n");
             break;
         case block_s:
-            // prettyBLOCK(node->val.block);
+            codegenBLOCK(node->val.block);
             break;
         case if_stmt_s:
-            // printf("if ");
-            // if (node->val.if_stmt.simple) {
-            //     prettySIMPLE(node->val.if_stmt.simple);
-            //     printf("; ");
-            // }
-            // prettyEXPR(node->val.if_stmt.expr);
-            // switch (node->val.if_stmt.kind_else) {
-            //     case no_else:
-            //         prettyBLOCK(node->val.if_stmt.val.if_block);
-            //         break;
-            //     case else_if:
-            //         printf("{\n");
-            //         prettySTATEMENTS(node->val.if_stmt.val.else_block.stmts);
-            //         printf("}");
-            //         prettyELSE_BLOCK(node->val.if_stmt.val.else_block.else_block);
-            //         break;
-            // }
+            if (node->val.if_stmt.simple) {
+                codegenSIMPLE(node->val.if_stmt.simple);
+                codegenIndent(c_indent);
+            }
+            fprintf(codegen_file, "if ");
+            codegenEXPR(node->val.if_stmt.expr);
+            fprintf(codegen_file, ":\n");
+            switch (node->val.if_stmt.kind_else) {
+                case no_else:
+                    c_indent++;
+                    codegenBLOCK(node->val.if_stmt.val.if_block);
+                    c_indent--;
+                    break;
+                case else_if:
+                    c_indent++;
+                    codegenSTATEMENTS(node->val.if_stmt.val.else_block.stmts);
+                    c_indent--;
+                    codegenELSE_BLOCK(node->val.if_stmt.val.else_block.else_block);
+                    break;
+            }
             break;
         case switch_stmt_s:
             // printf("switch ");
@@ -178,16 +183,46 @@ void codegenSTATEMENT(STATEMENT *node) {
             // prettyBLOCK(node->val.for_stmt.block);
             break;
         case print_stmt_s:
-            codegenIndent(c_indent);
             fprintf(codegen_file, "print ");
             codegenEXPRLIST(node->val.print);
             fprintf(codegen_file, ",\n");
             break;
         case println_stmt_s:
-            codegenIndent(c_indent);
             fprintf(codegen_file, "print ");
             codegenEXPRLIST(node->val.print);
             fprintf(codegen_file, "\n");
+            break;
+    }
+}
+
+void codegenELSE_BLOCK(ELSE_BLOCK *node) {
+    codegenIndent(c_indent);
+    switch (node->kind) {
+        case if_stmt_else:
+            c_indent++;
+            fprintf(codegen_file, "elif ");
+            codegenEXPR(node->val.if_stmt->val.if_stmt.expr);
+            fprintf(codegen_file, ":\n");
+            c_indent--;
+            switch (node->val.if_stmt->val.if_stmt.kind_else) {
+                case no_else:
+                    c_indent++;
+                    codegenBLOCK(node->val.if_stmt->val.if_stmt.val.if_block);
+                    c_indent--;
+                    break;
+                case else_if:
+                    c_indent++;
+                    codegenSTATEMENTS(node->val.if_stmt->val.if_stmt.val.else_block.stmts);
+                    c_indent--;
+                    codegenELSE_BLOCK(node->val.if_stmt->val.if_stmt.val.else_block.else_block);
+                    break;
+            }
+            break;
+        case block_else:
+            c_indent++;
+            fprintf(codegen_file, "else:\n");
+            codegenBLOCK(node->val.block);
+            c_indent--;
             break;
     }
 }
@@ -214,10 +249,10 @@ void codegenSIMPLE(SIMPLE *node) {
             fprintf(codegen_file, "\n");
             break;
         case shortDcl_kind:
-            // codegenEXPRLIST(node->val.shortDcl.LHS_idlist);
-            // printf(" := ");
-            // codegenEXPRLIST(node->val.shortDcl.RHS_expr_list);
-            // printf(";");
+            codegenEXPRLIST(node->val.shortDcl.LHS_idlist);
+            fprintf(codegen_file, " = ");
+            codegenEXPRLIST(node->val.shortDcl.RHS_expr_list);
+            fprintf(codegen_file, "\n");
             break;
     }
 }
@@ -460,22 +495,22 @@ void codegenEXPR(EXPR *node) {
         case expressionKindPlusUnary:
             fprintf(codegen_file, "(+(");
             codegenEXPR(node->val.expr_unary);
-            fprintf(codegen_file, ")");
+            fprintf(codegen_file, "))");
             break;
         case expressionKindMinusUnary:
             fprintf(codegen_file, "(-(");
             codegenEXPR(node->val.expr_unary);
-            fprintf(codegen_file, ")");
+            fprintf(codegen_file, "))");
             break;
         case expressionKindNotUnary:
             fprintf(codegen_file, "(!(");
             codegenEXPR(node->val.expr_unary);
-            fprintf(codegen_file, ")");
+            fprintf(codegen_file, "))");
             break;
         case expressionKindXorUnary:
             fprintf(codegen_file, "(^(");
             codegenEXPR(node->val.expr_unary);
-            fprintf(codegen_file, ")");
+            fprintf(codegen_file, "))");
             break;
         case append_expr:
             fprintf(codegen_file, "append(%s, ", node->val.append_expr.identifier);
@@ -509,7 +544,7 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             fprintf(codegen_file, "%s", node->val.identifier);
             break;
         case paren_kind:
-            // prettyEXPR(node->val.expr);
+            codegenEXPR(node->val.expr);
             break;
         case func_call_kind:
             // prettyOTHER_EXPR(node->val.func_call.id);
