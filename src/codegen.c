@@ -99,12 +99,13 @@ void codegenSTATEMENTS(STATEMENTS *node) {
 }
 
 void codegenSTATEMENT(STATEMENT *node) {
-    codegenIndent(c_indent);
     switch(node->kind) {
         case dcl_s:
+            codegenIndent(c_indent);
             codegenDCL(node->val.dcl);
             break;
         case simple_s:
+            codegenIndent(c_indent);
             codegenSIMPLE(node->val.simple);
             break;
         case return_stmt_s:
@@ -116,15 +117,18 @@ void codegenSTATEMENT(STATEMENT *node) {
             // printf("\n");
             break;
         case break_stmt_s:
-            // printf("break\n");
+            codegenIndent(c_indent);
+            fprintf(codegen_file, "break\n");
             break;
         case continue_stmt_s:
             // printf("continue\n");
             break;
         case block_s:
+            codegenIndent(c_indent);
             codegenBLOCK(node->val.block);
             break;
         case if_stmt_s:
+            codegenIndent(c_indent);
             if (node->val.if_stmt.simple) {
                 codegenSIMPLE(node->val.if_stmt.simple);
                 codegenIndent(c_indent);
@@ -160,34 +164,69 @@ void codegenSTATEMENT(STATEMENT *node) {
             //     prettySWITCH_CASELIST(node->val.switch_stmt.caselist);
             break;
         case for_stmt_s:
-            // printf("for ");
-            // switch(node->val.for_stmt.condition->kind) {
-            //     case infinite:
-            //         break;
-            //     case while_loop:
-            //         prettyEXPR(node->val.for_stmt.condition->val.while_expr);
-            //         break;
-            //     case threepart:
-            //         if (node->val.for_stmt.condition->val.threepart.init) {
-            //             prettySIMPLE(node->val.for_stmt.condition->val.threepart.init);
-            //             printf(" ");
-            //         }
-            //         if (node->val.for_stmt.condition->val.threepart.condition) {
-            //             prettyEXPR(node->val.for_stmt.condition->val.threepart.condition);
-            //             printf(";");
-            //         }
-            //         if (node->val.for_stmt.condition->val.threepart.post)
-            //             prettySIMPLE(node->val.for_stmt.condition->val.threepart.post);
-            //         break;
-            // }
-            // prettyBLOCK(node->val.for_stmt.block);
+            // codegenIndent(c_indent);
+            switch(node->val.for_stmt.condition->kind) {
+                case infinite:
+                    codegenIndent(c_indent);
+                    fprintf(codegen_file, "while True:\n");
+                    c_indent++;
+                    codegenBLOCK(node->val.for_stmt.block);
+                    c_indent--;
+                    fprintf(codegen_file, "\n");
+                    break;
+                case while_loop:
+                    codegenIndent(c_indent);
+                    fprintf(codegen_file, "while ");
+                    codegenEXPR(node->val.for_stmt.condition->val.while_expr);
+                    fprintf(codegen_file, ":\n");
+                    c_indent++;
+                    codegenBLOCK(node->val.for_stmt.block);
+                    c_indent--;
+                    fprintf(codegen_file, "\n");
+                    break;
+                case threepart:
+                    if (node->val.for_stmt.condition->val.threepart.init) {
+                        codegenIndent(c_indent);
+                        codegenSIMPLE(node->val.for_stmt.condition->val.threepart.init);
+                        fprintf(codegen_file, "\n");
+                    }
+                    if (node->val.for_stmt.condition->val.threepart.condition) {
+                        codegenIndent(c_indent);
+                        fprintf(codegen_file, "while ");
+                        codegenEXPR(node->val.for_stmt.condition->val.threepart.condition);
+                        fprintf(codegen_file, ":\n");
+                        c_indent++;
+                        codegenBLOCK(node->val.for_stmt.block);
+                        c_indent--;
+                    }
+                    else {
+                        codegenIndent(c_indent);
+                        fprintf(codegen_file, "while True:\n");
+                        c_indent++;
+                        codegenBLOCK(node->val.for_stmt.block);
+                        c_indent--;
+                        fprintf(codegen_file, "\n");
+                    }
+                    // codegenIndent(c_indent);
+                    // codegenBLOCK(node->val.for_stmt.block);
+                    if (node->val.for_stmt.condition->val.threepart.post) {
+                        c_indent++;
+                        codegenIndent(c_indent);
+                        codegenSIMPLE(node->val.for_stmt.condition->val.threepart.post);
+                        c_indent--;
+                        fprintf(codegen_file, "\n");
+                    }
+                    break;
+            }
             break;
         case print_stmt_s:
+            codegenIndent(c_indent);
             fprintf(codegen_file, "print ");
             codegenEXPRLIST(node->val.print);
             fprintf(codegen_file, ",\n");
             break;
         case println_stmt_s:
+            codegenIndent(c_indent);
             fprintf(codegen_file, "print ");
             codegenEXPRLIST(node->val.print);
             fprintf(codegen_file, "\n");
@@ -236,11 +275,11 @@ void codegenSIMPLE(SIMPLE *node) {
             break;
         case increment_kind:
             codegenEXPR(node->val.expr);
-            fprintf(codegen_file, "++");
+            fprintf(codegen_file, "+=1\n");
             break;
         case decrement_kind:
             codegenEXPR(node->val.expr);
-            fprintf(codegen_file, "--");
+            fprintf(codegen_file, "-=1\n");
             break;
         case assignment_kind:
             codegenEXPRLIST(node->val.assignment.LHS_expr_list);
