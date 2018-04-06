@@ -294,6 +294,7 @@ void codegenSIMPLE(SIMPLE *node) {
         case assignment_kind:
             codegenIndent(c_indent);
             codegenEXPRLIST(node->val.assignment.LHS_expr_list);
+            // TODO: assig_op must match Python operators
             fprintf(codegen_file, " %s ", node->val.assignment.assign_op);
             codegenEXPRLIST(node->val.assignment.RHS_expr_list);
             fprintf(codegen_file, "\n");
