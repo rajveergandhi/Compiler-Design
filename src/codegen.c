@@ -320,8 +320,8 @@ void codegenSIMPLE(SIMPLE *node) {
         case assignment_kind:
             codegenIndent(c_indent);
             codegenEXPRLIST(node->val.assignment.LHS_expr_list);
-            if ((strcmp(node->val.assignment.assign_op), "&^=")==0)
-                fprintf(codegen_file, " &= ~", node->val.assignment.assign_op);
+            if (strcmp(node->val.assignment.assign_op, "&^=")==0)
+                fprintf(codegen_file, " &= ~");
             else
                 fprintf(codegen_file, " %s ", node->val.assignment.assign_op);
             codegenEXPRLIST(node->val.assignment.RHS_expr_list);
