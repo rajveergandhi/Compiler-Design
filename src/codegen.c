@@ -24,7 +24,7 @@ void codegenPROGRAM(PROGRAM *node) {
     // import necessary python libraries
     fprintf(codegen_file, "# import all necessary Python libraries\n");
     fprintf(codegen_file, "from __future__ import print_function\n\n");
-    
+
     // TODO: define all user-defined functions we need
     codegenTOPLEVELDECL(node->topleveldecls);
 
@@ -132,7 +132,7 @@ void codegenSTATEMENT(STATEMENT *node) {
             break;
         case continue_stmt_s:
             codegenIndent(c_indent);
-            fprintf(codegen_file, "continue");
+            fprintf(codegen_file, "continue\n");
             break;
         case block_s:
             codegenBLOCK(node->val.block);
