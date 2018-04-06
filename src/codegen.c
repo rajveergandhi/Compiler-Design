@@ -96,7 +96,7 @@ void codegenBLOCK(BLOCK *node) {
     // TODO: see how to implement scoping; we can also do an "if true"
     codegenSTATEMENTS(node->stmts);
 
-    // Python requires at least one statement to be syntactically correct
+    // Python requires that to be syntactically correct, there be at least one statement in a block
     if (!node->stmts) {
         codegenIndent(c_indent);
         fprintf(codegen_file, "pass\n");
@@ -172,7 +172,6 @@ void codegenSTATEMENT(STATEMENT *node) {
             //     prettySWITCH_CASELIST(node->val.switch_stmt.caselist);
             break;
         case for_stmt_s:
-            // codegenIndent(c_indent);
             switch(node->val.for_stmt.condition->kind) {
                 case infinite:
                     codegenIndent(c_indent);
@@ -612,14 +611,11 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             codegenEXPR(node->val.expr);
             break;
         case func_call_kind:
-            /*
             codegenIndent(c_indent);
             codegenOTHER_EXPR(node->val.func_call.id);
             fprintf(codegen_file, "(");
-            fprintf(codegen_file, node->val.identifier);
             codegenEXPRLIST(node->val.func_call.args);
-            fprintf(codegen_file, ")", node->val.identifier);
-            */
+            fprintf(codegen_file, ")");
             break;
         case index_kind:
             // prettyOTHER_EXPR(node->val.index.expr);
