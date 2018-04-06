@@ -10,8 +10,6 @@ extern FILE *codegen_file;
 
 // global codegen indentation variable; it is incremented whenever necessary as required by the syntax of the target language (Python)
 int c_indent = 0;
-int insideFor = 0;
-int continueInsideFor = 0;
 
 // function for indenting code
 void codegenIndent(int indent_level) {
@@ -108,8 +106,6 @@ void codegenBLOCK(BLOCK *node) {
 void codegenSTATEMENTS(STATEMENTS *node) {
     for (STATEMENTS *i = node; i; i = i->next) {
         codegenSTATEMENT(i->stmt);
-        if (continueInsideFor)
-            return;
     }
 }
 
@@ -135,10 +131,6 @@ void codegenSTATEMENT(STATEMENT *node) {
             fprintf(codegen_file, "break\n");
             break;
         case continue_stmt_s:
-            if (insideFor) {
-                continueInsideFor = 1;
-                return;
-            }
             codegenIndent(c_indent);
             fprintf(codegen_file, "continue\n");
             break;
@@ -195,9 +187,6 @@ void codegenSTATEMENT(STATEMENT *node) {
                     codegenEXPR(node->val.for_stmt.condition->val.while_expr);
                     fprintf(codegen_file, ":\n");
                     c_indent++;
-                    if (insideFor) {
-                        insideFor = 0;
-                    }
                     codegenBLOCK(node->val.for_stmt.block);
                     c_indent--;
                     fprintf(codegen_file, "\n");
@@ -212,11 +201,6 @@ void codegenSTATEMENT(STATEMENT *node) {
                         codegenEXPR(node->val.for_stmt.condition->val.threepart.condition);
                         fprintf(codegen_file, ":\n");
                         c_indent++;
-                        if (node->val.for_stmt.condition->val.threepart.post) {
-                            insideFor = 1;
-                        }
-                        else
-                            insideFor = 0;
                         codegenBLOCK(node->val.for_stmt.block);
                         c_indent--;
                     }
@@ -224,11 +208,6 @@ void codegenSTATEMENT(STATEMENT *node) {
                         codegenIndent(c_indent);
                         fprintf(codegen_file, "while True:\n");
                         c_indent++;
-                        if (node->val.for_stmt.condition->val.threepart.post) {
-                            insideFor = 1;
-                        }
-                        else
-                            insideFor = 0;
                         codegenBLOCK(node->val.for_stmt.block);
                         c_indent--;
                         fprintf(codegen_file, "\n");
@@ -238,11 +217,6 @@ void codegenSTATEMENT(STATEMENT *node) {
                     if (node->val.for_stmt.condition->val.threepart.post) {
                         c_indent++;
                         codegenSIMPLE(node->val.for_stmt.condition->val.threepart.post);
-                        if (continueInsideFor) {
-                            codegenIndent(c_indent);
-                            fprintf(codegen_file, "continue\n");
-                            continueInsideFor = 0;
-                        }
                         c_indent--;
                         fprintf(codegen_file, "\n");
                     }
