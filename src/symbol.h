@@ -32,6 +32,7 @@ SymbolTable *scopeSymbolTable(SymbolTable *t);
 SYMBOL *putSymbol(SymbolTable *t, char *name, SymbolCategory category, typeKind valKind, void *p, int lineno);
 void addSymbolType(SymbolTable *sym, char *name, DataType *dat);
 SYMBOL *getSymbol(SymbolTable *sym, char *name, int lineno);
+SYMBOL *getSymbol_no_error(SymbolTable *sym, char *name);
 bool defSymbol(SymbolTable *t, char *name);
 
 // AST traversal functions

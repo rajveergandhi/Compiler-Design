@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include "codegen.h"
+#include "symbol.h"
 
 // global variable for the codegen output file
 extern FILE *codegen_file;
@@ -19,8 +21,17 @@ void codegenIndent(int indent_level) {
 }
 
 void codegenPROGRAM(PROGRAM *node) {
+    // import necessary python libraries
+    fprintf(codegen_file, "# import all necessary Python libraries\n");
+    fprintf(codegen_file, "from __future__ import print_function\n\n");
+    
+    // TODO: define all user-defined functions we need
     codegenTOPLEVELDECL(node->topleveldecls);
-    fprintf(codegen_file, "\nif __name__== \"__main__\":\n\tmain()");
+
+    // if symbol table has a function called main, then have it run automatically
+    SYMBOL *s = getSymbol_no_error(node->symboltable, "main");
+    if (s && s->data->valKind == func_signature_type)
+        fprintf(codegen_file, "\nif __name__ == \"__main__\":\n    main()");
 }
 
 void codegenTOPLEVELDECL(TOPLEVELDECL *node) {
@@ -48,8 +59,10 @@ void codegenDCL(DCL *node) {
 }
 
 void codegenVARDCL(VARDCL *node) {
+    // TODO: initialization for uninitialized variables
     for (VARDCL *i = node; i; i = i->next) {
         if (i->exprlist) {
+            codegenIndent(c_indent);
             codegenIDLIST(i->idlist);
             fprintf(codegen_file, " = ");
             codegenEXPRLIST(i->exprlist);
@@ -71,25 +84,23 @@ void codegenFUNCDCL(FUNCDCL *node) {
 
 void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
     fprintf(codegen_file, "(");
-    // for (PARAM_LIST *i = node->params; i; i = i->next) {
-    //     codegenIDLIST(i->idlist);
-    //     printf(" ");
-    //     codegenTYPE(i->type);
-    //     if (i->next)
-    //         printf(", ");
-    // }
+    for (PARAM_LIST *i = node->params; i; i = i->next) {
+        codegenIDLIST(i->idlist);
+        if (i->next)
+            printf(", ");
+    }
     fprintf(codegen_file, "):\n");
-    // if (node->type) {
-    //     printf(" ");
-    //     codegenTYPE(node->type);
-    // }
 }
 
 void codegenBLOCK(BLOCK *node) {
-    //codegenIndent(c_indent);
-    // fprintf(codegen_file, "\n");
+    // TODO: see how to implement scoping; we can also do an "if true"
     codegenSTATEMENTS(node->stmts);
-    // fprintf(codegen_file, "\n");
+
+    // Python requires at least one statement to be syntactically correct
+    if (!node->stmts) {
+        codegenIndent(c_indent);
+        fprintf(codegen_file, "pass\n");
+    }
 }
 
 void codegenSTATEMENTS(STATEMENTS *node) {
@@ -101,38 +112,35 @@ void codegenSTATEMENTS(STATEMENTS *node) {
 void codegenSTATEMENT(STATEMENT *node) {
     switch(node->kind) {
         case dcl_s:
-            codegenIndent(c_indent);
             codegenDCL(node->val.dcl);
             break;
         case simple_s:
-            codegenIndent(c_indent);
             codegenSIMPLE(node->val.simple);
             break;
         case return_stmt_s:
-            // printf("return");
-            // if (node->val.return_stmt) {
-            //     printf(" ");
-            //     prettyEXPR(node->val.return_stmt);
-            // }
-            // printf("\n");
+            codegenIndent(c_indent);
+            fprintf(codegen_file, "return");
+            if (node->val.return_stmt) {
+                fprintf(codegen_file, " ");
+                codegenEXPR(node->val.return_stmt);
+            }
+            fprintf(codegen_file, "\n");
             break;
         case break_stmt_s:
             codegenIndent(c_indent);
             fprintf(codegen_file, "break\n");
             break;
         case continue_stmt_s:
-            // printf("continue\n");
+            codegenIndent(c_indent);
+            fprintf(codegen_file, "continue");
             break;
         case block_s:
-            codegenIndent(c_indent);
             codegenBLOCK(node->val.block);
             break;
         case if_stmt_s:
-            codegenIndent(c_indent);
-            if (node->val.if_stmt.simple) {
+            if (node->val.if_stmt.simple)
                 codegenSIMPLE(node->val.if_stmt.simple);
-                codegenIndent(c_indent);
-            }
+            codegenIndent(c_indent);
             fprintf(codegen_file, "if ");
             codegenEXPR(node->val.if_stmt.expr);
             fprintf(codegen_file, ":\n");
@@ -186,9 +194,7 @@ void codegenSTATEMENT(STATEMENT *node) {
                     break;
                 case threepart:
                     if (node->val.for_stmt.condition->val.threepart.init) {
-                        codegenIndent(c_indent);
                         codegenSIMPLE(node->val.for_stmt.condition->val.threepart.init);
-                        fprintf(codegen_file, "\n");
                     }
                     if (node->val.for_stmt.condition->val.threepart.condition) {
                         codegenIndent(c_indent);
@@ -211,7 +217,6 @@ void codegenSTATEMENT(STATEMENT *node) {
                     // codegenBLOCK(node->val.for_stmt.block);
                     if (node->val.for_stmt.condition->val.threepart.post) {
                         c_indent++;
-                        codegenIndent(c_indent);
                         codegenSIMPLE(node->val.for_stmt.condition->val.threepart.post);
                         c_indent--;
                         fprintf(codegen_file, "\n");
@@ -221,15 +226,19 @@ void codegenSTATEMENT(STATEMENT *node) {
             break;
         case print_stmt_s:
             codegenIndent(c_indent);
-            fprintf(codegen_file, "print ");
+            fprintf(codegen_file, "print(");
             codegenEXPRLIST(node->val.print);
-            fprintf(codegen_file, ",\n");
+            if (node->val.print)
+                fprintf(codegen_file, ", ");
+            fprintf(codegen_file, " sep='', end='')\n");
             break;
         case println_stmt_s:
             codegenIndent(c_indent);
-            fprintf(codegen_file, "print ");
+            fprintf(codegen_file, "print(");
             codegenEXPRLIST(node->val.print);
-            fprintf(codegen_file, "\n");
+            if (node->val.print)
+                fprintf(codegen_file, ", ");
+            fprintf(codegen_file, " sep=' ', end='\\n')\n");
             break;
     }
 }
@@ -274,20 +283,24 @@ void codegenSIMPLE(SIMPLE *node) {
             codegenEXPR(node->val.expr);
             break;
         case increment_kind:
+            codegenIndent(c_indent);
             codegenEXPR(node->val.expr);
-            fprintf(codegen_file, "+=1\n");
+            fprintf(codegen_file, "+= 1\n");
             break;
         case decrement_kind:
+            codegenIndent(c_indent);
             codegenEXPR(node->val.expr);
-            fprintf(codegen_file, "-=1\n");
+            fprintf(codegen_file, "-= 1\n");
             break;
         case assignment_kind:
+            codegenIndent(c_indent);
             codegenEXPRLIST(node->val.assignment.LHS_expr_list);
             fprintf(codegen_file, " %s ", node->val.assignment.assign_op);
             codegenEXPRLIST(node->val.assignment.RHS_expr_list);
             fprintf(codegen_file, "\n");
             break;
         case shortDcl_kind:
+            codegenIndent(c_indent);
             codegenEXPRLIST(node->val.shortDcl.LHS_idlist);
             fprintf(codegen_file, " = ");
             codegenEXPRLIST(node->val.shortDcl.RHS_expr_list);
@@ -499,7 +512,7 @@ void codegenEXPR(EXPR *node) {
         case expressionKindAMP_XOR:
             fprintf(codegen_file, "(");
             codegenEXPR(node->val.binary.lhs);
-            fprintf(codegen_file, " &^ ");
+            fprintf(codegen_file, " & ~");
             codegenEXPR(node->val.binary.rhs);
             fprintf(codegen_file, ")");
             break;
@@ -520,14 +533,14 @@ void codegenEXPR(EXPR *node) {
         case expressionKindLogicalAnd:
             fprintf(codegen_file, "(");
             codegenEXPR(node->val.binary.lhs);
-            fprintf(codegen_file, " && ");
+            fprintf(codegen_file, " and ");
             codegenEXPR(node->val.binary.rhs);
             fprintf(codegen_file, ")");
             break;
         case expressionKindLogicalOr:
             fprintf(codegen_file, "(");
             codegenEXPR(node->val.binary.lhs);
-            fprintf(codegen_file, " || ");
+            fprintf(codegen_file, " or ");
             codegenEXPR(node->val.binary.rhs);
             fprintf(codegen_file, ")");
             break;
@@ -542,19 +555,21 @@ void codegenEXPR(EXPR *node) {
             fprintf(codegen_file, "))");
             break;
         case expressionKindNotUnary:
-            fprintf(codegen_file, "(!(");
+            fprintf(codegen_file, "(not(");
             codegenEXPR(node->val.expr_unary);
             fprintf(codegen_file, "))");
             break;
         case expressionKindXorUnary:
-            fprintf(codegen_file, "(^(");
+            fprintf(codegen_file, "(~(");
             codegenEXPR(node->val.expr_unary);
             fprintf(codegen_file, "))");
             break;
         case append_expr:
+            /*
             fprintf(codegen_file, "append(%s, ", node->val.append_expr.identifier);
             codegenEXPR(node->val.append_expr.expr);
             fprintf(codegen_file, ")\n");
+            */
             break;
         case intval:
             fprintf(codegen_file, "%d", node->val.intLiteral);
@@ -566,7 +581,17 @@ void codegenEXPR(EXPR *node) {
             fprintf(codegen_file, "%s", node->val.stringLiteral);
             break;
         case rawstringval:
-            fprintf(codegen_file, "%s", node->val.stringLiteral);
+            {
+                // convert to a raw string in Python
+                char *raw = malloc(strlen(node->val.stringLiteral) + 2*sizeof(char));
+                raw[0] = 'r';
+                raw[1] = '"';
+                strcpy(raw + 2, node->val.stringLiteral + 1);
+                raw[strlen(raw)-1] = '"';
+                raw[strlen(raw)] = '\0';
+
+                fprintf(codegen_file, "%s", raw);
+            }
             break;
         case runeval:
             fprintf(codegen_file, "%s", node->val.runeLiteral);
@@ -580,16 +605,21 @@ void codegenEXPR(EXPR *node) {
 void codegenOTHER_EXPR(OTHER_EXPR *node) {
     switch (node->kind) {
         case identifier_kind:
+            // TODO: getsymbol on node->val.identifier; if it is true/false and type is bool then print "True" or "False"
             fprintf(codegen_file, "%s", node->val.identifier);
             break;
         case paren_kind:
             codegenEXPR(node->val.expr);
             break;
         case func_call_kind:
-            // prettyOTHER_EXPR(node->val.func_call.id);
-            // printf("(");
-            // prettyEXPRLIST(node->val.func_call.args);
-            // printf(")");
+            /*
+            codegenIndent(c_indent);
+            codegenOTHER_EXPR(node->val.func_call.id);
+            fprintf(codegen_file, "(");
+            fprintf(codegen_file, node->val.identifier);
+            codegenEXPRLIST(node->val.func_call.args);
+            fprintf(codegen_file, ")", node->val.identifier);
+            */
             break;
         case index_kind:
             // prettyOTHER_EXPR(node->val.index.expr);
@@ -603,292 +633,3 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             break;
     }
 }
-    /*
-    switch (node->kind) {
-        case k_program:
-            // include all libraries necessary
-            fprintf(codegen_file, "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <stdbool.h>\n\n");
-
-            // create a local string concatenation function so that we can also add two string literals
-            fprintf(codegen_file, "char *strcat_local(char *str1, const char *str2) {\n" \
-                            "    size_t len1 = strlen(str1);\n" \
-                            "    size_t len2 = strlen(str2);\n" \
-                            "    char *result = (char*)malloc(len1 + len2 + 1);\n" \
-                            "    size_t i, j;\n"
-                            "    for (i = 0; str1[i] != '\\0'; ++i)\n" \
-                            "        result[i] = str1[i];\n" \
-                            "    for (j = 0; str2[j] != '\\0'; j++)\n" \
-                            "        result[i+j] = str2[j];\n" \
-                            "    result[i+j] = '\\0';\n" \
-                            "    return result;\n" \
-                            "}\n\n");
-
-            // function for multiplying a string to an int; semantics are repetition
-            fprintf(codegen_file, "char *str_mult(const char *str, int num) {\n" \
-                            "    if (num < 0) {\n"
-                            "        fprintf(stderr, \"Error: string multiplication by a negative number\\n\");\n"
-                            "        exit(1);\n" \
-                            "    }\n" \
-                            "    size_t len = strlen(str);\n" \
-                            "    char *result = (char*)malloc(len * num + 1);\n" \
-                            "    for(int i = 0; i < num; ++i)\n" \
-                            "        strcpy(result + len * i, str);\n" \
-                            "    return result;\n" \
-                            "}\n\n");
-
-            // function for reading a bool as a string: "TRUE" or "FALSE" or runtime error
-            fprintf(codegen_file, "bool read_bool() {\n" \
-                            "    char bool_string[1024];\n" \
-                            "    scanf(\"%%s\", bool_string);\n" \
-                            "    if (strcmp(bool_string, \"TRUE\") == 0)\n" \
-                            "        return true;\n" \
-                            "    else if (strcmp(bool_string, \"FALSE\") == 0)\n" \
-                            "        return false;\n" \
-                            "    else {\n" \
-                            "        fprintf(stderr, \"Error: invalid boolean string input. Must be 'TRUE' or 'FALSE'\\n\");\n" \
-                            "        exit(1);\n" \
-                            "    }\n" \
-                            "}\n\n");
-
-            fprintf(codegen_file, "int main() {\n");
-            c_indent++;
-            if (node->val.program.dcls)
-                codegen(node->val.program.dcls);
-            fprintf(codegen_file, "\n");
-            if (node->val.program.stmts)
-                codegen(node->val.program.stmts);
-            codegenPrettyIndent(c_indent);
-            fprintf(codegen_file, "return 0;\n");
-            c_indent--;
-            fprintf(codegen_file, "}\n");
-            break;
-        case k_dcl:
-            for (NODE *i = node; i != NULL; i = i->val.dcl.nextDcl) {
-                codegenPrettyIndent(c_indent);
-                if (strcmp(i->val.dcl.type, "string") == 0) {
-                    fprintf(codegen_file, "char %s[1024] = ", i->val.dcl.identifier);
-                }
-                else {
-                    if (strcmp(i->val.dcl.type, "boolean") == 0) i->val.dcl.type = "bool";
-                    fprintf(codegen_file, "%s %s = ", i->val.dcl.type, i->val.dcl.identifier);
-                }
-                codegen(i->val.dcl.expr);
-                fprintf(codegen_file, ";\n");
-            }
-            break;
-        case k_statementKindRead:
-            codegenPrettyIndent(c_indent);
-            switch (node->s_kind) {
-                case s_int:
-                    fprintf(codegen_file, "scanf(\"%%d\", &%s);\n", node->val.stmt.type.stmtRead);
-                    break;
-                case s_bool:
-                    fprintf(codegen_file, "%s = read_bool();\n", node->val.stmt.type.stmtRead);
-                    break;
-                case s_float:
-                    fprintf(codegen_file, "scanf(\"%%f\", &%s);\n", node->val.stmt.type.stmtRead);
-                    break;
-                case s_string:
-                    fprintf(codegen_file, "scanf(\"%%s\", %s);\n", node->val.stmt.type.stmtRead);
-                    break;
-            }
-            if (node->val.stmt.nextStmt)
-                codegen(node->val.stmt.nextStmt);
-            break;
-        case k_statementKindPrint:
-            codegenPrettyIndent(c_indent);
-            if (node->val.stmt.type.stmtPrint->s_kind == s_bool) {
-                fprintf(codegen_file, "printf(\"%%s\", ");
-                codegen(node->val.stmt.type.stmtPrint);
-                fprintf(codegen_file, "? \"TRUE\\n\": \"FALSE\\n\");\n");
-            }
-            else {
-                switch (node->val.stmt.type.stmtPrint->s_kind) {
-                    case s_int:
-                        fprintf(codegen_file, "printf(\"%%d\\n\", ");
-                        break;
-                    case s_float:
-                        fprintf(codegen_file, "printf(\"%%f\\n\", ");
-                        break;
-                    case s_string:
-                        fprintf(codegen_file, "printf(\"%%s\\n\", ");
-                        break;
-                }
-                codegen(node->val.stmt.type.stmtPrint);
-                fprintf(codegen_file, ");\n");
-            }
-            if (node->val.stmt.nextStmt)
-                codegen(node->val.stmt.nextStmt);
-            break;
-        case k_statementKindAssignment:
-            codegenPrettyIndent(c_indent);
-            if (node->val.stmt.type.stmtAssign.expr->s_kind == s_string) {
-                fprintf(codegen_file, "strcpy(%s, ", node->val.stmt.type.stmtAssign.identifier);
-                codegen(node->val.stmt.type.stmtAssign.expr);
-                fprintf(codegen_file, ");\n");
-            }
-            else {
-                fprintf(codegen_file, "%s = ", node->val.stmt.type.stmtAssign.identifier);
-                codegen(node->val.stmt.type.stmtAssign.expr);
-                fprintf(codegen_file, ";\n");
-            }
-            if (node->val.stmt.nextStmt)
-                codegen(node->val.stmt.nextStmt);
-            break;
-        case k_statementKindWhile:
-            codegenPrettyIndent(c_indent);
-            fprintf(codegen_file, "while (");
-            codegen(node->val.stmt.type.stmtWhile.expr);
-            fprintf(codegen_file, ") {\n");
-            c_indent++;
-            if (node->val.stmt.type.stmtWhile.stmts)
-                codegen(node->val.stmt.type.stmtWhile.stmts);
-            c_indent--;
-            codegenPrettyIndent(c_indent);
-            fprintf(codegen_file, "}\n");
-            if (node->val.stmt.nextStmt)
-                codegen(node->val.stmt.nextStmt);
-            break;
-        case k_statementKindIfStmt:
-            codegenPrettyIndent(c_indent);
-            fprintf(codegen_file, "if (");
-            codegen(node->val.stmt.type.stmtIf.expr);
-            fprintf(codegen_file, ") {\n");
-            c_indent++;
-            if (node->val.stmt.type.stmtIf.stmts)
-                codegen(node->val.stmt.type.stmtIf.stmts);
-            c_indent--;
-            codegenPrettyIndent(c_indent);
-            fprintf(codegen_file, "}\n");
-            if (node->val.stmt.nextStmt)
-                codegen(node->val.stmt.nextStmt);
-            break;
-        case k_statementKindIfElseStmt:
-            codegenPrettyIndent(c_indent);
-            fprintf(codegen_file, "if (");
-            codegen(node->val.stmt.type.stmtIfElse.expr);
-            fprintf(codegen_file, ") {\n");
-            c_indent++;
-            if (node->val.stmt.type.stmtIfElse.ifStmts)
-                codegen(node->val.stmt.type.stmtIfElse.ifStmts);
-            c_indent--;
-            codegenPrettyIndent(c_indent);
-            fprintf(codegen_file, "} else {\n");
-            c_indent++;
-            if (node->val.stmt.type.stmtIfElse.elseStmts)
-                codegen(node->val.stmt.type.stmtIfElse.elseStmts);
-            c_indent--;
-            codegenPrettyIndent(c_indent);
-            fprintf(codegen_file, "}\n");
-            if (node->val.stmt.nextStmt)
-                codegen(node->val.stmt.nextStmt);
-            break;
-        case k_expressionKindIdentifier:
-            fprintf(codegen_file, "%s", node->val.identifier);
-            break;
-        case k_expressionKindIntLiteral:
-            fprintf(codegen_file, "%d", node->val.intLiteral);
-            break;
-        case k_expressionKindFloatLiteral:
-            fprintf(codegen_file, "%f", node->val.floatLiteral);
-            break;
-        case k_expressionKindBoolLiteral:
-            fprintf(codegen_file, "%d", node->val.boolLiteral);
-            break;
-        case k_expressionKindStringLiteral:
-            fprintf(codegen_file, "%s", node->val.stringLiteral);
-            break;
-        case k_expressionKindAddition:
-            if ((node->val.exp_binary.lhs->s_kind == s_string) && (node->val.exp_binary.rhs->s_kind == s_string)) {
-                fprintf(codegen_file, "strcat_local(");
-                codegen(node->val.exp_binary.lhs);
-                fprintf(codegen_file, ", ");
-                codegen(node->val.exp_binary.rhs);
-                fprintf(codegen_file, ")");
-            }
-            else {
-                fprintf(codegen_file, "(");
-                codegen(node->val.exp_binary.lhs);
-                fprintf(codegen_file, " + ");
-                codegen(node->val.exp_binary.rhs);
-                fprintf(codegen_file, ")");
-            }
-            break;
-        case k_expressionKindSubtraction:
-            fprintf(codegen_file, "(");
-            codegen(node->val.exp_binary.lhs);
-            fprintf(codegen_file, " - ");
-            codegen(node->val.exp_binary.rhs);
-            fprintf(codegen_file, ")");
-            break;
-        case k_expressionKindMultiplication:
-            if ((node->val.exp_binary.lhs->s_kind == s_string) && (node->val.exp_binary.rhs->s_kind == s_int)) {
-                fprintf(codegen_file, "str_mult(");
-                codegen(node->val.exp_binary.lhs);
-                fprintf(codegen_file, ", ");
-                codegen(node->val.exp_binary.rhs);
-                fprintf(codegen_file, ")");
-            }
-            else if ((node->val.exp_binary.lhs->s_kind == s_int) && (node->val.exp_binary.rhs->s_kind == s_string)) {
-                fprintf(codegen_file, "str_mult(");
-                codegen(node->val.exp_binary.rhs);
-                fprintf(codegen_file, ", ");
-                codegen(node->val.exp_binary.lhs);
-                fprintf(codegen_file, ")");
-            }
-            else {
-                fprintf(codegen_file, "(");
-                codegen(node->val.exp_binary.lhs);
-                fprintf(codegen_file, " * ");
-                codegen(node->val.exp_binary.rhs);
-                fprintf(codegen_file, ")");
-            }
-            break;
-        case k_expressionKindDivision:
-            fprintf(codegen_file, "(");
-            codegen(node->val.exp_binary.lhs);
-            fprintf(codegen_file, " / ");
-            codegen(node->val.exp_binary.rhs);
-            fprintf(codegen_file, ")");
-            break;
-        case k_expressionKindEqualsEquals:
-            fprintf(codegen_file, "(");
-            codegen(node->val.exp_binary.lhs);
-            fprintf(codegen_file, " == ");
-            codegen(node->val.exp_binary.rhs);
-            fprintf(codegen_file, ")");
-            break;
-        case k_expressionKindNotEquals:
-            fprintf(codegen_file, "(");
-            codegen(node->val.exp_binary.lhs);
-            fprintf(codegen_file, " != ");
-            codegen(node->val.exp_binary.rhs);
-            fprintf(codegen_file, ")");
-            break;
-        case k_expressionKindLogicalAnd:
-            fprintf(codegen_file, "(");
-            codegen(node->val.exp_binary.lhs);
-            fprintf(codegen_file, " && ");
-            codegen(node->val.exp_binary.rhs);
-            fprintf(codegen_file, ")");
-            break;
-        case k_expressionKindLogicalOr:
-            fprintf(codegen_file, "(");
-            codegen(node->val.exp_binary.lhs);
-            fprintf(codegen_file, " || ");
-            codegen(node->val.exp_binary.rhs);
-            fprintf(codegen_file, ")");
-            break;
-        case k_expressionKindNot:
-            fprintf(codegen_file, "!(");
-            codegen(node->val.exp_unary);
-            fprintf(codegen_file, ")");
-            break;
-        case k_expressionKindUnaryMinus:
-            fprintf(codegen_file, "-(");
-            codegen(node->val.exp_unary);
-            fprintf(codegen_file, ")");
-            break;
-    }
-}
-*/

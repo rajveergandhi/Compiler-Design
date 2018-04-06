@@ -191,6 +191,20 @@ SYMBOL *getSymbol(SymbolTable *sym, char *name, int lineno) {
     return getSymbol(sym->parent, name, lineno);
 }
 
+// retreive symbol; return NULL if symbol not found
+SYMBOL *getSymbol_no_error(SymbolTable *sym, char *name) {
+    int i = Hash(name);
+    for (SYMBOL *s = sym->table[i]; s; s = s->next) {
+        if (strcmp(s->name,name) == 0){
+            return s;
+        }
+    }
+    if (sym->parent == NULL)
+        return NULL;
+
+    return getSymbol_no_error(sym->parent, name);
+}
+
 // return true if "name" is defined in "sym" (DOES NOT CHECK PARENT SCOPES), return false otherwise
 bool defSymbol(SymbolTable *sym, char *name) {
     int i = Hash(name);
