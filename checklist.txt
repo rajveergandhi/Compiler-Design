@@ -1,4 +1,11 @@
-COMPLETE: 
+COMPLETE:
+*********
+topleveldcl
+dcl
+funcdcl
+func_signature
+block
+statements
 statement: break
 statement: continue
 statement: declaration
@@ -8,8 +15,12 @@ statement: block
 statement: print
 statement: println
 simple: <all>
+exprlist
+expr: <all>
+
 
 TODO:
+*****
 statement: if
 statement: for
 statement: switch

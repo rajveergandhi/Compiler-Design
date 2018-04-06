@@ -564,11 +564,9 @@ void codegenEXPR(EXPR *node) {
             fprintf(codegen_file, "))");
             break;
         case append_expr:
-            /*
-            fprintf(codegen_file, "append(%s, ", node->val.append_expr.identifier);
+            fprintf(codegen_file, "%s + [", node->val.append_expr.identifier);
             codegenEXPR(node->val.append_expr.expr);
-            fprintf(codegen_file, ")\n");
-            */
+            fprintf(codegen_file, "]");
             break;
         case intval:
             fprintf(codegen_file, "%d", node->val.intLiteral);
