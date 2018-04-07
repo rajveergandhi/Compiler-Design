@@ -60,13 +60,58 @@ void codegenDCL(DCL *node) {
 void codegenVARDCL(VARDCL *node) {
     // TODO: initialization for uninitialized variables
     for (VARDCL *i = node; i; i = i->next) {
-        if (i->exprlist) {
+        EXPRLIST *k = i->exprlist;
+        for (IDLIST *j = node->idlist; j; j = j->next) {
             codegenIndent(c_indent);
-            codegenIDLIST(i->idlist);
+            fprintf(codegen_file, "%s", j->id);
             fprintf(codegen_file, " = ");
-            codegenEXPRLIST(i->exprlist);
+            if (k) {
+                codegenEXPR(k->expr);
+                k = k->next;
+            }
+            else
+                codegenTYPE(i->type);
             fprintf(codegen_file, "\n");
         }
+    }
+}
+
+void codegenTYPE(TYPE *node) {
+    switch (node->kind) {
+        case basic_type_kind:
+            if (strcmp(node->val.basic_type, "int")==0)
+                fprintf(codegen_file, "0");
+            else if (strcmp(node->val.basic_type, "float64")==0)
+                fprintf(codegen_file, "0.0");
+            else if (strcmp(node->val.basic_type, "string")==0)
+                fprintf(codegen_file, "\"\"");
+            else if (strcmp(node->val.basic_type, "rune")==0)
+                fprintf(codegen_file, "\"\"");
+            else if (strcmp(node->val.basic_type, "bool")==0)
+                fprintf(codegen_file, "False");
+            break;
+        case slice_type_kind:
+            fprintf(codegen_file, "[");
+            fprintf(codegen_file, "]");
+            break;
+        case array_type_kind:
+            fprintf(codegen_file, "[");
+            codegenTYPE(node->val.array_type.type);
+            fprintf(codegen_file, "]");
+            fprintf(codegen_file, " * %d", node->val.array_type.size);
+            break;
+            /*
+        case struct_type_kind:
+            {
+                SymbolTable *structSym = initSymbolTable();
+                for (STRUCT_TYPE *i = node->val.struct_type; i; i = i->next) {
+                    i->symboltable = structSym;
+                    for (IDLIST *j = i->idlist; j; j = j->next)
+                        putSymbol(structSym, j->id, variable_category, type_type, i->type, j->lineno);
+                }
+            }
+            break;
+            */
     }
 }
 
@@ -631,17 +676,16 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             codegenEXPR(node->val.expr);
             break;
         case func_call_kind:
-            codegenIndent(c_indent);
             codegenOTHER_EXPR(node->val.func_call.id);
             fprintf(codegen_file, "(");
             codegenEXPRLIST(node->val.func_call.args);
             fprintf(codegen_file, ")");
             break;
         case index_kind:
-            // prettyOTHER_EXPR(node->val.index.expr);
-            // printf("[");
-            // prettyEXPR(node->val.index.index);
-            // printf("]");
+            codegenOTHER_EXPR(node->val.index.expr);
+            fprintf(codegen_file, "[");
+            codegenEXPR(node->val.index.index);
+            fprintf(codegen_file, "]");
             break;
         case struct_access_kind:
             // prettyOTHER_EXPR(node->val.struct_access.expr);

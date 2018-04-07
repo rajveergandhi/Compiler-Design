@@ -7,6 +7,7 @@ void codegenPROGRAM(PROGRAM *node);
 void codegenTOPLEVELDECL(TOPLEVELDECL *node);
 void codegenDCL(DCL *node);
 void codegenVARDCL(VARDCL *node);
+void codegenTYPE(TYPE *node);
 void codegenTYPEDCL(TYPEDCL *node);
 void codegenFUNCDCL(FUNCDCL *node);
 void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node);

@@ -28,6 +28,7 @@ TODO:
 *****
 vardcl
 typedcl
+type
 statement: switch
 idlist
 other_expr: index
