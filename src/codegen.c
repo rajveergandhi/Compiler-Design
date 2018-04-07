@@ -10,6 +10,7 @@ extern FILE *codegen_file;
 
 // global codegen indentation variable; it is incremented whenever necessary as required by the syntax of the target language (Python)
 int c_indent = 0;
+int j = 0;
 
 // function for indenting code
 void codegenIndent(int indent_level) {
@@ -166,16 +167,47 @@ void codegenSTATEMENT(STATEMENT *node) {
             break;
         case switch_stmt_s:
             // printf("switch ");
-            // if (node->val.switch_stmt.condition->simple) {
-            //     prettySIMPLE(node->val.switch_stmt.condition->simple);
-            //     printf("; ");
-            // }
-            // if (node->val.switch_stmt.condition->expr) {
-            //     prettyEXPR(node->val.switch_stmt.condition->expr);
-            //     printf(" ");
-            // }
-            // if (node->val.switch_stmt.caselist)
-            //     prettySWITCH_CASELIST(node->val.switch_stmt.caselist);
+            j = 0;
+            if (node->val.switch_stmt.condition->simple)
+                codegenSIMPLE(node->val.switch_stmt.condition->simple);
+            codegenIndent(c_indent);
+            if (node->val.switch_stmt.condition->expr) {
+                fprintf(codegen_file, "if ");
+                codegenEXPR(node->val.switch_stmt.condition->expr);
+                fprintf(codegen_file, " == ");
+            }
+            else
+                fprintf(codegen_file, "if ");
+            if (node->val.switch_stmt.caselist) {
+                for (SWITCH_CASELIST *i = node->val.switch_stmt.caselist; i; i=i->next) {
+                    if (i->default_case) {
+                        codegenIndent(c_indent);
+                        fprintf(codegen_file, "else:\n");
+                    }
+                    else {
+                        if (j!=0) {
+                            codegenIndent(c_indent);
+                            fprintf(codegen_file, "elif ");
+                            codegenEXPR(node->val.switch_stmt.condition->expr);
+                            fprintf(codegen_file, " == ");
+                        }
+                        //codegenEXPRLIST(i->exprlist);
+                        for (EXPRLIST *k = i->exprlist; k; k = k->next) {
+                            codegenEXPR(k->expr);
+                            if (k->next) {
+                                fprintf(codegen_file, " or ");
+                                codegenEXPR(node->val.switch_stmt.condition->expr);
+                                fprintf(codegen_file, " == ");
+                            }
+                        }
+                        fprintf(codegen_file, ":\n");
+                        j++;
+                    }
+                    if (i->statements)
+                        codegenIndent(c_indent);
+                        codegenSTATEMENTS(i->statements);
+                }
+            }
             break;
         case for_stmt_s:
             switch(node->val.for_stmt.condition->kind) {

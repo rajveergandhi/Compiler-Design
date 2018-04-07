@@ -13,6 +13,7 @@ void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node);
 void codegenBLOCK(BLOCK *node);
 void codegenSTATEMENTS(STATEMENTS *node);
 void codegenSTATEMENT(STATEMENT *node);
+void codegenSWITCH_CASELIST(SWITCH_CASELIST *node);
 void codegenELSE_BLOCK(ELSE_BLOCK *node);
 void codegenSIMPLE(SIMPLE *node);
 void codegenIDLIST(IDLIST *node);
