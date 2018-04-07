@@ -192,34 +192,40 @@ void codegenSTATEMENT(STATEMENT *node) {
                     fprintf(codegen_file, "\n");
                     break;
                 case threepart:
-                    if (node->val.for_stmt.condition->val.threepart.init) {
+                    if (node->val.for_stmt.condition->val.threepart.init)
                         codegenSIMPLE(node->val.for_stmt.condition->val.threepart.init);
-                    }
-                    if (node->val.for_stmt.condition->val.threepart.condition) {
-                        codegenIndent(c_indent);
-                        fprintf(codegen_file, "while ");
-                        codegenEXPR(node->val.for_stmt.condition->val.threepart.condition);
-                        fprintf(codegen_file, ":\n");
-                        c_indent++;
-                        codegenBLOCK(node->val.for_stmt.block);
-                        c_indent--;
-                    }
-                    else {
-                        codegenIndent(c_indent);
-                        fprintf(codegen_file, "while True:\n");
-                        c_indent++;
-                        codegenBLOCK(node->val.for_stmt.block);
-                        c_indent--;
-                        fprintf(codegen_file, "\n");
-                    }
-                    // codegenIndent(c_indent);
-                    // codegenBLOCK(node->val.for_stmt.block);
+                    codegenIndent(c_indent);
+                    fprintf(codegen_file, "while ");
+                    node->val.for_stmt.condition->val.threepart.condition ? codegenEXPR(node->val.for_stmt.condition->val.threepart.condition) : fprintf(codegen_file, "True");
+                    fprintf(codegen_file, ":\n");
+                    c_indent++;
+
+                    // if post expression exists, then either insert it at the end of BLOCK, or immediately preceding the first encountered "continue" statement in the block
                     if (node->val.for_stmt.condition->val.threepart.post) {
-                        c_indent++;
-                        codegenSIMPLE(node->val.for_stmt.condition->val.threepart.post);
-                        c_indent--;
-                        fprintf(codegen_file, "\n");
+                        for (STATEMENTS *i = node->val.for_stmt.block->stmts; i; i = i->next) {
+                            // case 1: continue statement is the first statement
+                            if (i->stmt->kind == continue_stmt_s) {
+                                STATEMENTS *post_stmt = makeSTATEMENTS(makeSTATEMENT_simple(node->val.for_stmt.condition->val.threepart.post), i);
+                                node->val.for_stmt.block->stmts = post_stmt;
+                                break;
+                            }
+                            // case 2: continue statement exists but is not the first statement
+                            else if (i->next && i->next->stmt->kind == continue_stmt_s) {
+                                STATEMENTS *post_stmt = makeSTATEMENTS(makeSTATEMENT_simple(node->val.for_stmt.condition->val.threepart.post), i->next);
+                                i->next = post_stmt;
+                                break;
+                            }
+                            // case 3: continue statement does not exist
+                            else if (!(i->next)) {
+                                STATEMENTS *post_stmt = makeSTATEMENTS(makeSTATEMENT_simple(node->val.for_stmt.condition->val.threepart.post), NULL);
+                                i->next = post_stmt;
+                                break;
+                            }
+                        }
                     }
+
+                    codegenBLOCK(node->val.for_stmt.block);
+                    c_indent--;
                     break;
             }
             break;
