@@ -1,5 +1,6 @@
 COMPLETE:
 *********
+program
 topleveldcl
 dcl
 funcdcl
@@ -18,8 +19,18 @@ simple: <all>
 exprlist
 expr: <all>
 statement: if
+statement: for
+other_expr: identifier
+other_expr: parenthesis
+other_expr: func call
 
 TODO:
 *****
-statement: for
+vardcl
+typedcl
 statement: switch
+idlist
+other_expr: index
+other_expr: struct access
+<scoping>
+<name clashes with Python keywords>

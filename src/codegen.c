@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "codegen.h"
-#include "symbol.h" // TODO: remove this and use "data"
+#include "symbol.h"
 
 // global variable for the codegen output file
 extern FILE *codegen_file;
@@ -25,7 +25,6 @@ void codegenPROGRAM(PROGRAM *node) {
     fprintf(codegen_file, "# import all necessary Python libraries\n");
     fprintf(codegen_file, "from __future__ import print_function\n\n");
 
-    // TODO: define all user-defined functions we need
     codegenTOPLEVELDECL(node->topleveldecls);
 
     // if symbol table has a function called main, then have it run automatically
@@ -93,7 +92,6 @@ void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
 }
 
 void codegenBLOCK(BLOCK *node) {
-    // TODO: see how to implement scoping; we can also do an "if true"
     codegenSTATEMENTS(node->stmts);
 
     // Python requires that to be syntactically correct, there be at least one statement in a block
