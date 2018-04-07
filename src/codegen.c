@@ -26,7 +26,6 @@ void codegenPROGRAM(PROGRAM *node) {
     fprintf(codegen_file, "# import all necessary Python libraries\n");
     fprintf(codegen_file, "from __future__ import print_function\n\n");
 
-    // TODO: define all user-defined functions we need
     codegenTOPLEVELDECL(node->topleveldecls);
 
     // if symbol table has a function called main, then have it run automatically
@@ -94,7 +93,6 @@ void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
 }
 
 void codegenBLOCK(BLOCK *node) {
-    // TODO: see how to implement scoping; we can also do an "if true"
     codegenSTATEMENTS(node->stmts);
 
     // Python requires that to be syntactically correct, there be at least one statement in a block
@@ -253,12 +251,17 @@ void codegenSTATEMENT(STATEMENT *node) {
                                 i->next = post_stmt;
                                 break;
                             }
-                            // case 3: continue statement does not exist
+                            // case 3: continue statement does not exist but there is at least one statement
                             else if (!(i->next)) {
                                 STATEMENTS *post_stmt = makeSTATEMENTS(makeSTATEMENT_simple(node->val.for_stmt.condition->val.threepart.post), NULL);
                                 i->next = post_stmt;
                                 break;
                             }
+                        }
+                        // case 4: no statements in loop
+                        if (!(node->val.for_stmt.block->stmts)) {
+                            STATEMENTS *post_stmt = makeSTATEMENTS(makeSTATEMENT_simple(node->val.for_stmt.condition->val.threepart.post), NULL);
+                            node->val.for_stmt.block->stmts = post_stmt;
                         }
                     }
 
@@ -649,8 +652,12 @@ void codegenEXPR(EXPR *node) {
 void codegenOTHER_EXPR(OTHER_EXPR *node) {
     switch (node->kind) {
         case identifier_kind:
-            // TODO: getsymbol on node->val.identifier; if it is true/false and type is bool then print "True" or "False"
-            fprintf(codegen_file, "%s", node->val.identifier);
+            if (strcmp(node->val.identifier, "true")==0)
+                fprintf(codegen_file, "True");
+            else if (strcmp(node->val.identifier, "false")==0)
+                fprintf(codegen_file, "False");
+            else
+                fprintf(codegen_file, "%s", node->val.identifier);
             break;
         case paren_kind:
             codegenEXPR(node->val.expr);
