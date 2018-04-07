@@ -36,3 +36,4 @@ typedcl
 type
 other_expr: struct access
 <scoping>
+casts
