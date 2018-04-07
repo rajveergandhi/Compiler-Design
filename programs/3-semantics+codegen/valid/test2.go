@@ -1,207 +1,364 @@
-/* Chained if-else's with initial statements. */
-
 package main
 
 func main() {
-	if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-
-	} else if x := 1; true {
-
-	} else if x := 2; true {
-		print(x)
+	if (true) {
+		println("true")
+		if (false) {
+		println("false")
+	} else {
+		println("true")
 	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	} else {
+		println("false")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+	if (true) {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	}
+	} else {
+		println("false")
+	}
+
+
+	if (false) {
+		println("false")
+	} else {
+		println("true")
+		if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	} else {
+		println("false")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+	if (true) {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	}
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+		if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	} else {
+		println("false")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+	if (true) {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	}
+	} else {
+		println("false")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	} else {
+		println("true")
+		if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	} else {
+		println("false")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+	if (true) {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	}
+	}
+
+	if (true) {
+		println("true")
+		if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	} else {
+		println("false")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+	if (true) {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	}
+	}
+
+
+	if (false) {
+		println("false")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+		if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	} else {
+		println("false")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+	if (true) {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	}
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+		if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	} else {
+		println("false")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	} else {
+		println("true")
+	}
+
+	if (true) {
+		println("true")
+	}
+
+
+	if (false) {
+		println("false")
+	}
+
+
+	if (false) {
+		println("false")
+	} else if (true) {
+		println("true")
+	}
+
+	if (false) {
+		println("false")
+	} else if (false) {
+		println("false")
+	}
+	}
+
 }
