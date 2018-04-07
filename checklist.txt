@@ -15,6 +15,7 @@ statement: return
 statement: block
 statement: print
 statement: println
+statement: switch
 simple: <all>
 exprlist
 expr: <all>
@@ -28,7 +29,6 @@ TODO:
 *****
 vardcl
 typedcl
-statement: switch
 idlist
 other_expr: index
 other_expr: struct access
