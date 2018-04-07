@@ -201,9 +201,16 @@ void codegenSTATEMENT(STATEMENT *node) {
                         fprintf(codegen_file, ":\n");
                         j++;
                     }
-                    if (i->statements)
+                    if (i->statements) {
                         codegenIndent(c_indent);
                         codegenSTATEMENTS(i->statements);
+                    }
+                    else {
+                        c_indent++;
+                        codegenIndent(c_indent);
+                        fprintf(codegen_file, "pass\n");
+                        c_indent--;
+                    }
                 }
             }
             break;
