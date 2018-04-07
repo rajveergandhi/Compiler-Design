@@ -24,13 +24,13 @@ statement: for
 other_expr: identifier
 other_expr: parenthesis
 other_expr: func call
+idlist
+<name clashes with Python keywords>
 
 TODO:
 *****
 vardcl
 typedcl
-idlist
 other_expr: index
 other_expr: struct access
 <scoping>
-<name clashes with Python keywords>

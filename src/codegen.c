@@ -75,7 +75,10 @@ void codegenTYPEDCL(TYPEDCL *node) {
 }
 
 void codegenFUNCDCL(FUNCDCL *node) {
-    fprintf(codegen_file, "def %s", node->identifier);
+    if (strcmp(node->identifier, "main") == 0)
+        fprintf(codegen_file, "def %s", node->identifier);
+    else
+        fprintf(codegen_file, "def __GOLITE__%s", node->identifier);
     codegenFUNC_SIGNATURE(node->signature);
     c_indent++;
     codegenBLOCK(node->block);
@@ -623,7 +626,7 @@ void codegenEXPR(EXPR *node) {
             fprintf(codegen_file, "))");
             break;
         case append_expr:
-            fprintf(codegen_file, "%s + [", node->val.append_expr.identifier);
+            fprintf(codegen_file, "__GOLITE__%s + [", node->val.append_expr.identifier);
             codegenEXPR(node->val.append_expr.expr);
             fprintf(codegen_file, "]");
             break;
