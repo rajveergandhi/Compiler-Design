@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "codegen.h"
 #include "symbol.h"
+#include "type.h"
 
 // global variable for the codegen output file
 extern FILE *codegen_file;
@@ -59,19 +60,32 @@ void codegenDCL(DCL *node) {
 }
 
 void codegenVARDCL(VARDCL *node) {
-    // TODO: initialization for uninitialized variables recursively
     for (VARDCL *i = node; i; i = i->next) {
         EXPRLIST *k = i->exprlist;
         for (IDLIST *j = node->idlist; j; j = j->next) {
-            codegenIndent(c_indent);
-            fprintf(codegen_file, "__GOLITE__%s", j->id);
-            fprintf(codegen_file, " = ");
+            if (!i->type || i->type->kind != struct_type_kind) {
+                codegenIndent(c_indent);
+                fprintf(codegen_file, "__GOLITE__%s", j->id);
+                fprintf(codegen_file, " = ");
+            }
             if (k) {
                 codegenEXPR(k->expr);
                 k = k->next;
             }
-            else
-                codegenTYPE(i->type);
+            else {
+                if (i->type->kind == struct_type_kind) {
+                    codegenIndent(c_indent);
+                    fprintf(codegen_file, "class __GOLITE__%s__:\n", j->id);
+                    c_indent++;
+                    codegenTYPE(i->type);
+                    c_indent--;
+                    codegenIndent(c_indent);
+                    fprintf(codegen_file, "__GOLITE__%s = __GOLITE__%s__()\n", j->id, j->id);
+                }
+                else {
+                    codegenTYPE(i->type);
+                }
+            }
             fprintf(codegen_file, "\n");
         }
     }
@@ -90,6 +104,8 @@ void codegenTYPE(TYPE *node) {
                 fprintf(codegen_file, "\"\"");
             else if (strcmp(node->val.basic_type, "bool")==0)
                 fprintf(codegen_file, "False");
+            else
+                fprintf(codegen_file, "__GOLITE__%s", node->val.basic_type);
             break;
         case slice_type_kind:
             fprintf(codegen_file, "[");
@@ -101,22 +117,44 @@ void codegenTYPE(TYPE *node) {
             fprintf(codegen_file, "]");
             fprintf(codegen_file, " * %d", node->val.array_type.size);
             break;
-            /*
         case struct_type_kind:
             {
-                SymbolTable *structSym = initSymbolTable();
                 for (STRUCT_TYPE *i = node->val.struct_type; i; i = i->next) {
-                    i->symboltable = structSym;
-                    for (IDLIST *j = i->idlist; j; j = j->next)
-                        putSymbol(structSym, j->id, variable_category, type_type, i->type, j->lineno);
+                    for (IDLIST *j = i->idlist; j; j = j->next) {
+                        codegenIndent(c_indent);
+                        fprintf(codegen_file, "__GOLITE__%s", j->id);
+                        fprintf(codegen_file, " = ");
+                        codegenTYPE(node->val.struct_type->type);
+                        fprintf(codegen_file, "\n");
+                    }
+                }
+                if (!node->val.struct_type) {
+                    codegenIndent(c_indent);
+                    fprintf(codegen_file, "pass\n");
                 }
             }
             break;
-            */
     }
 }
 
 void codegenTYPEDCL(TYPEDCL *node) {
+    for (TYPEDCL *i = node; i; i = i->next) {
+        switch (node->type->kind) {
+            case basic_type_kind:
+            case slice_type_kind:
+            case array_type_kind:
+                // because Python is dynamically typed, we don't need to explicitly do anything
+                break;
+            case struct_type_kind:
+                codegenIndent(c_indent);
+                fprintf(codegen_file, "class __GOLITE__%s:\n", i->identifier);
+                c_indent++;
+                codegenTYPE(i->type);
+                c_indent--;
+                fprintf(codegen_file, "\n");
+                break;
+        }
+    }
 }
 
 void codegenFUNCDCL(FUNCDCL *node) {
@@ -141,13 +179,13 @@ void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
 }
 
 void codegenBLOCK(BLOCK *node) {
-    codegenSTATEMENTS(node->stmts);
-
     // Python requires that to be syntactically correct, there be at least one statement in a block
     if (!node->stmts) {
         codegenIndent(c_indent);
         fprintf(codegen_file, "pass\n");
     }
+    else
+        codegenSTATEMENTS(node->stmts);
 }
 
 void codegenSTATEMENTS(STATEMENTS *node) {
@@ -649,10 +687,15 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             codegenEXPR(node->val.expr);
             break;
         case func_call_kind:
-            codegenOTHER_EXPR(node->val.func_call.id);
-            fprintf(codegen_file, "(");
-            codegenEXPRLIST(node->val.func_call.args);
-            fprintf(codegen_file, ")");
+            if (isFunction(node->val.func_call.id->data)) {
+                codegenOTHER_EXPR(node->val.func_call.id);
+                fprintf(codegen_file, "(");
+                codegenEXPRLIST(node->val.func_call.args);
+                fprintf(codegen_file, ")");
+            }
+            else { // cast: simply remove the function call since we can only have one argument and Python is dynamically typed
+                codegenEXPR(node->val.func_call.args->expr);
+            }
             break;
         case index_kind:
             codegenOTHER_EXPR(node->val.index.expr);
@@ -661,8 +704,8 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             fprintf(codegen_file, "]");
             break;
         case struct_access_kind:
-            // prettyOTHER_EXPR(node->val.struct_access.expr);
-            // printf(".%s", node->val.struct_access.identifier);
+            codegenOTHER_EXPR(node->val.struct_access.expr);
+            fprintf(codegen_file, ".%s", node->val.struct_access.identifier);
             break;
     }
 }
