@@ -15,6 +15,7 @@ statement: return
 statement: block
 statement: print
 statement: println
+statement: switch
 simple: <all>
 exprlist
 expr: <all>
@@ -35,3 +36,4 @@ other_expr: index
 other_expr: struct access
 <scoping>
 <name clashes with Python keywords>
+idlist

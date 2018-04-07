@@ -10,6 +10,7 @@ extern FILE *codegen_file;
 
 // global codegen indentation variable; it is incremented whenever necessary as required by the syntax of the target language (Python)
 int c_indent = 0;
+int j = 0;
 
 // function for indenting code
 void codegenIndent(int indent_level) {
@@ -119,7 +120,10 @@ void codegenTYPEDCL(TYPEDCL *node) {
 }
 
 void codegenFUNCDCL(FUNCDCL *node) {
-    fprintf(codegen_file, "def %s", node->identifier);
+    if (strcmp(node->identifier, "main") == 0)
+        fprintf(codegen_file, "def %s", node->identifier);
+    else
+        fprintf(codegen_file, "def __GOLITE__%s", node->identifier);
     codegenFUNC_SIGNATURE(node->signature);
     c_indent++;
     codegenBLOCK(node->block);
@@ -209,16 +213,54 @@ void codegenSTATEMENT(STATEMENT *node) {
             break;
         case switch_stmt_s:
             // printf("switch ");
-            // if (node->val.switch_stmt.condition->simple) {
-            //     prettySIMPLE(node->val.switch_stmt.condition->simple);
-            //     printf("; ");
-            // }
-            // if (node->val.switch_stmt.condition->expr) {
-            //     prettyEXPR(node->val.switch_stmt.condition->expr);
-            //     printf(" ");
-            // }
-            // if (node->val.switch_stmt.caselist)
-            //     prettySWITCH_CASELIST(node->val.switch_stmt.caselist);
+            j = 0;
+            if (node->val.switch_stmt.condition->simple)
+                codegenSIMPLE(node->val.switch_stmt.condition->simple);
+            codegenIndent(c_indent);
+            if (node->val.switch_stmt.condition->expr) {
+                fprintf(codegen_file, "if ");
+                codegenEXPR(node->val.switch_stmt.condition->expr);
+                fprintf(codegen_file, " == ");
+            }
+            else
+                fprintf(codegen_file, "if ");
+            if (node->val.switch_stmt.caselist) {
+                for (SWITCH_CASELIST *i = node->val.switch_stmt.caselist; i; i=i->next) {
+                    if (i->default_case) {
+                        codegenIndent(c_indent);
+                        fprintf(codegen_file, "else:\n");
+                    }
+                    else {
+                        if (j!=0) {
+                            codegenIndent(c_indent);
+                            fprintf(codegen_file, "elif ");
+                            codegenEXPR(node->val.switch_stmt.condition->expr);
+                            fprintf(codegen_file, " == ");
+                        }
+                        //codegenEXPRLIST(i->exprlist);
+                        for (EXPRLIST *k = i->exprlist; k; k = k->next) {
+                            codegenEXPR(k->expr);
+                            if (k->next) {
+                                fprintf(codegen_file, " or ");
+                                codegenEXPR(node->val.switch_stmt.condition->expr);
+                                fprintf(codegen_file, " == ");
+                            }
+                        }
+                        fprintf(codegen_file, ":\n");
+                        j++;
+                    }
+                    if (i->statements) {
+                        codegenIndent(c_indent);
+                        codegenSTATEMENTS(i->statements);
+                    }
+                    else {
+                        c_indent++;
+                        codegenIndent(c_indent);
+                        fprintf(codegen_file, "pass\n");
+                        c_indent--;
+                    }
+                }
+            }
             break;
         case for_stmt_s:
             switch(node->val.for_stmt.condition->kind) {
@@ -373,94 +415,96 @@ void codegenSIMPLE(SIMPLE *node) {
 
 void codegenIDLIST(IDLIST *node) {
     for (IDLIST *i = node; i; i = i->next) {
-        if (strcmp(i->id, "True") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_TRUE");
-        }
-        else if (strcmp(i->id, "False") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_FALSE");
-        }
-        else if (strcmp(i->id, "None") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_NONE");
-        }
-        else if (strcmp(i->id, "and") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_AND");
-        }
-        else if (strcmp(i->id, "or") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_OR");
-        }
-        else if (strcmp(i->id, "not") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_NOT");
-        }
-        else if (strcmp(i->id, "as") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_AS");
-        }
-        else if (strcmp(i->id, "assert") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_ASSERT");
-        }
-        else if (strcmp(i->id, "break") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_BREAK");
-        }
-        else if (strcmp(i->id, "continue") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_CONTINUE");
-        }
-        else if (strcmp(i->id, "class") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_CLASS");
-        }
-        else if (strcmp(i->id, "def") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_DEF");
-        }
-        else if (strcmp(i->id, "del") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_DEL");
-        }
-        else if (strcmp(i->id, "elif") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_ELIF");
-        }
-        else if (strcmp(i->id, "except") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_EXCEPT");
-        }
-        else if (strcmp(i->id, "raise") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_RAISE");
-        }
-        else if (strcmp(i->id, "try") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_TRY");
-        }
-        else if (strcmp(i->id, "finally") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_FINALLY");
-        }
-        else if (strcmp(i->id, "from") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_FROM");
-        }
-        else if (strcmp(i->id, "import") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_IMPORT");
-        }
-        else if (strcmp(i->id, "global") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_GLOBAL");
-        }
-        else if (strcmp(i->id, "in") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_IN");
-        }
-        else if (strcmp(i->id, "is") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_IS");
-        }
-        else if (strcmp(i->id, "lambda") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_LAMBDA");
-        }
-        else if (strcmp(i->id, "nonlocal") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_NONLOCAL");
-        }
-        else if (strcmp(i->id, "pass") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_PASS");
-        }
-        else if (strcmp(i->id, "with") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_WITH");
-        }
-        else if (strcmp(i->id, "yield") == 0 ) {
-            fprintf(codegen_file, "$$_GOLITE_YIELD");
-        }
-        else {
-            fprintf(codegen_file, "%s", i->id);
-        }
+        fprintf(codegen_file, "__GOLITE__%s", i->id);
         if (i->next) fprintf(codegen_file, ", ");
+        // if (strcmp(i->id, "True") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_TRUE");
+        // }
+        // else if (strcmp(i->id, "False") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_FALSE");
+        // }
+        // else if (strcmp(i->id, "None") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_NONE");
+        // }
+        // else if (strcmp(i->id, "and") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_AND");
+        // }
+        // else if (strcmp(i->id, "or") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_OR");
+        // }
+        // else if (strcmp(i->id, "not") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_NOT");
+        // }
+        // else if (strcmp(i->id, "as") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_AS");
+        // }
+        // else if (strcmp(i->id, "assert") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_ASSERT");
+        // }
+        // else if (strcmp(i->id, "break") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_BREAK");
+        // }
+        // else if (strcmp(i->id, "continue") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_CONTINUE");
+        // }
+        // else if (strcmp(i->id, "class") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_CLASS");
+        // }
+        // else if (strcmp(i->id, "def") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_DEF");
+        // }
+        // else if (strcmp(i->id, "del") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_DEL");
+        // }
+        // else if (strcmp(i->id, "elif") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_ELIF");
+        // }
+        // else if (strcmp(i->id, "except") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_EXCEPT");
+        // }
+        // else if (strcmp(i->id, "raise") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_RAISE");
+        // }
+        // else if (strcmp(i->id, "try") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_TRY");
+        // }
+        // else if (strcmp(i->id, "finally") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_FINALLY");
+        // }
+        // else if (strcmp(i->id, "from") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_FROM");
+        // }
+        // else if (strcmp(i->id, "import") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_IMPORT");
+        // }
+        // else if (strcmp(i->id, "global") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_GLOBAL");
+        // }
+        // else if (strcmp(i->id, "in") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_IN");
+        // }
+        // else if (strcmp(i->id, "is") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_IS");
+        // }
+        // else if (strcmp(i->id, "lambda") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_LAMBDA");
+        // }
+        // else if (strcmp(i->id, "nonlocal") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_NONLOCAL");
+        // }
+        // else if (strcmp(i->id, "pass") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_PASS");
+        // }
+        // else if (strcmp(i->id, "with") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_WITH");
+        // }
+        // else if (strcmp(i->id, "yield") == 0 ) {
+        //     fprintf(codegen_file, "$$_GOLITE_YIELD");
+        // }
+    //     else {
+    //         fprintf(codegen_file, "%s", i->id);
+    //     }
+    //     if (i->next) fprintf(codegen_file, ", ");
     }
 }
 
@@ -627,7 +671,7 @@ void codegenEXPR(EXPR *node) {
             fprintf(codegen_file, "))");
             break;
         case append_expr:
-            fprintf(codegen_file, "%s + [", node->val.append_expr.identifier);
+            fprintf(codegen_file, "__GOLITE__%s + [", node->val.append_expr.identifier);
             codegenEXPR(node->val.append_expr.expr);
             fprintf(codegen_file, "]");
             break;
@@ -670,7 +714,7 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             else if (strcmp(node->val.identifier, "false")==0)
                 fprintf(codegen_file, "False");
             else
-                fprintf(codegen_file, "%s", node->val.identifier);
+                fprintf(codegen_file, "__GOLITE__%s", node->val.identifier);
             break;
         case paren_kind:
             codegenEXPR(node->val.expr);
