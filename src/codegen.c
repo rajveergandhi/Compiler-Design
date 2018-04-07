@@ -201,6 +201,7 @@ void codegenSTATEMENT(STATEMENT *node) {
                 case else_if:
                     c_indent++;
                     if (!node->val.if_stmt.val.else_block.stmts) {
+                        codegenIndent(c_indent);
                         fprintf(codegen_file, "pass\n");
                     }
                     else
@@ -345,23 +346,32 @@ void codegenSTATEMENT(STATEMENT *node) {
 }
 
 void codegenELSE_BLOCK(ELSE_BLOCK *node) {
-    codegenIndent(c_indent);
     switch (node->kind) {
         case if_stmt_else:
-            c_indent++;
+            codegenIndent(c_indent);
             fprintf(codegen_file, "elif ");
             codegenEXPR(node->val.if_stmt->val.if_stmt.expr);
             fprintf(codegen_file, ":\n");
-            c_indent--;
             switch (node->val.if_stmt->val.if_stmt.kind_else) {
                 case no_else:
                     c_indent++;
+                    if (node->val.if_stmt->val.if_stmt.simple) {
+                        codegenSIMPLE(node->val.if_stmt->val.if_stmt.simple);
+                    }
                     codegenBLOCK(node->val.if_stmt->val.if_stmt.val.if_block);
                     c_indent--;
                     break;
                 case else_if:
                     c_indent++;
-                    codegenSTATEMENTS(node->val.if_stmt->val.if_stmt.val.else_block.stmts);
+                    if (node->val.if_stmt->val.if_stmt.simple) {
+                        codegenSIMPLE(node->val.if_stmt->val.if_stmt.simple);
+                    }
+                    if (!node->val.if_stmt->val.if_stmt.val.else_block.stmts) {
+                        codegenIndent(c_indent);
+                        fprintf(codegen_file, "pass\n");
+                    }
+                    else
+                        codegenSTATEMENTS(node->val.if_stmt->val.if_stmt.val.else_block.stmts);
                     c_indent--;
                     codegenELSE_BLOCK(node->val.if_stmt->val.if_stmt.val.else_block.else_block);
                     break;
