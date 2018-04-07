@@ -17,10 +17,9 @@ statement: println
 simple: <all>
 exprlist
 expr: <all>
-
+statement: if
 
 TODO:
 *****
-statement: if
 statement: for
 statement: switch

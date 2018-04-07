@@ -148,13 +148,19 @@ void codegenSTATEMENT(STATEMENT *node) {
                 case no_else:
                     c_indent++;
                     codegenBLOCK(node->val.if_stmt.val.if_block);
+                    fprintf(codegen_file, "\n");
                     c_indent--;
                     break;
                 case else_if:
                     c_indent++;
-                    codegenSTATEMENTS(node->val.if_stmt.val.else_block.stmts);
+                    if (!node->val.if_stmt.val.else_block.stmts) {
+                        fprintf(codegen_file, "pass\n");
+                    }
+                    else
+                        codegenSTATEMENTS(node->val.if_stmt.val.else_block.stmts);
                     c_indent--;
                     codegenELSE_BLOCK(node->val.if_stmt.val.else_block.else_block);
+                    fprintf(codegen_file, "\n");
                     break;
             }
             break;
