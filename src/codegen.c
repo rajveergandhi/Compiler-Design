@@ -674,7 +674,6 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             codegenEXPR(node->val.expr);
             break;
         case func_call_kind:
-            codegenIndent(c_indent);
             if (isFunction(node->val.func_call.id->data)) {
                 codegenIndent(c_indent);
                 codegenOTHER_EXPR(node->val.func_call.id);
