@@ -657,10 +657,11 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             break;
         case func_call_kind:
             if (isFunction(node->val.func_call.id->data)) {
+                codegenIndent(c_indent);
                 codegenOTHER_EXPR(node->val.func_call.id);
                 fprintf(codegen_file, "(");
                 codegenEXPRLIST(node->val.func_call.args);
-                fprintf(codegen_file, ")");
+                fprintf(codegen_file, ")\n");
             }
             else { // cast: simply remove the function call since we can only have one argument and Python is dynamically typed
                 codegenEXPR(node->val.func_call.args->expr);
