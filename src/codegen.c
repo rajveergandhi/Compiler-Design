@@ -694,7 +694,7 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             break;
         case struct_access_kind:
             codegenOTHER_EXPR(node->val.struct_access.expr);
-            fprintf(codegen_file, ".%s", node->val.struct_access.identifier);
+            fprintf(codegen_file, ".__GOLITE__%s", node->val.struct_access.identifier);
             break;
     }
 }
