@@ -267,7 +267,7 @@ void codegenSTATEMENT(STATEMENT *node) {
                 fprintf(codegen_file, " == ");
             }
             else
-                fprintf(codegen_file, "if ");
+                fprintf(codegen_file, "if True == ");
             if (node->val.switch_stmt.caselist) {
                 for (SWITCH_CASELIST *i = node->val.switch_stmt.caselist; i; i=i->next) {
                     if (i->default_case) {
@@ -278,24 +278,51 @@ void codegenSTATEMENT(STATEMENT *node) {
                         if (j!=0) {
                             codegenIndent(c_indent);
                             fprintf(codegen_file, "elif ");
-                            codegenEXPR(node->val.switch_stmt.condition->expr);
+                            if (node->val.switch_stmt.condition->expr)
+                                codegenEXPR(node->val.switch_stmt.condition->expr);
+                            else
+                                fprintf(codegen_file, "True");
                             fprintf(codegen_file, " == ");
                         }
                         //codegenEXPRLIST(i->exprlist);
-                        for (EXPRLIST *k = i->exprlist; k; k = k->next) {
-                            codegenEXPR(k->expr);
-                            if (k->next) {
-                                fprintf(codegen_file, " or ");
-                                codegenEXPR(node->val.switch_stmt.condition->expr);
-                                fprintf(codegen_file, " == ");
+                        if (i->exprlist) {
+                            for (EXPRLIST *k = i->exprlist; k; k = k->next) {
+                                if (k->expr)
+                                    codegenEXPR(k->expr);
+                                if (k->next) {
+                                    fprintf(codegen_file, " or ");
+                                    if (node->val.switch_stmt.condition->expr)
+                                        codegenEXPR(node->val.switch_stmt.condition->expr);
+                                    else
+                                        fprintf(codegen_file, "True");
+                                    fprintf(codegen_file, " == ");
+                                }
                             }
                         }
                         fprintf(codegen_file, ":\n");
                         j++;
                     }
                     if (i->statements) {
-                        codegenIndent(c_indent);
+                        c_indent++;
+                        // for (STATEMENTS *i = node->val.for_stmt.block->stmts; i; i = i->next) {
+                        //     if (i->stmt->kind == continue_stmt_s) {
+                        //         STATEMENTS *post_stmt = makeSTATEMENTS(makeSTATEMENT_simple(node->val.for_stmt.condition->val.threepart.post), i);
+                        //         node->val.for_stmt.block->stmts = post_stmt;
+                        //         break;
+                        //     }
+                        // }
+                        for (STATEMENTS *l = i->statements; l; l = l->next) {
+                            if (l->stmt->kind == break_stmt_s) {
+                                l->stmt = NULL;
+                                l->next = NULL;
+                                break;
+                            }
+                            else if (l->next && l->next->stmt->kind == break_stmt_s) {
+                                l->next = NULL;
+                            }
+                        }
                         codegenSTATEMENTS(i->statements);
+                        c_indent--;
                     }
                     else {
                         c_indent++;
