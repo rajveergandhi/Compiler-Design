@@ -5,7 +5,7 @@
 //~No init stmt; No init stmt; No init stmt; 
 //~No post op; No post op; No post op; 
 //~Only init; Only init; Only init; Only init; Only init; 
-//~Only post op; Only post op; Only post op; Only post op; Only post op; Only post op;
+//~Only post op; Only post op; Only post op; Only post op; Only post op; Only post op; 
 
 package main
 
