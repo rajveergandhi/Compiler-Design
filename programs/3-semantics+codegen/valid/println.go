@@ -1,3 +1,16 @@
+/*
+5
+abc
+a
+c
+a\nc
++5.600000e+000
+109
+10
+2 1 2
+4   3   4
+*/
+
 package main
 
 var x int
