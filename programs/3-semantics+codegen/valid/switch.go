@@ -1,10 +1,8 @@
-/* 
-One
-Five
-True
-True 2
-True Inside
-*/
+//~One
+//~Five
+//~True
+//~True 2
+//~True Inside
 
 package main
 
