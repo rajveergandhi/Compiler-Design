@@ -1,92 +1,97 @@
-//~true
-//~false
-//~false
-//~true
-//~false
-//~true
-//~false
-//~true
+/*
+One
+Five
+True
+True 2
+True Inside
+*/
 
 package main
 
-type Point struct {
-	x, y int
+var x int
+
+func foo() bool{
+	return true
 }
 
-type Circle struct {
-	center Point
-	radius int
+func bar() bool{
+	return false
 }
 
-func struct_cmp() {
-	var c1, c2, c3 Circle
+func main(){
+	var a int = 1
+	switch a {
+		case 1:
+			println("One");
+			break;
+		case 2:
+			println("Two");
+			break;
+		default:
+			println("None");
+			break;
+	}
 
-	//circle1
-	c1.center.x = 1
-	c1.center.y = 2
-	c1.radius = 3
+	var b float64 = 5.6
+	switch b {
+		case 1.3:
+			println("One");
+			break;
+		case 2.4:
+			println("Two");
+			break;
+		case 5.60:
+			println("Five");
+			break;
+		default:
+			println("None");
+			break;
+	}
 
-	//same as circle2
-	c2.center.x = 1
-	c2.center.y = 2
-	c2.radius = 3
+	switch {
+		case true:
+			println("True");
+			break;
+		case false:
+			println("False");
+			break;
+		default:
+			println("None");
+			break;
+	}
 
-	//different than above circles
-	c3.center.x = 2
-	c3.center.y = 1
-	c3.radius = 3
+	switch {
+		case foo():
+			println("True 2");
+			break;
+		case bar():
+			println("False 2");
+			break;
+		default:
+			println("None");
+			break;
+	}
 
-	//should be true
-	// println("Expect the following to be true:")
-	println(c1 == c2)
+	switch a {
+		case 1:
+			switch {
+				case true:
+					println("True Inside");
+					break;
+				case false:
+					println("False Inside");
+					break;
+				default:
+					println("None");
+					break;
+			}
+			break;
+		case 2:
+			println("Two");
+			break;
+		default:
+			println("None");
+			break;
+	}
 
-	//should be false
-	// println("Expect the following to be false:")
-	println(c1 == c3)
-
-}
-
-func num_cmp() {
-	var x, y int
-	var foo, bar float64
-
-	x = 0
-	y = 1
-
-	foo = 1.234
-	bar = 1.234
-
-	// println("Expect the following to be false:")
-	println(x == y)
-
-	// println("Expect the following to be true:")
-	println(foo == bar)
-}
-
-func str_cmp() {
-	var x, y string
-
-	x = "foo"
-	y = "bar"
-
-	// println("Expect the following to be false:")
-	println(x == y)
-
-	// println("Expect the following to be true:")
-	println(x == x)
-}
-
-func bool_cmp() {
-	// println("Expect the following to be false:")
-	println(false == true)
-
-	// println("Expect the following to be true:")
-	println(false == false)
-}
-
-func main() {
-	struct_cmp()
-	str_cmp()
-	num_cmp()
-	bool_cmp()
 }
