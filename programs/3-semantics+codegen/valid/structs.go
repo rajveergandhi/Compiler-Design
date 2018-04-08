@@ -1,4 +1,3 @@
-//~Type eq
 //~Alice != Carol
 //~Bob != Bob2
 //~John == John2
@@ -9,12 +8,9 @@
 
 package main
 
-type int float64
-var b int = 5.6
-
 type Student struct {
 	Name  string 
-	Score uint8  
+	Score int  
 }
 
 type arr struct {
@@ -32,11 +28,6 @@ var two struct {
 }
 
 func main(){
-	c := b
-	if b==c {
-		println("Type eq");
-	}
-
 	alice := Student{"Alice", 98}
 	carol := Student{"Carol", 72}
 
