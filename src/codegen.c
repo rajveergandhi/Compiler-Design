@@ -25,7 +25,9 @@ void codegenIndent(int indent_level) {
 void codegenPROGRAM(PROGRAM *node) {
     // import necessary python libraries
     fprintf(codegen_file, "# import all necessary Python libraries\n");
-    fprintf(codegen_file, "from __future__ import print_function\n\n");
+    fprintf(codegen_file, "from __future__ import print_function\n");
+    fprintf(codegen_file, "import copy\n");
+    fprintf(codegen_file, "\n");
 
     codegenTOPLEVELDECL(node->topleveldecls);
 
@@ -69,7 +71,11 @@ void codegenVARDCL(VARDCL *node) {
                 fprintf(codegen_file, " = ");
             }
             if (k) {
+                //codegenEXPR(k->expr);
+                fprintf(codegen_file, "copy.deepcopy(");
                 codegenEXPR(k->expr);
+                fprintf(codegen_file, ")");
+                if (k->next) fprintf(codegen_file, ", ");
                 k = k->next;
             }
             else {
@@ -173,7 +179,7 @@ void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
     for (PARAM_LIST *i = node->params; i; i = i->next) {
         codegenIDLIST(i->idlist);
         if (i->next)
-            printf(", ");
+            fprintf(codegen_file, ", ");
     }
     fprintf(codegen_file, "):\n");
 }
@@ -454,14 +460,26 @@ void codegenSIMPLE(SIMPLE *node) {
                 fprintf(codegen_file, " &= ~");
             else
                 fprintf(codegen_file, " %s ", node->val.assignment.assign_op);
-            codegenEXPRLIST(node->val.assignment.RHS_expr_list);
+            //codegenEXPRLIST(node->val.assignment.RHS_expr_list);
+            for (EXPRLIST *i = node->val.assignment.RHS_expr_list; i; i = i->next) {
+                fprintf(codegen_file, "copy.deepcopy(");
+                codegenEXPR(i->expr);
+                fprintf(codegen_file, ")");
+                if (i->next) fprintf(codegen_file, ", ");
+            }
             fprintf(codegen_file, "\n");
             break;
         case shortDcl_kind:
             codegenIndent(c_indent);
             codegenEXPRLIST(node->val.shortDcl.LHS_idlist);
             fprintf(codegen_file, " = ");
-            codegenEXPRLIST(node->val.shortDcl.RHS_expr_list);
+            //codegenEXPRLIST(node->val.shortDcl.RHS_expr_list);
+            for (EXPRLIST *i = node->val.shortDcl.RHS_expr_list; i; i = i->next) {
+                fprintf(codegen_file, "copy.deepcopy(");
+                codegenEXPR(i->expr);
+                fprintf(codegen_file, ")");
+                if (i->next) fprintf(codegen_file, ", ");
+            }
             fprintf(codegen_file, "\n");
             break;
     }
@@ -687,6 +705,7 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             codegenEXPR(node->val.expr);
             break;
         case func_call_kind:
+            codegenIndent(c_indent);
             if (isFunction(node->val.func_call.id->data)) {
                 codegenOTHER_EXPR(node->val.func_call.id);
                 fprintf(codegen_file, "(");
