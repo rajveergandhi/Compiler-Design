@@ -1,10 +1,9 @@
 /* 
 One
 Five
-Sixty five
 True
 True 2
-Sixty five
+True Inside
 */
 
 package main
@@ -49,21 +48,6 @@ func main(){
 			break;
 	}
 	
-	switch c:='A'; c {
-		case 1:
-			println("One");
-			break;
-		case 65:
-			println("Sixty five");
-			break;
-		case 5:
-			println("Five");
-			break;
-		default:
-			println("None");
-			break;
-	}
-	
 	switch {
 		case true:
 			println("True");
@@ -90,15 +74,12 @@ func main(){
 	
 	switch a {
 		case 1:
-			switch c:='A'; c {
-				case 1:
-					println("One");
+			switch {
+				case true:
+					println("True Inside");
 					break;
-				case 65:	
-					println("Sixty five");
-					break;
-				case 5:
-					println("Five");
+				case false:
+					println("False Inside");
 					break;
 				default:
 					println("None");
