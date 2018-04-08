@@ -2,7 +2,7 @@
 //~Bob != Bob2
 //~John == John2
 //~x == y
-//~x == y
+//~x != y
 //~one == two
 //~one != two
 
@@ -28,8 +28,12 @@ var two struct {
 }
 
 func main(){
-	alice := Student{"Alice", 98}
-	carol := Student{"Carol", 72}
+	var alice Student
+	var carol Student
+	alice.Name = "Alice"
+	carol.Name = "Carol"
+	alice.Score = 78
+	carol.Score = 92
 
 	if alice == carol {
     		println("Alice == Carol")
@@ -37,7 +41,9 @@ func main(){
   		println("Alice != Carol")
   	}
 	
-	bob := Student{"Bob", 98}
+	var bob Student
+	bob.Name = "Bob"
+	bob.Score = 98
 	var bob2 Student
 	bob2.Name = "Bob"
 	
@@ -47,7 +53,9 @@ func main(){
   		println("Bob != Bob2")
   	}
 	
-	john := Student{"John", 98}
+	var john Student
+	john.Name = "John"
+	john.Score = 98
 	var john2 Student
 	john2.Name = "John"
 	john2.Score = 98
@@ -67,7 +75,7 @@ func main(){
   	}
 	
 	x.a[0] = 65
-	y.a[0] = 'A'
+	y.a[1] = 65
 	
 	if x == y {
     		println("x == y")
