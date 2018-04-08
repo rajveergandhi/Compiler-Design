@@ -34,7 +34,7 @@ void codegenPROGRAM(PROGRAM *node) {
     // if symbol table has a function called main, then have it run automatically
     SYMBOL *s = getSymbol_no_error(node->symboltable, "main");
     if (s && s->data->valKind == func_signature_type)
-        fprintf(codegen_file, "\nif __name__ == \"__main__\":\n    main()");
+        fprintf(codegen_file, "if __name__ == \"__main__\":\n    main()");
 }
 
 void codegenTOPLEVELDECL(TOPLEVELDECL *node) {
@@ -67,7 +67,7 @@ void codegenVARDCL(VARDCL *node) {
         for (IDLIST *j = node->idlist; j; j = j->next) {
             if (!i->type || i->type->kind != struct_type_kind) {
                 codegenIndent(c_indent);
-                fprintf(codegen_file, "__GOLITE__%s", j->id);
+                fprintf(codegen_file, "_GOLITE__%s", j->id);
                 fprintf(codegen_file, " = ");
             }
             if (k) {
@@ -81,12 +81,15 @@ void codegenVARDCL(VARDCL *node) {
             else {
                 if (i->type->kind == struct_type_kind) {
                     codegenIndent(c_indent);
-                    fprintf(codegen_file, "class __GOLITE__%s__:\n", j->id);
+                    fprintf(codegen_file, "class _GOLITE__%s__:\n", j->id);
                     c_indent++;
                     codegenTYPE(i->type);
                     c_indent--;
                     codegenIndent(c_indent);
-                    fprintf(codegen_file, "__GOLITE__%s = __GOLITE__%s__()\n", j->id, j->id);
+                    fprintf(codegen_file, "_GOLITE__%s = _GOLITE__%s__()\n", j->id, j->id);
+                }
+                else if (i->type->kind == basic_type_kind && getSymbol_no_error(i->symboltable, i->type->val.basic_type)->data->val.type->kind == struct_type_kind) {
+                    fprintf(codegen_file, "_GOLITE__%s()", i->type->val.basic_type);
                 }
                 else {
                     codegenTYPE(i->type);
@@ -111,7 +114,7 @@ void codegenTYPE(TYPE *node) {
             else if (strcmp(node->val.basic_type, "bool")==0)
                 fprintf(codegen_file, "False");
             else
-                fprintf(codegen_file, "__GOLITE__%s", node->val.basic_type);
+                fprintf(codegen_file, "_GOLITE__%s", node->val.basic_type);
             break;
         case slice_type_kind:
             fprintf(codegen_file, "[");
@@ -128,7 +131,7 @@ void codegenTYPE(TYPE *node) {
                 for (STRUCT_TYPE *i = node->val.struct_type; i; i = i->next) {
                     for (IDLIST *j = i->idlist; j; j = j->next) {
                         codegenIndent(c_indent);
-                        fprintf(codegen_file, "__GOLITE__%s", j->id);
+                        fprintf(codegen_file, "_GOLITE__%s", j->id);
                         fprintf(codegen_file, " = ");
                         codegenTYPE(node->val.struct_type->type);
                         fprintf(codegen_file, "\n");
@@ -153,7 +156,7 @@ void codegenTYPEDCL(TYPEDCL *node) {
                 break;
             case struct_type_kind:
                 codegenIndent(c_indent);
-                fprintf(codegen_file, "class __GOLITE__%s:\n", i->identifier);
+                fprintf(codegen_file, "class _GOLITE__%s:\n", i->identifier);
                 c_indent++;
                 codegenTYPE(i->type);
                 c_indent--;
@@ -167,10 +170,11 @@ void codegenFUNCDCL(FUNCDCL *node) {
     if (strcmp(node->identifier, "main") == 0)
         fprintf(codegen_file, "def %s", node->identifier);
     else
-        fprintf(codegen_file, "def __GOLITE__%s", node->identifier);
+        fprintf(codegen_file, "def _GOLITE__%s", node->identifier);
     codegenFUNC_SIGNATURE(node->signature);
     c_indent++;
     codegenBLOCK(node->block);
+    fprintf(codegen_file, "\n");
     c_indent--;
 }
 
@@ -456,7 +460,7 @@ void codegenSIMPLE(SIMPLE *node) {
 
 void codegenIDLIST(IDLIST *node) {
     for (IDLIST *i = node; i; i = i->next) {
-        fprintf(codegen_file, "__GOLITE__%s", i->id);
+        fprintf(codegen_file, "_GOLITE__%s", i->id);
         if (i->next)
             fprintf(codegen_file, ", ");
     }
@@ -625,7 +629,7 @@ void codegenEXPR(EXPR *node) {
             fprintf(codegen_file, "))");
             break;
         case append_expr:
-            fprintf(codegen_file, "__GOLITE__%s + [", node->val.append_expr.identifier);
+            fprintf(codegen_file, "_GOLITE__%s + [", node->val.append_expr.identifier);
             codegenEXPR(node->val.append_expr.expr);
             fprintf(codegen_file, "]");
             break;
@@ -652,7 +656,40 @@ void codegenEXPR(EXPR *node) {
             }
             break;
         case runeval:
-            fprintf(codegen_file, "%s", node->val.runeLiteral);
+            if (strlen(node->val.runeLiteral) == 3)
+                fprintf(codegen_file, "%d", node->val.runeLiteral[1]);
+            // convert escape character sequences to characters
+            else if (node->val.runeLiteral[1] == '\\') {
+                switch (node->val.runeLiteral[2]) {
+                    case 'a':
+                        fprintf(codegen_file, "%d", 7);
+                        break;
+                    case 'b':
+                        fprintf(codegen_file, "%d", 8);
+                        break;
+                    case 'f':
+                        fprintf(codegen_file, "%d", 12);
+                        break;
+                    case 'n':
+                        fprintf(codegen_file, "%d", 10);
+                        break;
+                    case 'r':
+                        fprintf(codegen_file, "%d", 13);
+                        break;
+                    case 't':
+                        fprintf(codegen_file, "%d", 9);
+                        break;
+                    case 'v':
+                        fprintf(codegen_file, "%d", 11);
+                        break;
+                    case '\\':
+                        fprintf(codegen_file, "%d", 92);
+                        break;
+                    case '\'':
+                        fprintf(codegen_file, "%d", 39);
+                        break;
+                }
+            }
             break;
         case other_expr_kind:
             codegenOTHER_EXPR(node->val.other_expr);
@@ -668,7 +705,7 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             else if (strcmp(node->val.identifier, "false")==0)
                 fprintf(codegen_file, "False");
             else
-                fprintf(codegen_file, "__GOLITE__%s", node->val.identifier);
+                fprintf(codegen_file, "_GOLITE__%s", node->val.identifier);
             break;
         case paren_kind:
             codegenEXPR(node->val.expr);
@@ -693,7 +730,7 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
             break;
         case struct_access_kind:
             codegenOTHER_EXPR(node->val.struct_access.expr);
-            fprintf(codegen_file, ".__GOLITE__%s", node->val.struct_access.identifier);
+            fprintf(codegen_file, "._GOLITE__%s", node->val.struct_access.identifier);
             break;
     }
 }
