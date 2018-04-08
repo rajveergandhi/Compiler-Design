@@ -1,165 +1,51 @@
-package main
+//~100
+//~1337
+//~10
+//~0
 
-var x, y = 0, 0
+package test
 
-func main() {
+func iden(n int) int{
+	return n;
+}
 
-	for i:=0; i < 3; i++ {
+func return_int_slice() []int {
+	var x []int
+	return x
+}
 
-		for j := 0; j < 3; j++ {
-			println("inside")
-		}
-		println("outside")
-	}
+type x struct {
+	y int
+}
 
-	x = 0
-	for i:=0; i < 3; i++ {
-		for x<1 {
-			x = 100
-			println("inside")
-		}
-		println("outside")
-	}
+func alter(a x) {
+	a.y = 1000
+}
 
-	y = 0
-	for y<1 {
-		y = 100
-		for j := 0; j < 3; j++ {
-			println("inside")
-		}
-		println("outside")
-	}
+func main(){
+	var foo int = 100;
+	var bar = iden(foo);
+	foo = 1337;
 
-	x = 0
-	y = 0
-	for y<1 {
-		y = 100
-		for x<1 {
-			x = 100
-			println("inside")
-		}
+	// println("The following should print '100'.")
+	println(bar);
 
-		println("outside")
-	}
 
-	for i:=0; i < 3; i++ {
-		continue
-		for j := 0; j < 3; j++ {
-			println("inside")
-		}
-		println("outside")
-	}
+	bar = foo;
+	foo = 100;
 
-	x = 0
-	for i:=0; i < 3; i++ {
-		continue
-		for x<1 {
-			x = 100
-			println("inside")
-		}
-		println("outside")
-	}
+	// println("The following should print '1337'.")
+	println(bar);
 
-	y = 0
-	for y<1 {
-		y = 100
-		continue
-		for j := 0; j < 3; j++ {
-			println("inside")
-		}
-		println("outside")
-	}
 
-	x = 0
-	y = 0
-	for y<1 {
-		y = 100
-		continue
-		for x<1 {
-			x = 100
-			println("inside")
-		}
-		println("outside")
-	}
+	var derp = return_int_slice()
+	derp = append(derp, 10)
+	// println("The following should print '10'")
+	println(derp[0])
 
-	for i:=0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
-			continue
-			println("inside")
-		}
-		println("outside")
-	}
-
-	x = 0
-	for i:=0; i < 3; i++ {
-		for x<1 {
-			x = 100
-			continue
-			println("inside")
-		}
-		println("outside")
-	}
-
-	y = 0
-	for y<1 {
-		y = 100
-		for j := 0; j < 3; j++ {
-			continue
-			println("inside")
-		}
-		println("outside")
-	}
-
-	x = 0
-	y = 0
-	for y<1 {
-		y = 100
-		for x<1 {
-			x = 100
-			continue
-			println("inside")
-		}
-		println("outside")
-	}
-
-	for i:=0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
-			println("inside")
-		}
-		continue
-		println("outside")
-	}
-
-	x = 0
-	for i:=0; i < 3; i++ {
-		for x<1 {
-			x = 100
-			println("inside")
-		}
-		continue
-		println("outside")
-	}
-
-	y = 0
-	for y<1 {
-		y = 100
-		for j := 0; j < 3; j++ {
-			println("inside")
-		}
-		continue
-		println("outside")
-	}
-
-	x = 0
-	y = 0
-	for y<1 {
-		y = 100
-		for x<1 {
-			x = 100
-			println("inside")
-		}
-		continue
-		println("outside")
-	}
+	var herp x
+	alter(herp)
+	// println("The following should print '0'")
+	println(herp.y)
 
 }

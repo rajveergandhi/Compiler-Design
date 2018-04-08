@@ -1,46 +1,92 @@
-package test
+//~true
+//~false
+//~false
+//~true
+//~false
+//~true
+//~false
+//~true
 
-func iden(n int) int{
-	return n;
+package main
+
+type Point struct {
+	x, y int
 }
 
-func return_int_slice() []int {
-	var x []int
-	return x
+type Circle struct {
+	center Point
+	radius int
 }
 
-type x struct {
-	y int
+func struct_cmp() {
+	var c1, c2, c3 Circle
+
+	//circle1
+	c1.center.x = 1
+	c1.center.y = 2
+	c1.radius = 3
+
+	//same as circle2
+	c2.center.x = 1
+	c2.center.y = 2
+	c2.radius = 3
+
+	//different than above circles
+	c3.center.x = 2
+	c3.center.y = 1
+	c3.radius = 3
+
+	//should be true
+	// println("Expect the following to be true:")
+	println(c1 == c2)
+
+	//should be false
+	// println("Expect the following to be false:")
+	println(c1 == c3)
+
 }
 
-func alter(a x) {
-	a.y = 1000
+func num_cmp() {
+	var x, y int
+	var foo, bar float64
+
+	x = 0
+	y = 1
+
+	foo = 1.234
+	bar = 1.234
+
+	// println("Expect the following to be false:")
+	println(x == y)
+
+	// println("Expect the following to be true:")
+	println(foo == bar)
 }
 
-func main(){
-	var foo int = 100;
-	var bar = iden(foo);
-	foo = 1337;
+func str_cmp() {
+	var x, y string
 
-	println("The following should print '100'.")
-	println(bar);
+	x = "foo"
+	y = "bar"
 
+	// println("Expect the following to be false:")
+	println(x == y)
 
-	bar = foo;
-	foo = 100;
+	// println("Expect the following to be true:")
+	println(x == x)
+}
 
-	println("The following should print '1337'.")
-	println(bar);
+func bool_cmp() {
+	// println("Expect the following to be false:")
+	println(false == true)
 
+	// println("Expect the following to be true:")
+	println(false == false)
+}
 
-	var derp = return_int_slice()
-	derp = append(derp, 10)
-	println("The following should print '10'")
-	println(derp[0])
-
-	var herp x
-	alter(herp)
-	println("The following should print '0'")
-	println(herp.y)
-
+func main() {
+	struct_cmp()
+	str_cmp()
+	num_cmp()
+	bool_cmp()
 }
