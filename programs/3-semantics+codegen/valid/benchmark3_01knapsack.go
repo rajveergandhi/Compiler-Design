@@ -127,7 +127,11 @@ func main(){
   itemlist = append(itemlist, item)
   for i := 1; i <= itemcount; i++ {
     for j := 1; j <= cap; j++ {
-      println("No. of items : ",i ,", Capacity : ",j , "Max Value : ", knapsack(j, i))
+      if i == 20 && j <= 30 {
+        println("No. of items : ",i ,", Capacity : ",j , "Max Value : ", knapsack(j, i))
+      } else {
+        knapsack(j, i)
+      }
     }
   }
 }
