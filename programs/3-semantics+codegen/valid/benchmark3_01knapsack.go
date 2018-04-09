@@ -1,3 +1,34 @@
+//~No. of items :  20 , Capacity :  1 Max Value :  6
+//~No. of items :  20 , Capacity :  2 Max Value :  6
+//~No. of items :  20 , Capacity :  3 Max Value :  7
+//~No. of items :  20 , Capacity :  4 Max Value :  13
+//~No. of items :  20 , Capacity :  5 Max Value :  13
+//~No. of items :  20 , Capacity :  6 Max Value :  14
+//~No. of items :  20 , Capacity :  7 Max Value :  14
+//~No. of items :  20 , Capacity :  8 Max Value :  15
+//~No. of items :  20 , Capacity :  9 Max Value :  21
+//~No. of items :  20 , Capacity :  10 Max Value :  21
+//~No. of items :  20 , Capacity :  11 Max Value :  22
+//~No. of items :  20 , Capacity :  12 Max Value :  22
+//~No. of items :  20 , Capacity :  13 Max Value :  23
+//~No. of items :  20 , Capacity :  14 Max Value :  23
+//~No. of items :  20 , Capacity :  15 Max Value :  29
+//~No. of items :  20 , Capacity :  16 Max Value :  30
+//~No. of items :  20 , Capacity :  17 Max Value :  30
+//~No. of items :  20 , Capacity :  18 Max Value :  31
+//~No. of items :  20 , Capacity :  19 Max Value :  31
+//~No. of items :  20 , Capacity :  20 Max Value :  37
+//~No. of items :  20 , Capacity :  21 Max Value :  37
+//~No. of items :  20 , Capacity :  22 Max Value :  38
+//~No. of items :  20 , Capacity :  23 Max Value :  38
+//~No. of items :  20 , Capacity :  24 Max Value :  39
+//~No. of items :  20 , Capacity :  25 Max Value :  40
+//~No. of items :  20 , Capacity :  26 Max Value :  40
+//~No. of items :  20 , Capacity :  27 Max Value :  46
+//~No. of items :  20 , Capacity :  28 Max Value :  46
+//~No. of items :  20 , Capacity :  29 Max Value :  47
+//~No. of items :  20 , Capacity :  30 Max Value :  47
+
 /* Solving the 0-1 knapsack problem. The 0-1 knapsack problem can choose an item only if there is space in the knapsack for the whole item, otherwise rejects it altogether.
 It is a dynamic programming problem 
 In this program, all the subproblems (items from 1 to N and capacity if 1 to max_cap for ever subset of items) are solved and printed.
