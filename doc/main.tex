@@ -1,0 +1,215 @@
+\documentclass[a4paper]{article}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=2cm,right=2cm,marginparwidth=1.75cm]{geometry}
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+%% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{paralist}
+\usepackage{lineno}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\title{COMP 520 Milestone 3}
+\author{Rajveer Gandhi, Archit Agnihotri, Dipanjan Dutta}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This is the final report for our COMP 520 GoLite project. Here we summarize the project and provide our decisions and contributions to the development of the project. 
+\end{abstract}
+
+\section{Introduction}
+
+Go is an open source programming language from Google, developed by Robert Griesemer, Rob Pike and Ken Thompson. Go inherited mostly from Oberon language and its syntax is from C. Go’s OOP is more like Smalltalk but in Go, you can attach methods to any type. And concurrency is mostly from Newsqueak which is a language also from Rob Pike and heavily inspired from Hoare’s paper of CSP. 
+\newline \newline 
+Features of Go programming language : 
+\begin{itemize} 
+	\item \textbf{Fast results}: It works like an interpreted language because of the fast compilation. 
+    \item \textbf{Safe}: Strongly and statically typed and garbage collected. 
+    \item \textbf{Easy to work with}: It’s concise, explicit and easy to read.
+    \item \textbf{Modern}: Built-in support in the language itself for multi-core networked distributed applications.
+\end{itemize}
+Advantages of Go programming language : 
+\begin{itemize}
+	\item There is no VM. It compiles directly to the machine code which is fast.
+    \item The programming language design is built for fast compilation.
+    \item Compiles cross-platform to OS X, Linux or Windows. 
+    \item Creates only one executable file output after the compilation without any dependencies, so that you can upload it anywhere which Go supports and just run it.
+\end{itemize}
+
+For our project, we use a subset of features available in Go as our source language. This subset language is called GoLite. It has lesser features than Go but holds all the parser specifications of Go. So features not available in GoLite are:
+\begin{itemize}
+	\item Goroutines and channels
+    \item Interfaces and methods
+    \item Closures
+    \item The \textit{defer} keyword
+    \item Maps
+    \item Multiple return values
+    \item Module system
+    \item Garbage collection
+\end{itemize}
+
+However, GoLite is an excellent programming language to choose as a source language because it is fast and simple. However, the work related to creating the compiler was neither fast nor easy. We, however, were up for the challenge and enjoyed working on the project. 
+\newline \newline
+This report has the following subsections
+\begin{itemize}
+	\item Implementation and Target languages
+    \item Scanner
+    \item Parser
+    \item Weeder
+    \item Symbol Table
+    \item Typechecker
+    \item Code generator
+    \item Conclusion
+    \item Team member contributions
+    \item References
+\end{itemize}
+
+
+\section{Implementation and Target languages}
+For the implementation of the compiler we decided to use C as our programming language as all of us are comfortable with programming in C. To create the scanner and parser, we used two C-based Unix utilities can \textit{flex} and \textit{bison}. These tools are written in C and their output is C code. 
+\newline \newline
+Advantages of using C with Flex and Bison as a implementation language :
+\begin{itemize}
+	\item For complex and diverse languages, Flex and Bison capture patterns and parses efficiently.
+    \item Simpler to code and interpret. 
+    \item Easy to debug with helpful messages.
+    \item EBNF syntax, so it is easy flexible and easy to modify with change in specification modifications.
+\end{itemize}
+
+As our target language, we agreed that C was a poor choice since it does not have the basic constructs to implement most of GoLite's constructs. Thus it would have required an expert knowledge on C and a lot of self-defined functions. However, we decided that instead of focusing on the target language, we would be focusing on the constructs of GoLite and the design behind implementing it. For that reason, we decided to go with a language that : 
+\begin{itemize}
+	\item All of us knew and were comfortable with
+    \item Has some level of abstraction so that we do not have to code in a rudimentary manner
+    \item Has most of the tools to implement the constructs of GoLite without too much hand-writing
+\end{itemize}
+It is for the above reasons that we decided to go with Python as our target language. 
+
+
+\section{Scanner}
+
+The scanner was developed with a very standard setup. We had macros for decimal, octal and hexadecimal representations, and also for escape sequences for runes and strings. Tokens were captured with the help of regular expressions. Every operator has its individual token. We decided not to group operators in order to keep the code more transparent and interpretable.
+
+One challenge that we faced in the scanner was optional semicolons. We had to deal with this by creating a variable called \textit{lastRead}, and updating it whenever a new token is generated (before it is returned). then, when \textit{$\backslash$n} or \textbf{EOF} or block comment including a \textit{$\backslash$n} is encountered we check to see with function \textit{insertSemicolon} if there should have been a semicolon there, and we insert the semicolon in that case.
+
+Another challenge we faced was handling block comments. Dipanjan initially added a state machine implementation of the handling of block comments. However, it was too abstract and none of us knew how exactly it was handling the block comments. So we later decided to switch to regular expressions.
+
+
+\section{Parser}
+
+Defining the production terms was a bit complex. We had a union structure with all the types of nodes we can have in out syntax tree. We then typed the production nodes according to these node types. Thus the syntax tree was created according to the grammar rules in the parser.
+
+Tokens were aliased with the addition of \textit{t} before their natural names. Almost all the tokens were of type string except integer and float literals which had their respective types. We did not have special tokens for data types and boolean \textit{true} and \textit{false} as they were not reserved keywords in GoLite.
+
+For the error message generation and display, we used bison's error reporting function \textit{yyerror}. 
+
+Associativity and precedence was also defined in the parser. The rule of precedence chosen was (from lower to higher):
+
+\begin{itemize}
+\item $=$ (Assignment operator)
+\item $||$ (Logical OR operator)
+\item $\&\&$ (Logical AND operator)
+\item $==$, $!=$, $<$, $>$ $<=$, $>=$
+\item $+$, $-$, $|$, (XOR operator)
+\item $*$, $/$, $\%$, $<<$, $>>$, $\&$, AND-XOR Operator
+\item All unary operators
+\end{itemize}
+
+All operators are associated left-to-right, except assignment operator, which is associated right-to-left.
+
+The production rules are created by a joint agreement between all three of us. One thing Dipanjan missed was that typecasting was actually treated as a function call and not a separate expression type. Raj caught that and changed it. 
+
+
+\section{Weeder}
+
+The weeder is implemented in order to catch any syntactic errors that might not have been directly caught in the parser's grammar. For the purposes of passing the grading scripts, th weeder is split into two phases, once after the parsing phase and once after the typechecking phase. The following checks were implemented in the weeder:
+
+\subsection{Single default case}
+The language specifies that there can be at most one default case inside a single switch block. We used a local variable \textit{hasDefault} that is initailly set to zero. If a default case is encountered, it is set to one. If another default case is found while \textit{hasDefault} is 1, we throw an error. We used a local variable to correclt weed through nested switch cases which are recursive calls. Once the switch block is complete, \textit{hasDefault} is set back to zero.
+
+\subsection{Break and continue statements}
+According to the language specification, \textit{continue} statements can only appear inside a for loop and \textit{break} statements can only appear inside a for loop or switch block. We had two global static integer variables \textit{insideFor} and \textit{insideSwitch} that stores the level of depth inside a for loop and switch block, respectively ( Initial values of both are zero). When a for loop is encountered, \textit{insideFor} is incremented by 1 and control enters the for loop. When control comes back after finishing the for loop, \textit{insideFor} is decremented by 1. The behaviour is similar for \textit{insideSwitch} as well. If a \textit{continue} statement is encountered when \textit{insideFor} is zero, an error is thrown. If a \textit{break} statement is encountered when both \textit{insideFor} and \textit{insideSwitch} are zero, an error is thrown. Making \textit{insideFor} and \textit{insideSwitch} global and integer helps weed nested loops and nested blocks in a program.
+
+\subsection{Blank identifier}
+According to Go specification, blank identifiers can be used :
+\begin{itemize}
+\item as an identifier in a declaration
+\item as an operand on the left side of an assignment
+\item as an identifier on left side of $=$ assignment only
+\item as a parameter name in function declaration
+\end{itemize}
+We used a global boolean variable \textit{isBlankIdValid} that is initially set to false. It is set to true before :
+\begin{itemize}
+\item the weeding of identifier lists of a declaration
+\item \textit{LHS} of an assignment statement
+\item \textit{LHS} of a short declaration statement
+\end{itemize} 
+Whenever the recursive weeding of the above are done, the \textit{isBlankIdValid } variable is set to false. If during any expression or statement evaluation, we encounter an "$\_$" we check if \textit{isBlankIdValid} is true or false. If it is false, we throw an error.
+
+\subsection{Unbalanced assignments}
+If the \textit{LHS} and the \textit{RHS} of an assignment or declaration statement contain unequal number of operands, the compile should quit with appropriate error. This is implemented with two local variables \textit{lhsCount} and \textit{rhsCount}. The \textit{weedIDLIST} and \textit{weedEXPRLIST} functions return the number of operands in the idlist in the \textit{LHS} of an assignment or declaration, or the number of expressions in the \textit{RHS} of the same. The counters are stored in \textit{lhsCount} and \textit{rhsCount} respectively. If they do not match, an error is thrown. Otherwise, the counters are reset to zero for the next statement.
+
+\subsection{Return statements}
+The language specifies that return statements can only be inside a function body. We use a static global integer variable \textit{insideFunction} that is initially set to zero. When we are weeding the function declaration, we increment the \textit{insideFunction} variable by one and then start weeding of the function block. As soon as weeding of the block is done and control comes back, we decrement \textit{insideFuction} by one. If a return statement is encountered and the value of \textit{insideFunction} is zero, an error is thrown. Use of an integer variable allows for weeding of nested functions (which are not supported in the language yet, but its a nice provision to have).
+
+\subsection{Terminating statements}
+The language specifies that for functions that has a return type, must have a terminating statement as the last statement. We implemented it by passing through the function body after weeding the block and finding the last statement of the body. We pass that statement as parameter to the helper function $isTerminating$ in order to check if its a terminating statement or not.
+\begin{itemize}
+\item $return$ statement : If the last statement is a $return$ statement, the function returns true. 
+\item block : If the last statement is a block, we pass through the statements of the block and recursively call $isTerminating$ with the last statement of that block and returned the value returned by the recursive call.
+\item $if$ statements : We declare two local $bool$ variables : $ifTerminating$ and $elseTerminating$, both initially set to false. 
+\begin{itemize}
+\item If the $if$ statement does not have an $else$ part, the function returns zero. 
+\item If it has an empty $if$ block, zero is returned, otherwise we recursively call $isTerminating$ on the last statement of the block and store the value returned in $ifReturning$.
+\item If it has an empty $else$ block, zero is returned, otherwise we recursively call $isTerminating$ on the last statement of the block and store the value returned in $elseReturning$.
+\item If it has an empty $else-if$ block, zero is returned, otherwise we recursively call $isTerminating$ on the $if-else$ block and store the value returned in $elseReturning$.
+\end{itemize} 
+If, in the end, we return the value of $ifReturning AND elseReturnung$.
+\item $for$ loop : According to the specification, a $for$ loop is terminating if there are no $break$ statements in the body and there is no loop condition. If these conditions are satisfied, 1 is returned otherwise 0 is returned.
+\item $switch$ block : A $switch$ block can be a terminating statement if there is no $break$ in it (checked by traversing through all statements under ever $case$), it has a $default$ case (checked using a local $bool$ flag $isDefault$) and all the cases end in terminating statements (checked by recursive call on the last statement of every $case$ in the case-list). If all the conditions are satisfied, the function returns 1 otherwise it returns 0. 
+\item For all other statement types, the function returns zero.
+\end{itemize}
+If the returned value if $false$ or zero, we throw an error and exit with status code 1.
+
+Additionally : 
+\begin{itemize}
+\item If a function with non-void return type has a $return$ without an expression, an error is thrown.
+\item If a function with no return type has a $return$ statement with an expression, an error is thrown.
+\end{itemize}
+
+\section{Conclusion}
+
+\section{Team member contributions}
+
+\begin{enumerate}
+	\item \textbf{Rajveer Gandhi}
+    \begin{itemize}
+    	\item 
+    \end{itemize}
+    \item \textbf{Archit Agnihotri}
+    \begin{itemize}
+    	\item 
+    \end{itemize}
+    \item \textbf{Dipanjan Dutta}
+    \begin{itemize}
+    	\item Created the initial version of scanner and parser
+        \item Created the weeder
+        \item Created the programs and the report for Milestone \#1
+        \item Created the programs and report for Milestone \#2
+        \item Contributed to the typechecker in Milestone \#2
+        \item Created the 3 construct programs in Milestone \#3
+        \item Created the 3 benchmarks in Milestone \#4
+        \item Performed testing in all milestones
+    \end{itemize}
+\end{enumerate}
+
+\end{document}
