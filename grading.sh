@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/bash
 
 LOG=0
 VERBOSE=0
@@ -49,13 +49,13 @@ fi
 
 RESULTS=()
 
-for DIR_PHASE in programs/*/
+for DIR_PHASE in grading/*/
 do
 	PHASE=$(basename $DIR_PHASE)
 	PHASE_NUM=${PHASE%-*}
 	PHASE_NAME=${PHASE#*-}
 	PREV_PHASE_NUM=`expr $PHASE_NUM - 1`
-	PREV_PHASE=`ls programs | grep $PREV_PHASE_NUM-`
+	PREV_PHASE=`ls grading | grep $PREV_PHASE_NUM-`
 	PREV_PHASE_NAME=${PREV_PHASE#*-}
 	PREV_MODE=${PREV_PHASE_NAME#*+}
 	MODE=${PHASE_NAME#*+}
@@ -93,6 +93,11 @@ do
 
 				PREV_SUCCESS=1
 
+				if [[ $VERBOSE == 1 ]]
+				then
+					echo
+					echo -n "$TEST: "
+				fi
 				if [[ $TYPE == 'Invalid' && ! -z $PREV_MODE ]]
 				then
 					OUTPUT=$(./run.sh $PREV_MODE $TEST 2>&1)
@@ -161,8 +166,12 @@ do
 
 				if [ ! -z "$STATUS_TEXT" ]
 				then
-					echo
-					echo "$TEST: $OUTPUT" | tr -d '\n'
+					if [[ $VERBOSE == 0 ]]
+					then
+						echo
+						echo -n "$TEST: "
+					fi
+					echo "$OUTPUT" | tr -d '\n'
 					echo -n -e " \033[0;${STATUS_COLOUR}m[$STATUS_TEXT]\033[0m"
 					if [ ! -z "$VERIFY_OUTPUT" ]
 					then
@@ -174,7 +183,7 @@ do
 						echo "$TEST: $OUTPUT [$STATUS_TEXT]" >> ${PHASE_NAME}_${TYPE}.log
 					fi
 				fi
-			done
+			done                                 
 			if [ $VERBOSE -eq 1 ]
 			then
 				if [ $COUNT -gt 0 ]
