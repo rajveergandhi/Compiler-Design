@@ -72,9 +72,9 @@ void codegenVARDCL(VARDCL *node) {
             }
             if (k) {
                 //codegenEXPR(k->expr);
-                fprintf(codegen_file, "copy.deepcopy(");
+                //fprintf(codegen_file, "copy.deepcopy(");
                 codegenEXPR(k->expr);
-                fprintf(codegen_file, ")");
+                //fprintf(codegen_file, ")");
                 if (k->next) fprintf(codegen_file, ", ");
                 k = k->next;
             }
@@ -458,13 +458,13 @@ void codegenSIMPLE(SIMPLE *node) {
             codegenEXPRLIST(node->val.assignment.LHS_expr_list);
             if (strcmp(node->val.assignment.assign_op, "&^=")==0)
                 fprintf(codegen_file, " &= ~");
-            else
+            else if (node->val.assignment.RHS_expr_list->expr->kind != append_expr)
                 fprintf(codegen_file, " %s ", node->val.assignment.assign_op);
             //codegenEXPRLIST(node->val.assignment.RHS_expr_list);
             for (EXPRLIST *i = node->val.assignment.RHS_expr_list; i; i = i->next) {
-                fprintf(codegen_file, "copy.deepcopy(");
+                //fprintf(codegen_file, "copy.deepcopy(");
                 codegenEXPR(i->expr);
-                fprintf(codegen_file, ")");
+                //fprintf(codegen_file, ")");
                 if (i->next) fprintf(codegen_file, ", ");
             }
             fprintf(codegen_file, "\n");
@@ -475,9 +475,9 @@ void codegenSIMPLE(SIMPLE *node) {
             fprintf(codegen_file, " = ");
             //codegenEXPRLIST(node->val.shortDcl.RHS_expr_list);
             for (EXPRLIST *i = node->val.shortDcl.RHS_expr_list; i; i = i->next) {
-                fprintf(codegen_file, "copy.deepcopy(");
+                //fprintf(codegen_file, "copy.deepcopy(");
                 codegenEXPR(i->expr);
-                fprintf(codegen_file, ")");
+                //fprintf(codegen_file, ")");
                 if (i->next) fprintf(codegen_file, ", ");
             }
             fprintf(codegen_file, "\n");
@@ -656,9 +656,9 @@ void codegenEXPR(EXPR *node) {
             fprintf(codegen_file, "))");
             break;
         case append_expr:
-            fprintf(codegen_file, "_GOLITE__%s + [", node->val.append_expr.identifier);
+            fprintf(codegen_file, ".append(");
             codegenEXPR(node->val.append_expr.expr);
-            fprintf(codegen_file, "]");
+            fprintf(codegen_file, ")");
             break;
         case intval:
             fprintf(codegen_file, "%d", node->val.intLiteral);
