@@ -6,7 +6,7 @@ def _GOLITE___():
 def _GOLITE___():
     pass
 
-def _GOLITE__p(_GOLITE___, _GOLITE___):
+def _GOLITE__p(*unused):
     pass
 
 class _GOLITE__t:

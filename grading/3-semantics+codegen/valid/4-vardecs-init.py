@@ -7,7 +7,7 @@ def main():
     _GOLITE__a = 0
     _GOLITE__b = 0.0
     _GOLITE__c = ""
-    _GOLITE__d = ""
+    _GOLITE__d = "0"
     _GOLITE__e = False
     _GOLITE__x = [0] * 3
     _GOLITE__y = _GOLITE__my()

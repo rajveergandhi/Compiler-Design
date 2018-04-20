@@ -74,7 +74,7 @@ void codegenVARDCL(VARDCL *node) {
                 //fprintf(codegen_file, "copy.deepcopy(");
                 codegenEXPR(k->expr);
                 //fprintf(codegen_file, ")");
-                if (k->next) fprintf(codegen_file, ", ");
+                //if (k->next) fprintf(codegen_file, ", ");
                 k = k->next;
             }
             else {
