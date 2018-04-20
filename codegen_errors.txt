@@ -1,0 +1,121 @@
+9-7-appendexpr2.go : 
+File "grading/3-semantics+codegen/valid/9-7-appendexpr2.py", line 7, in main
+    print(_GOLITE__b[1],  sep=' ', end='\n')
+IndexError: list index out of range
+
+9-6-callexpr.go : 
+Output : 
+3
+4.0
+Expected output:
+3
++4.000000e+00
+
+9-6-callexpr-blank.go : 
+Codegen error. Handle blank identifiers
+Error: (line 10) "_" is not declared
+
+9-6-callexpr-slice.go :
+OK. Output : 
+1
+2
+
+9-5-binaryexpr-cond.go:
+Seems OK. Output:
+or1
+or2
+or2
+and1
+and1
+and2
+True
+False
+
+Expected output:
+or1
+or2
+or2
+and1
+and1
+and2
+true
+false
+
+8-10-ifstmts.go:
+Output:
+True
+True
+True
+
+Expected output:
+true
+false
+true
+false
+false
+
+8-9-return-array.go:
+Output:
+2
+2
+
+Expected output:
+2
+1
+
+8-8-printstmts-multiple.go:
+OK. Output : 
+apple pear
+applepear
+applepear
+end
+
+8-4-assignstmts-struct.go:
+OK. Output:
+1
+1
+2
+2
+
+8-4-assignstmts-array.go:
+OK. Output:
+1
+1
+2
+2
+
+7-4-structs-slice.go:
+Parser error
+Error: (line 13) syntax error, unexpected tPERIOD, expecting tCOMMA
+
+7-3-arrays-slice.go: 
+Parser error
+Error: (line 7) syntax error, unexpected tOPEN_SQ, expecting tCOMMA
+
+7-3-arrays-equal.go: 
+Seems OK. Output:
+True
+False
+False
+True
+
+Expected output:
+true
+false
+false
+true
+
+7-3-arrays-bounds.go:
+File "grading/3-semantics+codegen/valid/7-3-arrays-bounds.py", line 5, in main
+    _GOLITE__a[3] = 0
+IndexError: list assignment index out of range
+
+4-vardecs-scope.go:
+File "grading/3-semantics+codegen/valid/4-vardecs-scope.py", line 5, in main
+    print(_GOLITE__x,  sep=' ', end='\n')
+UnboundLocalError: local variable '_GOLITE__x' referenced before assignment
+
+1-6-identifiers.go
+OK. Output:
+Success
+
