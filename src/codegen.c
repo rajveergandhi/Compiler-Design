@@ -270,21 +270,24 @@ void codegenSTATEMENT(STATEMENT *node) {
                 codegenSIMPLE(node->val.switch_stmt.condition->simple);
             codegenIndent(c_indent);
             if (node->val.switch_stmt.condition->expr) {
-                fprintf(codegen_file, "if ");
                 if (node->val.switch_stmt.condition->expr->val.other_expr->kind == func_call_kind) {
+                    fprintf(codegen_file, "_GOLITE__switchFuncCall = ");
                     if (isFunction(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.id->data)) {
                         //codegenIndent(c_indent);
                         codegenOTHER_EXPR(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.id);
                         fprintf(codegen_file, "(");
                         codegenEXPRLIST(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.args);
-                        fprintf(codegen_file, ")");
+                        fprintf(codegen_file, ")\n");
+                        codegenIndent(c_indent);
+                        fprintf(codegen_file, "if _GOLITE__switchFuncCall == ");
                     }
                     else { // cast: simply remove the function call since we can only have one argument and Python is dynamically typed
                         codegenEXPR(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.args->expr);
                     }
-                    fprintf(codegen_file, " == ");
+                    //fprintf(codegen_file, " == ");
                 }
                 else {
+                    fprintf(codegen_file, "if ");
                     codegenEXPR(node->val.switch_stmt.condition->expr);
                     fprintf(codegen_file, " == ");
                 }
@@ -310,11 +313,7 @@ void codegenSTATEMENT(STATEMENT *node) {
                             if (node->val.switch_stmt.condition->expr) {
                                 if (node->val.switch_stmt.condition->expr->val.other_expr->kind == func_call_kind) {
                                     if (isFunction(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.id->data)) {
-                                        //codegenIndent(c_indent);
-                                        codegenOTHER_EXPR(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.id);
-                                        fprintf(codegen_file, "(");
-                                        codegenEXPRLIST(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.args);
-                                        fprintf(codegen_file, ")");
+                                        fprintf(codegen_file, "_GOLITE__switchFuncCall");
                                     }
                                     else { // cast: simply remove the function call since we can only have one argument and Python is dynamically typed
                                         codegenEXPR(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.args->expr);
@@ -330,8 +329,26 @@ void codegenSTATEMENT(STATEMENT *node) {
                         //codegenEXPRLIST(i->exprlist);
                         if (i->exprlist) {
                             for (EXPRLIST *k = i->exprlist; k; k = k->next) {
-                                if (k->expr)
-                                    codegenEXPR(k->expr);
+                                if (k->expr) {
+                                        if (k->expr->kind == other_expr_kind) {
+                                            if (k->expr->val.other_expr->kind == func_call_kind) {
+                                                if (isFunction(k->expr->val.other_expr->val.func_call.id->data)) {
+                                                    //codegenIndent(c_indent);
+                                                    codegenOTHER_EXPR(k->expr->val.other_expr->val.func_call.id);
+                                                    fprintf(codegen_file, "(");
+                                                    codegenEXPRLIST(k->expr->val.other_expr->val.func_call.args);
+                                                    fprintf(codegen_file, ")");
+                                                }
+                                                else { // cast: simply remove the function call since we can only have one argument and Python is dynamically typed
+                                                    codegenEXPR(k->expr->val.other_expr->val.func_call.args->expr);
+                                                }
+                                            }
+                                            else
+                                                codegenEXPR(k->expr);
+                                        }
+                                        else
+                                            codegenEXPR(k->expr);
+                                }
                                 if (k->next) {
                                     fprintf(codegen_file, " or ");
                                     if (node->val.switch_stmt.condition->expr)
@@ -375,7 +392,6 @@ void codegenSTATEMENT(STATEMENT *node) {
                     }
                 }
             }
-            j = 0;
             break;
         case for_stmt_s:
             switch(node->val.for_stmt.condition->kind) {
