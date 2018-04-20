@@ -2,8 +2,8 @@
 from __future__ import print_function
 def main():
     print(255,  sep=' ', end='\n')
-    print(377,  sep=' ', end='\n')
-    print(0,  sep=' ', end='\n')
+    print(255,  sep=' ', end='\n')
+    print(255,  sep=' ', end='\n')
     print(0.120000,  sep=' ', end='\n')
     print(0.120000,  sep=' ', end='\n')
     print(12.000000,  sep=' ', end='\n')

@@ -6,7 +6,7 @@ def _GOLITE__inc():
     return _GOLITE__glob
 
 def main():
-    _GOLITE__a = True, 
+    _GOLITE__a = True
     _GOLITE__b = True
     print(_GOLITE__a,  sep=' ', end='\n')
     _GOLITE__a = False
@@ -16,13 +16,12 @@ def main():
         print("b",  sep=' ', end='\n')
     else:
         print("default",  sep=' ', end='\n')
-    if _GOLITE__a ==     else:
-        print("default",  sep=' ', end='\n')
-    if     _GOLITE__inc()
- == 0:
+    if _GOLITE__a == True:
+            print("default",  sep=' ', end='\n')
+    _GOLITE__switchFuncCall = _GOLITE__inc()
+    if _GOLITE__switchFuncCall == 0:
         print("0",  sep=' ', end='\n')
-    elif     _GOLITE__inc()
- == 1:
+    elif _GOLITE__switchFuncCall == 1:
         print("1",  sep=' ', end='\n')
 
 if __name__ == "__main__":

@@ -11,19 +11,17 @@ def _GOLITE__bar(_GOLITE__a, _GOLITE__b):
     return (_GOLITE__a - _GOLITE__b)
 
 def main():
-    if     _GOLITE__bar(    _GOLITE__foo()
+    _GOLITE__switchFuncCall = _GOLITE__bar(    _GOLITE__foo()
 ,     _GOLITE__foo()
 )
- ==     _GOLITE__bar(    _GOLITE__foo()
+    if _GOLITE__switchFuncCall == _GOLITE__bar(    _GOLITE__foo()
+,     _GOLITE__foo()
+) or     _GOLITE__bar(    _GOLITE__foo()
 ,     _GOLITE__foo()
 )
- or     _GOLITE__bar(    _GOLITE__foo()
+ == _GOLITE__bar(    _GOLITE__foo()
 ,     _GOLITE__foo()
-)
- ==     _GOLITE__bar(    _GOLITE__foo()
-,     _GOLITE__foo()
-)
-:
+):
         print("case",  sep=' ', end='\n')
     else:
         print("default",  sep=' ', end='\n')

@@ -813,7 +813,17 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
                 fprintf(codegen_file, ")\n");
             }
             else { // cast: simply remove the function call since we can only have one argument and Python is dynamically typed
-                codegenEXPR(node->val.func_call.args->expr);
+                if ((strcmp(node->val.func_call.id->val.identifier,"string") == 0)) {
+                    if ((node->val.func_call.args->expr->val.other_expr->kind == identifier_kind) || (node->val.func_call.args->expr->kind == runeval)) {
+                        fprintf(codegen_file, "chr(");
+                        codegenEXPRLIST(node->val.func_call.args);
+                        fprintf(codegen_file, ")\n");
+                    }
+                    else
+                        codegenEXPR(node->val.func_call.args->expr);
+                }
+                else
+                    codegenEXPR(node->val.func_call.args->expr);
             }
             break;
         case index_kind:
