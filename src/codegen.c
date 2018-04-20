@@ -109,7 +109,7 @@ void codegenTYPE(TYPE *node) {
             else if (strcmp(node->val.basic_type, "string")==0)
                 fprintf(codegen_file, "\"\"");
             else if (strcmp(node->val.basic_type, "rune")==0)
-                fprintf(codegen_file, "\"\"");
+                fprintf(codegen_file, "\"0\"");
             else if (strcmp(node->val.basic_type, "bool")==0)
                 fprintf(codegen_file, "False");
             else
