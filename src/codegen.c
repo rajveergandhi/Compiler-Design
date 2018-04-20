@@ -5,7 +5,7 @@
 #include "codegen.h"
 #include "symbol.h"
 #include "type.h"
-
+#include <math.h>
 // global variable for the codegen output file
 extern FILE *codegen_file;
 
@@ -665,7 +665,18 @@ void codegenEXPR(EXPR *node) {
             fprintf(codegen_file, ")");
             break;
         case intval:
+        {
+            //char *str = malloc(sizeof(char)*(int)log10(node->val.intLiteral));
+            char *str = malloc(((sizeof(char) * sizeof(node->val.intLiteral) - 1) / 3 + 2));
+            sprintf(str, "%d", node->val.intLiteral);
+            // if (str[strspn(str, "0123456789abcdefABCDEF")] == 0) {
+            //     //hex digit
+            //     int num = (int)strtol(str, NULL, 16);
+            //     fprintf(codegen_file, "%d", num);
+            // }
+            // else
             fprintf(codegen_file, "%d", node->val.intLiteral);
+        }
             break;
         case floatval:
             fprintf(codegen_file, "%f", node->val.floatLiteral);

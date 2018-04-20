@@ -2,6 +2,7 @@
 
 %{
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 
@@ -132,7 +133,9 @@ append       { if (g_tokens) printf("tAPPEND\n"); lastRead = tAPPEND; return tAP
 "&^"         { if (g_tokens) printf("tAMP_XOR\n"); yylval.string_val = strdup(yytext); lastRead = tAMP_XOR; return tAMP_XOR; }
 "&^="        { if (g_tokens) printf("tAMP_XOR_EQ\n"); yylval.string_val = strdup(yytext); lastRead = tAMP_XOR_EQ; return tAMP_XOR_EQ; }
 
-((0|([1-9]{DIGIT}*))|(0{OCTAL}+)|(0[xX]{HEX}+))      { if (g_tokens) printf("tINTVAL(%d)\n", atoi(yytext)); yylval.int_val = atoi(yytext); lastRead = tINTVAL; return tINTVAL; }
+(0|([1-9]{DIGIT}*)) { if (g_tokens) printf("tINTVAL(%d)\n", atoi(yytext)); yylval.int_val = atoi(yytext); lastRead = tINTVAL; return tINTVAL; }
+0{OCTAL}+           { if (g_tokens) printf("tINTVAL(%ld)\n", strtol(yytext, 0, 8)); yylval.int_val = strtol(yytext, 0, 8); lastRead = tINTVAL; return tINTVAL; }
+0[xX]{HEX}+      { if (g_tokens) printf("tINTVAL(%ld)\n", strtol(yytext, 0, 16)); yylval.int_val = strtol(yytext, 0, 16); lastRead = tINTVAL; return tINTVAL; }
 ({DIGIT}+"."{DIGIT}*)|({DIGIT}*"."{DIGIT}+)          { if (g_tokens) printf("tFLOATVAL(%f)\n", atof(yytext)); yylval.float_val = atof(yytext); lastRead = tFLOATVAL; return tFLOATVAL; }
 "'"([^']|{ESCAPE_SEQ_RUNES})"'"                      { if (g_tokens) printf("tRUNEVAL(%s)\n", yytext); yylval.string_val = strdup(yytext); lastRead = tRUNEVAL; return tRUNEVAL; }
 
