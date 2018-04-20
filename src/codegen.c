@@ -271,23 +271,58 @@ void codegenSTATEMENT(STATEMENT *node) {
             codegenIndent(c_indent);
             if (node->val.switch_stmt.condition->expr) {
                 fprintf(codegen_file, "if ");
-                codegenEXPR(node->val.switch_stmt.condition->expr);
-                fprintf(codegen_file, " == ");
+                if (node->val.switch_stmt.condition->expr->val.other_expr->kind == func_call_kind) {
+                    if (isFunction(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.id->data)) {
+                        //codegenIndent(c_indent);
+                        codegenOTHER_EXPR(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.id);
+                        fprintf(codegen_file, "(");
+                        codegenEXPRLIST(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.args);
+                        fprintf(codegen_file, ")");
+                    }
+                    else { // cast: simply remove the function call since we can only have one argument and Python is dynamically typed
+                        codegenEXPR(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.args->expr);
+                    }
+                    fprintf(codegen_file, " == ");
+                }
+                else {
+                    codegenEXPR(node->val.switch_stmt.condition->expr);
+                    fprintf(codegen_file, " == ");
+                }
             }
             else
                 fprintf(codegen_file, "if True == ");
             if (node->val.switch_stmt.caselist) {
                 for (SWITCH_CASELIST *i = node->val.switch_stmt.caselist; i; i=i->next) {
                     if (i->default_case) {
-                        codegenIndent(c_indent);
-                        fprintf(codegen_file, "else:\n");
+                        if (j==0) {
+                            fprintf(codegen_file, "True:\n");
+                            codegenIndent(c_indent);
+                        }
+                        else {
+                            codegenIndent(c_indent);
+                            fprintf(codegen_file, "else:\n");
+                        }
                     }
                     else {
                         if (j!=0) {
                             codegenIndent(c_indent);
                             fprintf(codegen_file, "elif ");
-                            if (node->val.switch_stmt.condition->expr)
-                                codegenEXPR(node->val.switch_stmt.condition->expr);
+                            if (node->val.switch_stmt.condition->expr) {
+                                if (node->val.switch_stmt.condition->expr->val.other_expr->kind == func_call_kind) {
+                                    if (isFunction(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.id->data)) {
+                                        //codegenIndent(c_indent);
+                                        codegenOTHER_EXPR(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.id);
+                                        fprintf(codegen_file, "(");
+                                        codegenEXPRLIST(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.args);
+                                        fprintf(codegen_file, ")");
+                                    }
+                                    else { // cast: simply remove the function call since we can only have one argument and Python is dynamically typed
+                                        codegenEXPR(node->val.switch_stmt.condition->expr->val.other_expr->val.func_call.args->expr);
+                                    }
+                                }
+                                else
+                                    codegenEXPR(node->val.switch_stmt.condition->expr);
+                            }
                             else
                                 fprintf(codegen_file, "True");
                             fprintf(codegen_file, " == ");
@@ -340,6 +375,7 @@ void codegenSTATEMENT(STATEMENT *node) {
                     }
                 }
             }
+            j = 0;
             break;
         case for_stmt_s:
             switch(node->val.for_stmt.condition->kind) {
