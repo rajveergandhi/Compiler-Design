@@ -12,7 +12,6 @@ extern FILE *codegen_file;
 // global codegen indentation variable; it is incremented whenever necessary as required by the syntax of the target language (Python)
 int c_indent = 0;
 int j = 0;
-
 // function for indenting code
 void codegenIndent(int indent_level) {
     // one level of indentation is defined as 4 spaces
@@ -26,8 +25,8 @@ void codegenPROGRAM(PROGRAM *node) {
     // import necessary python libraries
     fprintf(codegen_file, "# import all necessary Python libraries\n");
     fprintf(codegen_file, "from __future__ import print_function\n");
-    fprintf(codegen_file, "import copy\n");
-    fprintf(codegen_file, "\n");
+    // fprintf(codegen_file, "import copy\n");
+    // fprintf(codegen_file, "\n");
 
     codegenTOPLEVELDECL(node->topleveldecls);
 
@@ -181,8 +180,13 @@ void codegenFUNCDCL(FUNCDCL *node) {
 void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
     fprintf(codegen_file, "(");
     for (PARAM_LIST *i = node->params; i; i = i->next) {
-        codegenIDLIST(i->idlist);
-        if (i->next)
+        if (strcmp(i->idlist->id, "_") != 0)
+            codegenIDLIST(i->idlist);
+        else {
+            fprintf(codegen_file, "*unused");
+            break;
+        }
+        if ((i->next) && (strcmp(i->idlist->id,"_") != 0))
             fprintf(codegen_file, ", ");
     }
     fprintf(codegen_file, "):\n");
