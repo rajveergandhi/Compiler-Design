@@ -817,7 +817,7 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
                     if ((node->val.func_call.args->expr->val.other_expr->kind == identifier_kind) || (node->val.func_call.args->expr->kind == runeval)) {
                         fprintf(codegen_file, "chr(");
                         codegenEXPRLIST(node->val.func_call.args);
-                        fprintf(codegen_file, ")\n");
+                        fprintf(codegen_file, ")");
                     }
                     else
                         codegenEXPR(node->val.func_call.args->expr);
