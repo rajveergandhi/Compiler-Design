@@ -9,11 +9,11 @@
 7-4-structs-slice:
     syntax error
 8-4-assignstmts-array:
-    ??
+    ?? [Arrays are copied in go on assignment. It does not refer to same memory space. Separate function needed to copy arrays]
 8-4-assignstmts-struct:
-    ??
+    ?? [Structs are copied in go on assignment. It does not refer to same memory space. Separate function needed to copy structs]
 8-9-return-array:
-    ??
+    ?? [Arrays are copied in go on assignment. It does not refer to same memory space. Separate function needed to copy arrays]
 8-9-return-struct:
     scope
 8-10-ifstmts:
@@ -21,12 +21,12 @@
 8-11-switchstmts-cond:
     global, scoping
 8-12-forstmts:
-    scoping, infinite loop (2nd last one)
+    scoping, infinite loop (2nd last one) [Infinite loop because of scoping]
 9-6-callexpr-array:
     scoping
 9-6-callexpr-blank:
-    typecheck error
+    typecheck error [Blank identifiers are allowed in function signatures]
 9-6-callexpr-struct:
     scoping
 9-7-appendexpr1:
-    out of bounds?
+    out of bounds? [Slices are copied when passed as function arguments]
