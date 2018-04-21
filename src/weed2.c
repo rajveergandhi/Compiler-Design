@@ -27,6 +27,11 @@ void weed2FUNCDCL(FUNCDCL *node) {
         weed2FUNC_SIGNATURE(node->signature);
     STATEMENT *lastStatement = NULL;
     int ignoreSwitchInit = 0;
+    if(node->block->stmts){
+        for(STATEMENTS *i = node->block->stmts; i; i = i->next){
+            validReturn(i->stmt);
+        }
+    }
     if(node->block->stmts && hasReturn){
         for(STATEMENTS *i = node->block->stmts; i; i = i->next){
             if(lastStatement == NULL)
@@ -56,11 +61,27 @@ void weed2FUNCDCL(FUNCDCL *node) {
     hasReturn = false;
 }
 
+void validReturn(STATEMENT *node){
+    if(node->kind == return_stmt_s){
+        if(node->val.return_stmt && hasReturn == false){
+                fprintf(stderr, "Error: returning value in a function with void return type. (line %d)\n",node->lineno);
+                exit(1);
+            }else if(!node->val.return_stmt && hasReturn == true){
+                fprintf(stderr, "Error: not returning value in a function with non-void return type. (line %d)\n",node->lineno);
+                exit(1);
+            }
+
+    }
+}
+
+
 void weed2FUNC_SIGNATURE(FUNC_SIGNATURE *node) {
     if (node->type) {
         hasReturn = true;
     }
 }
+
+
 
 bool isTerminating(STATEMENT *node){
     switch(node->kind){
