@@ -26,7 +26,7 @@ void codegenPROGRAM(PROGRAM *node) {
     fprintf(codegen_file, "# import all necessary Python libraries\n");
     fprintf(codegen_file, "from __future__ import print_function\n");
     // fprintf(codegen_file, "import copy\n");
-    // fprintf(codegen_file, "\n");
+    fprintf(codegen_file, "\n");
 
     codegenTOPLEVELDECL(node->topleveldecls);
 
@@ -459,7 +459,18 @@ void codegenSTATEMENT(STATEMENT *node) {
         case print_stmt_s:
             codegenIndent(c_indent);
             fprintf(codegen_file, "print(");
-            codegenEXPRLIST(node->val.print);
+            //codegenEXPRLIST(node->val.print);
+
+            for (EXPRLIST *i = node->val.print; i; i = i->next) {
+                fprintf(codegen_file, "str(");
+                codegenEXPR(i->expr);
+                fprintf(codegen_file, ").lower() if type(");
+                codegenEXPR(i->expr);
+                fprintf(codegen_file, ") is bool else ");
+                codegenEXPR(i->expr);
+                if (i->next) fprintf(codegen_file, ", ");
+            }
+
             if (node->val.print)
                 fprintf(codegen_file, ", ");
             fprintf(codegen_file, " sep='', end='')\n");
@@ -467,7 +478,18 @@ void codegenSTATEMENT(STATEMENT *node) {
         case println_stmt_s:
             codegenIndent(c_indent);
             fprintf(codegen_file, "print(");
-            codegenEXPRLIST(node->val.print);
+            //codegenEXPRLIST(node->val.print);
+
+            for (EXPRLIST *i = node->val.print; i; i = i->next) {
+                fprintf(codegen_file, "str(");
+                codegenEXPR(i->expr);
+                fprintf(codegen_file, ").lower() if type(");
+                codegenEXPR(i->expr);
+                fprintf(codegen_file, ") is bool else ");
+                codegenEXPR(i->expr);
+                if (i->next) fprintf(codegen_file, ", ");
+            }
+
             if (node->val.print)
                 fprintf(codegen_file, ", ");
             fprintf(codegen_file, " sep=' ', end='\\n')\n");
@@ -500,16 +522,42 @@ void codegenSIMPLE(SIMPLE *node) {
             codegenEXPR(node->val.expr);
             break;
         case increment_kind:
+            if ((node->val.expr->kind == other_expr_kind) && (node->val.expr->val.other_expr->kind == identifier_kind)) {
+                codegenIndent(c_indent);
+                fprintf(codegen_file, "if '_GOLITE__%s' not in locals() and '_GOLITE__%s' in globals():\n", node->val.expr->val.other_expr->val.identifier, node->val.expr->val.other_expr->val.identifier);
+                c_indent++;
+                codegenIndent(c_indent);
+                fprintf(codegen_file, "global _GOLITE__%s\n", node->val.expr->val.other_expr->val.identifier);
+                c_indent--;
+            }
             codegenIndent(c_indent);
             codegenEXPR(node->val.expr);
             fprintf(codegen_file, "+= 1\n");
             break;
         case decrement_kind:
+            if ((node->val.expr->kind == other_expr_kind) && (node->val.expr->val.other_expr->kind == identifier_kind)) {
+                codegenIndent(c_indent);
+                fprintf(codegen_file, "if '_GOLITE__%s' not in locals() and '_GOLITE__%s' in globals():\n", node->val.expr->val.other_expr->val.identifier, node->val.expr->val.other_expr->val.identifier);
+                c_indent++;
+                codegenIndent(c_indent);
+                fprintf(codegen_file, "global _GOLITE__%s\n", node->val.expr->val.other_expr->val.identifier);
+                c_indent--;
+            }
             codegenIndent(c_indent);
             codegenEXPR(node->val.expr);
             fprintf(codegen_file, "-= 1\n");
             break;
         case assignment_kind:
+            for (EXPRLIST *i = node->val.assignment.LHS_expr_list; i; i = i->next) {
+                if ((i->expr->kind == other_expr_kind) && (i->expr->val.other_expr->kind == identifier_kind) && (i->expr->kind != append_expr)) {
+                    codegenIndent(c_indent);
+                    fprintf(codegen_file, "if '_GOLITE__%s' not in locals() and '_GOLITE__%s' in globals():\n", i->expr->val.other_expr->val.identifier, i->expr->val.other_expr->val.identifier);
+                    c_indent++;
+                    codegenIndent(c_indent);
+                    fprintf(codegen_file, "global _GOLITE__%s\n", i->expr->val.other_expr->val.identifier);
+                    c_indent--;
+                }
+            }
             codegenIndent(c_indent);
             codegenEXPRLIST(node->val.assignment.LHS_expr_list);
             if (strcmp(node->val.assignment.assign_op, "&^=")==0)

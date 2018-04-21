@@ -10,3 +10,5 @@ y.tab.h
 internal-testcases/
 *-grading
 programs/3-semantics+codegen/valid/*py
+grading/*
+gradish.sh

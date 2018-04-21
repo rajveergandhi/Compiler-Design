@@ -320,8 +320,10 @@ void symTYPE(TYPE *node, SymbolTable *sym) {
                 SymbolTable *structSym = initSymbolTable();
                 for (STRUCT_TYPE *i = node->val.struct_type; i; i = i->next) {
                     i->symboltable = structSym;
-                    for (IDLIST *j = i->idlist; j; j = j->next)
+                    for (IDLIST *j = i->idlist; j; j = j->next) {
                         putSymbol(structSym, j->id, variable_category, type_type, i->type, j->lineno);
+                        symTYPE(i->type, sym);
+                    }
                 }
             }
             break;
@@ -408,7 +410,7 @@ void symSTATEMENT(STATEMENT *node, SymbolTable *sym) {
                             symSTATEMENT(node->val.if_stmt.val.else_block.else_block->val.if_stmt, switchifelse);
                             break;
                         case block_else:
-                            symBLOCK(node->val.if_stmt.val.else_block.else_block->val.block, switchifelse, NULL);
+                            symBLOCK(node->val.if_stmt.val.else_block.else_block->val.block, switchif, NULL);
                             break;
                     }
                     scopeDec();
@@ -498,7 +500,7 @@ void symSIMPLE(SIMPLE *node, SymbolTable *sym) {
             // loop through LHS and add undeclared variables to the symbol table
             bool atLeastOneVarNotDeclared = false;
             for (EXPRLIST *i = node->val.shortDcl.LHS_idlist; i; i = i->next) {
-                if (!(defSymbol(sym, i->expr->val.other_expr->val.identifier))) {
+                if ((!(defSymbol(sym, i->expr->val.other_expr->val.identifier))) && (strcmp(i->expr->val.other_expr->val.identifier, "_") != 0)) {
                     atLeastOneVarNotDeclared  = true;
 
                     // add to the symbol table

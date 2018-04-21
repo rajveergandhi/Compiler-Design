@@ -315,7 +315,8 @@ void typeSTATEMENT(STATEMENT *node) {
         case return_stmt_s:
             if(node->val.return_stmt) {
                 typeEXPR(node->val.return_stmt);
-                mustHaveSameType(func_return_type, node->val.return_stmt->data, node->lineno);
+                if (func_return_type->val.type)
+                    mustHaveSameType(func_return_type, node->val.return_stmt->data, node->lineno);
             }
             break;
         case break_stmt_s:
@@ -353,8 +354,14 @@ void typeSTATEMENT(STATEMENT *node) {
             {
                 if(node->val.switch_stmt.condition->simple)
                     typeSIMPLE(node->val.switch_stmt.condition->simple);
-                if(node->val.switch_stmt.condition->expr)
+                if(node->val.switch_stmt.condition->expr) {
                     typeEXPR(node->val.switch_stmt.condition->expr);
+                    if ((node->val.switch_stmt.condition->expr->kind == other_expr_kind && node->val.switch_stmt.condition->expr->val.other_expr->kind == func_call_kind) || 
+                        (node->val.switch_stmt.condition->expr->data->valKind == type_type && node->val.switch_stmt.condition->expr->data->val.type->kind == slice_type_kind)) {
+                        fprintf(stderr, "Error: (line %d) invalid type for switch expression\n", node->lineno);
+                        exit(1);
+                    }
+                }
                 if(node->val.switch_stmt.caselist){
                     for (SWITCH_CASELIST *i = node->val.switch_stmt.caselist; i; i=i->next) {
                         if(i->exprlist){
@@ -409,7 +416,7 @@ void typeSTATEMENT(STATEMENT *node) {
         case println_stmt_s:
             typeEXPRLIST(node->val.print);
             for (EXPRLIST *i = node->val.print; i; i = i->next) {
-                if (!(i->expr->data->val.type)) {
+                if ((!(i->expr->data->val.type)) || (i->expr->data->category == function_category) || (i->expr->data->category == type_category)) {
                     fprintf(stderr, "Error: (line %d) invalid type for print(ln)\n", node->lineno);
                     exit(1);
                 }
@@ -445,7 +452,8 @@ void typeEXPR(EXPR *node) {
                 typeEXPR(node->val.binary.rhs);
                 isNumeric(resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno), node->lineno);
                 isNumeric(resolveType(node->val.binary.rhs->data, node->symboltable, node->lineno), node->lineno);
-                mustHaveSameType(resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno), resolveType(node->val.binary.rhs->data, node->symboltable, node->lineno), node->lineno);
+                //mustHaveSameType(resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno), resolveType(node->val.binary.rhs->data, node->symboltable, node->lineno), node->lineno);
+                mustHaveSameType(node->val.binary.lhs->data, node->val.binary.rhs->data, node->lineno);
                 //node->data = resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno);
                 node->data = malloc(sizeof(DataType));
                 node->data->category = constant_category;
@@ -465,7 +473,8 @@ void typeEXPR(EXPR *node) {
                 typeEXPR(node->val.binary.rhs);
                 isInteger(resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno), node->lineno);
                 isInteger(resolveType(node->val.binary.rhs->data, node->symboltable, node->lineno), node->lineno);
-                mustHaveSameType(resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno), resolveType(node->val.binary.rhs->data, node->symboltable, node->lineno), node->lineno);
+                //mustHaveSameType(resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno), resolveType(node->val.binary.rhs->data, node->symboltable, node->lineno), node->lineno);
+                mustHaveSameType(node->val.binary.lhs->data, node->val.binary.rhs->data, node->lineno);
                 //node->data = resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno);
                 node->data = malloc(sizeof(DataType));
                 node->data->category = constant_category;
@@ -480,6 +489,7 @@ void typeEXPR(EXPR *node) {
                 typeEXPR(node->val.binary.rhs);
                 isBool(resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno), node->lineno);
                 isBool(resolveType(node->val.binary.rhs->data, node->symboltable, node->lineno), node->lineno);
+                mustHaveSameType(node->val.binary.lhs->data, node->val.binary.rhs->data, node->lineno);
                 //node->data = resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno);
                 node->data = malloc(sizeof(DataType));
                 node->data->category = constant_category;
@@ -487,10 +497,6 @@ void typeEXPR(EXPR *node) {
                 node->data->val.type = node->val.binary.lhs->data->val.type;
             }
             break;
-        case expressionKindLT:
-        case expressionKindLT_EQ:
-        case expressionKindGT:
-        case expressionKindGT_EQ:
         case expressionKindEQ_EQ:
         case expressionKindNotEquals:
             typeEXPR(node->val.binary.lhs);
@@ -509,6 +515,37 @@ void typeEXPR(EXPR *node) {
                 data->val.type = type;
                 node->data = data;
             }
+            // slices and functions are not comparable
+            if (isFunction(node->val.binary.lhs->data) || isFunction(node->val.binary.rhs->data) || 
+               ((node->val.binary.lhs->data->valKind == type_type) && (node->val.binary.lhs->data->val.type->kind == slice_type_kind)) ||
+               ((node->val.binary.rhs->data->valKind == type_type) && (node->val.binary.rhs->data->val.type->kind == slice_type_kind))) {
+                fprintf(stderr, "Error: (line %d) incorrect type used\n", node->lineno);
+                exit(1);
+            }
+            break;
+        case expressionKindLT:
+        case expressionKindLT_EQ:
+        case expressionKindGT:
+        case expressionKindGT_EQ:
+            typeEXPR(node->val.binary.lhs);
+            typeEXPR(node->val.binary.rhs);
+            //mustHaveSameType(resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno), resolveType(node->val.binary.rhs->data, node->symboltable, node->lineno), node->lineno);
+            mustHaveSameType(node->val.binary.lhs->data, node->val.binary.rhs->data, node->lineno);
+            {
+                DataType *data = malloc(sizeof(DataType));
+                data->category = constant_category;
+                data->valKind = type_type;
+
+                TYPE *type = malloc(sizeof(TYPE));
+                type->kind = basic_type_kind;
+                type->val.basic_type = "bool";
+
+                data->val.type = type;
+                node->data = data;
+            }
+            // must be ordered: ints, floats, strings
+            isNumericOrString(resolveType(node->val.binary.lhs->data, node->symboltable, node->lineno), node->lineno);
+            isNumericOrString(resolveType(node->val.binary.rhs->data, node->symboltable, node->lineno), node->lineno);
             break;
         case expressionKindPlusUnary:
         case expressionKindMinusUnary:
@@ -713,6 +750,10 @@ void typeOTHER_EXPR(OTHER_EXPR *node) {
             {
                 typeOTHER_EXPR(node->val.struct_access.expr);
                 isStruct(resolveType(node->val.struct_access.expr->data, node->symboltable, node->lineno), node->lineno);
+                if (!(node->val.struct_access.expr->data->category == variable_category)) {
+                    fprintf(stderr, "Error: (line %d) invalid struct access\n", node->lineno);
+                    exit(1);
+                }
 
                 SYMBOL *s = getSymbol(resolveType(node->val.struct_access.expr->data, node->symboltable, node->lineno)->val.type->val.struct_type->symboltable, node->val.struct_access.identifier, node->lineno);
 
@@ -737,6 +778,10 @@ void typeSIMPLE(SIMPLE *node) {
         case decrement_kind:
             typeEXPR(node->val.expr);
             isNumeric(resolveType(node->val.expr->data, node->symboltable, node->lineno), node->lineno);
+            if (node->val.expr->data->category != variable_category) {
+                fprintf(stderr, "Error: (line %d) assignment expected lvalue\n", node->lineno);
+                exit(1);
+            }
             break;
         case assignment_kind:
             {
