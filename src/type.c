@@ -356,8 +356,7 @@ void typeSTATEMENT(STATEMENT *node) {
                     typeSIMPLE(node->val.switch_stmt.condition->simple);
                 if(node->val.switch_stmt.condition->expr) {
                     typeEXPR(node->val.switch_stmt.condition->expr);
-                    if ((node->val.switch_stmt.condition->expr->kind == other_expr_kind && node->val.switch_stmt.condition->expr->val.other_expr->kind == func_call_kind) || 
-                        (node->val.switch_stmt.condition->expr->data->valKind == type_type && node->val.switch_stmt.condition->expr->data->val.type->kind == slice_type_kind)) {
+                    if ((node->val.switch_stmt.condition->expr->data->valKind == type_type && node->val.switch_stmt.condition->expr->data->val.type->kind == slice_type_kind)) {
                         fprintf(stderr, "Error: (line %d) invalid type for switch expression\n", node->lineno);
                         exit(1);
                     }
