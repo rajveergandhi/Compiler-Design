@@ -1,7 +1,8 @@
 # import all necessary Python libraries
 from __future__ import print_function
+
 def _GOLITE__f(_GOLITE__a):
-    print(_GOLITE__a._GOLITE__a,  sep=' ', end='\n')
+    print(str(_GOLITE__a._GOLITE__a).lower() if type(_GOLITE__a._GOLITE__a) is bool else _GOLITE__a._GOLITE__a,  sep=' ', end='\n')
 
 def main():
     class _GOLITE__a__:
