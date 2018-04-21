@@ -172,8 +172,8 @@ void codegenFUNCDCL(FUNCDCL *node) {
         fprintf(codegen_file, "def _GOLITE__%s", node->identifier);
     codegenFUNC_SIGNATURE(node->signature);
     c_indent++;
-    codegenIndent(c_indent);
-    fprintf(codegen_file, "func_globals = []\n");
+    // codegenIndent(c_indent);
+    // fprintf(codegen_file, "func_globals = []\n");
     codegenBLOCK(node->block);
     fprintf(codegen_file, "\n");
     c_indent--;

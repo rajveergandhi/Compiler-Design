@@ -1,5 +1,6 @@
 # import all necessary Python libraries
 from __future__ import print_function
+
 class _GOLITE__point:
     _GOLITE__x = 0
     _GOLITE__y = 0
@@ -33,11 +34,11 @@ def _GOLITE__queenRecursion(_GOLITE__index):
             _GOLITE__queens[_GOLITE__index] = _GOLITE__p
             if (            _GOLITE__queenRecursion((_GOLITE__index + 1))
  == 1):
-                print("[",  sep='', end='')
-                print(_GOLITE__p._GOLITE__x,  sep='', end='')
-                print(", ",  sep='', end='')
-                print(_GOLITE__p._GOLITE__y,  sep='', end='')
-                print("]",  sep=' ', end='\n')
+                print(str("[").lower() if type("[") is bool else "[",  sep='', end='')
+                print(str(_GOLITE__p._GOLITE__x).lower() if type(_GOLITE__p._GOLITE__x) is bool else _GOLITE__p._GOLITE__x,  sep='', end='')
+                print(str(", ").lower() if type(", ") is bool else ", ",  sep='', end='')
+                print(str(_GOLITE__p._GOLITE__y).lower() if type(_GOLITE__p._GOLITE__y) is bool else _GOLITE__p._GOLITE__y,  sep='', end='')
+                print(str("]").lower() if type("]") is bool else "]",  sep=' ', end='\n')
                 _GOLITE__solutionFound = 1
                 break
 
