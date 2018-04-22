@@ -25,7 +25,7 @@ void codegenPROGRAM(PROGRAM *node) {
     // import necessary python libraries
     fprintf(codegen_file, "# import all necessary Python libraries\n");
     fprintf(codegen_file, "from __future__ import print_function\n");
-    // fprintf(codegen_file, "import copy\n");
+    fprintf(codegen_file, "import copy\n");
     fprintf(codegen_file, "\n");
 
     codegenTOPLEVELDECL(node->topleveldecls);
@@ -172,8 +172,16 @@ void codegenFUNCDCL(FUNCDCL *node) {
         fprintf(codegen_file, "def _GOLITE__%s", node->identifier);
     codegenFUNC_SIGNATURE(node->signature);
     c_indent++;
-    codegenIndent(c_indent);
-    fprintf(codegen_file, "func_globals = []\n");
+
+    for (int i=0; i < HashSize; i++) {
+        for (SYMBOL *s = node->symboltable->table[i]; s; s=s->next) {
+            if (s->data->category == variable_category) {
+                codegenIndent(c_indent);
+                fprintf(codegen_file, "global _GOLITE__%s\n", node->symboltable->table[i]->name);
+            }
+        }
+    }
+
     codegenBLOCK(node->block);
     fprintf(codegen_file, "\n");
     c_indent--;
@@ -576,14 +584,27 @@ void codegenSIMPLE(SIMPLE *node) {
             codegenEXPRLIST(node->val.assignment.LHS_expr_list);
             if (strcmp(node->val.assignment.assign_op, "&^=")==0)
                 fprintf(codegen_file, " &= ~");
-            else if (node->val.assignment.RHS_expr_list->expr->kind != append_expr)
+            if (node->val.assignment.RHS_expr_list->expr->kind != append_expr) {
                 fprintf(codegen_file, " %s ", node->val.assignment.assign_op);
-            //codegenEXPRLIST(node->val.assignment.RHS_expr_list);
-            for (EXPRLIST *i = node->val.assignment.RHS_expr_list; i; i = i->next) {
-                //fprintf(codegen_file, "copy.deepcopy(");
-                codegenEXPR(i->expr);
-                //fprintf(codegen_file, ")");
-                if (i->next) fprintf(codegen_file, ", ");
+                //codegenEXPRLIST(node->val.assignment.RHS_expr_list);
+                for (EXPRLIST *i = node->val.assignment.RHS_expr_list; i; i = i->next) {
+                    if (i->expr->data->val.type->kind == slice_type_kind || i->expr->data->val.type->kind == array_type_kind || i->expr->data->val.type->kind == struct_type_kind) {
+                        fprintf(codegen_file, "copy.deepcopy(");
+                        codegenEXPR(i->expr);
+                        fprintf(codegen_file, ")");
+                    }
+                    //fprintf(codegen_file, ") if type(");
+                        else {
+                            codegenEXPR(i->expr);
+                        }
+                    //fprintf(codegen_file, ") is list else ");
+                    //codegenEXPR(i->expr);
+                    if (i->next) fprintf(codegen_file, ", ");
+                }
+            }
+            else { //append
+                for (EXPRLIST *i = node->val.assignment.RHS_expr_list; i; i = i->next)
+                    codegenEXPR(i->expr);
             }
             fprintf(codegen_file, "\n");
             break;
@@ -871,7 +892,20 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
                 codegenIndent(c_indent);
                 codegenOTHER_EXPR(node->val.func_call.id);
                 fprintf(codegen_file, "(");
-                codegenEXPRLIST(node->val.func_call.args);
+
+                for (EXPRLIST *i = node->val.func_call.args; i; i = i->next) {
+                    if (i->expr->data->val.type->kind == array_type_kind || i->expr->data->val.type->kind == struct_type_kind) {
+                    //if (i->expr->data->val.type->kind == slice_type_kind || i->expr->data->val.type->kind == array_type_kind || i->expr->data->val.type->kind == struct_type_kind) {
+                        fprintf(codegen_file, "copy.deepcopy(");
+                        codegenEXPR(i->expr);
+                        fprintf(codegen_file, ")");
+                    }
+                    else
+                        codegenEXPR(i->expr);
+                    if (i->next) fprintf(codegen_file, ", ");
+                }
+
+                //codegenEXPRLIST(node->val.func_call.args);
                 fprintf(codegen_file, ")\n");
             }
             else { // cast: simply remove the function call since we can only have one argument and Python is dynamically typed

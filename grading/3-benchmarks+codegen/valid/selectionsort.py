@@ -1,5 +1,7 @@
 # import all necessary Python libraries
 from __future__ import print_function
+import copy
+
 def _GOLITE__selection_sort(_GOLITE__array, _GOLITE__length):
     _GOLITE__i = 0
     while (_GOLITE__i < _GOLITE__length):
@@ -28,7 +30,7 @@ def main():
     _GOLITE__selection_sort(_GOLITE__array, _GOLITE__length)
     _GOLITE__i = 0
     while (_GOLITE__i < 10):
-        print(_GOLITE__array[_GOLITE__i],  sep=' ', end='\n')
+        print(str(_GOLITE__array[_GOLITE__i]).lower() if type(_GOLITE__array[_GOLITE__i]) is bool else _GOLITE__array[_GOLITE__i],  sep=' ', end='\n')
         _GOLITE__i+= 1
 
 if __name__ == "__main__":

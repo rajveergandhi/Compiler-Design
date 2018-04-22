@@ -1,5 +1,7 @@
 # import all necessary Python libraries
 from __future__ import print_function
+import copy
+
 class _GOLITE__point:
     _GOLITE__x = 0
     _GOLITE__y = 0
@@ -7,6 +9,8 @@ class _GOLITE__point:
 _GOLITE__chessGridSize = 27
 _GOLITE__queens = []
 def _GOLITE__queenRecursion(_GOLITE__index):
+    global _GOLITE__queens
+    global _GOLITE__chessGridSize
     if (_GOLITE__index >= _GOLITE__chessGridSize):
         return 1
 
@@ -33,11 +37,11 @@ def _GOLITE__queenRecursion(_GOLITE__index):
             _GOLITE__queens[_GOLITE__index] = _GOLITE__p
             if (            _GOLITE__queenRecursion((_GOLITE__index + 1))
  == 1):
-                print("[",  sep='', end='')
-                print(_GOLITE__p._GOLITE__x,  sep='', end='')
-                print(", ",  sep='', end='')
-                print(_GOLITE__p._GOLITE__y,  sep='', end='')
-                print("]",  sep=' ', end='\n')
+                print(str("[").lower() if type("[") is bool else "[",  sep='', end='')
+                print(str(_GOLITE__p._GOLITE__x).lower() if type(_GOLITE__p._GOLITE__x) is bool else _GOLITE__p._GOLITE__x,  sep='', end='')
+                print(str(", ").lower() if type(", ") is bool else ", ",  sep='', end='')
+                print(str(_GOLITE__p._GOLITE__y).lower() if type(_GOLITE__p._GOLITE__y) is bool else _GOLITE__p._GOLITE__y,  sep='', end='')
+                print(str("]").lower() if type("]") is bool else "]",  sep=' ', end='\n')
                 _GOLITE__solutionFound = 1
                 break
 
@@ -46,6 +50,8 @@ def _GOLITE__queenRecursion(_GOLITE__index):
     return _GOLITE__solutionFound
 
 def main():
+    global _GOLITE__queens
+    global _GOLITE__chessGridSize
     _GOLITE__i = 0
     _GOLITE__i = 0
     while (_GOLITE__i < _GOLITE__chessGridSize):

@@ -1,5 +1,7 @@
 # import all necessary Python libraries
 from __future__ import print_function
+import copy
+
 def main():
     _GOLITE__iTHprimeNumber = 1000000
     _GOLITE__primeNumbers = []
@@ -38,7 +40,7 @@ def main():
             _GOLITE__counter+= 1
 
 
-    print("Last prime:", _GOLITE__lastPrime,  sep=' ', end='\n')
+    print(str("Last prime:").lower() if type("Last prime:") is bool else "Last prime:", str(_GOLITE__lastPrime).lower() if type(_GOLITE__lastPrime) is bool else _GOLITE__lastPrime,  sep=' ', end='\n')
 
 if __name__ == "__main__":
     main()

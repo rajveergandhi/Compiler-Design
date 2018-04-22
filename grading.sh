@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/bash
 
 LOG=0
 VERBOSE=0
@@ -183,7 +183,7 @@ do
 						echo "$TEST: $OUTPUT [$STATUS_TEXT]" >> ${PHASE_NAME}_${TYPE}.log
 					fi
 				fi
-			done
+			done                                 
 			if [ $VERBOSE -eq 1 ]
 			then
 				if [ $COUNT -gt 0 ]
