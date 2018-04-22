@@ -1,6 +1,9 @@
 # import all necessary Python libraries
 from __future__ import print_function
+<<<<<<< HEAD
 import copy
+=======
+>>>>>>> 69ce9bdc99e6a59688611a0184b0ff459fa28790
 
 _GOLITE__count = 0
 def _GOLITE__towers(_GOLITE__num, _GOLITE__from, _GOLITE__to, _GOLITE__aux):

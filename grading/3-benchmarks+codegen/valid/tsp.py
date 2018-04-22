@@ -1,6 +1,9 @@
 # import all necessary Python libraries
 from __future__ import print_function
+<<<<<<< HEAD
 import copy
+=======
+>>>>>>> 69ce9bdc99e6a59688611a0184b0ff459fa28790
 
 _GOLITE__s = []
 _GOLITE__cost_s = 0
@@ -63,8 +66,11 @@ def _GOLITE__permute(_GOLITE__n, _GOLITE__A):
 
 
 def main():
+<<<<<<< HEAD
     global _GOLITE__r
     global _GOLITE__s
+=======
+>>>>>>> 69ce9bdc99e6a59688611a0184b0ff459fa28790
     global _GOLITE__w
     global _GOLITE__cost_s
     _GOLITE__n = 11

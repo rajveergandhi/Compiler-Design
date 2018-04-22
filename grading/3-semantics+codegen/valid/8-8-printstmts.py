@@ -1,6 +1,9 @@
 # import all necessary Python libraries
 from __future__ import print_function
+<<<<<<< HEAD
 import copy
+=======
+>>>>>>> 69ce9bdc99e6a59688611a0184b0ff459fa28790
 
 def main():
     print(str(255).lower() if type(255) is bool else 255,  sep=' ', end='\n')

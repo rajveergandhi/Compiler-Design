@@ -1,6 +1,9 @@
 # import all necessary Python libraries
 from __future__ import print_function
+<<<<<<< HEAD
 import copy
+=======
+>>>>>>> 69ce9bdc99e6a59688611a0184b0ff459fa28790
 
 _GOLITE__size = 25000
 _GOLITE__arr = [0] * 25000
