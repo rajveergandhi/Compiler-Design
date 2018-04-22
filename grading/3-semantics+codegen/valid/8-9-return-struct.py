@@ -1,9 +1,6 @@
 # import all necessary Python libraries
 from __future__ import print_function
-<<<<<<< HEAD
 import copy
-=======
->>>>>>> 69ce9bdc99e6a59688611a0184b0ff459fa28790
 
 class _GOLITE__my:
     _GOLITE__a = 0
@@ -12,7 +9,7 @@ _GOLITE__a = _GOLITE__my()
 def _GOLITE__foo():
     global _GOLITE__a
     _GOLITE__a._GOLITE__a = 1
-    return _GOLITE__a
+    return copy.deepcopy(_GOLITE__a)
 
 def main():
     global _GOLITE__a

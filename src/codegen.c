@@ -188,15 +188,18 @@ void codegenFUNCDCL(FUNCDCL *node) {
 }
 
 void codegenFUNC_SIGNATURE(FUNC_SIGNATURE *node) {
+    int count = 0;
     fprintf(codegen_file, "(");
     for (PARAM_LIST *i = node->params; i; i = i->next) {
-        if (strcmp(i->idlist->id, "_") != 0)
-            codegenIDLIST(i->idlist);
-        else {
-            fprintf(codegen_file, "*unused");
-            break;
+        for (IDLIST *j = i->idlist; j; j = j->next) {
+            if (strcmp(j->id, "_") == 0)
+                fprintf(codegen_file, "__unused_%d", count++);
+            else
+                fprintf(codegen_file, "_GOLITE__%s", j->id);
+            if (j->next)
+                fprintf(codegen_file, ", ");
         }
-        if ((i->next) && (strcmp(i->idlist->id,"_") != 0))
+        if (i->next)
             fprintf(codegen_file, ", ");
     }
     fprintf(codegen_file, "):\n");
@@ -231,7 +234,15 @@ void codegenSTATEMENT(STATEMENT *node) {
             fprintf(codegen_file, "return");
             if (node->val.return_stmt) {
                 fprintf(codegen_file, " ");
-                codegenEXPR(node->val.return_stmt);
+                DataType *res = resolveType(node->val.return_stmt->data, node->symboltable, 1);
+                if (res->val.type->kind == slice_type_kind || res->val.type->kind == array_type_kind || res->val.type->kind == struct_type_kind) {
+                    fprintf(codegen_file, "copy.deepcopy(");
+                    codegenEXPR(node->val.return_stmt);
+                    fprintf(codegen_file, ")");
+                }
+                else {
+                    codegenEXPR(node->val.return_stmt);
+                }
             }
             fprintf(codegen_file, "\n");
             break;
@@ -588,7 +599,11 @@ void codegenSIMPLE(SIMPLE *node) {
                 fprintf(codegen_file, " %s ", node->val.assignment.assign_op);
                 //codegenEXPRLIST(node->val.assignment.RHS_expr_list);
                 for (EXPRLIST *i = node->val.assignment.RHS_expr_list; i; i = i->next) {
-                    if (i->expr->data->val.type->kind == slice_type_kind || i->expr->data->val.type->kind == array_type_kind || i->expr->data->val.type->kind == struct_type_kind) {
+                    DataType *res = resolveType(i->expr->data, node->symboltable, 1);
+                    //if (i->expr->data->val.type->kind == slice_type_kind || i->expr->data->val.type->kind == array_type_kind || i->expr->data->val.type->kind == struct_type_kind) {
+                    //if (res->val.type->kind == slice_type_kind || res->val.type->kind == array_type_kind || res->val.type->kind == struct_type_kind) {
+                    if (res->val.type->kind == array_type_kind || res->val.type->kind == struct_type_kind) {
+                    //if (res->val.type->kind == array_type_kind || res->val.type->kind == struct_type_kind) {
                         fprintf(codegen_file, "copy.deepcopy(");
                         codegenEXPR(i->expr);
                         fprintf(codegen_file, ")");
@@ -894,7 +909,8 @@ void codegenOTHER_EXPR(OTHER_EXPR *node) {
                 fprintf(codegen_file, "(");
 
                 for (EXPRLIST *i = node->val.func_call.args; i; i = i->next) {
-                    if (i->expr->data->val.type->kind == array_type_kind || i->expr->data->val.type->kind == struct_type_kind) {
+                    DataType *res = resolveType(i->expr->data, node->symboltable, 1);
+                    if (res->val.type->kind == array_type_kind || res->val.type->kind == struct_type_kind) {
                     //if (i->expr->data->val.type->kind == slice_type_kind || i->expr->data->val.type->kind == array_type_kind || i->expr->data->val.type->kind == struct_type_kind) {
                         fprintf(codegen_file, "copy.deepcopy(");
                         codegenEXPR(i->expr);

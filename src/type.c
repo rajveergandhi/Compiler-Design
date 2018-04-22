@@ -688,12 +688,14 @@ void typeOTHER_EXPR(OTHER_EXPR *node) {
                 // function parameter types must match argument types
                 for (PARAM_LIST *i = node->val.func_call.id->data->val.func->params; i != NULL; i = i->next) {
                     for (IDLIST *j = i->idlist; j; j = j->next) {
-                        SYMBOL *t = getSymbol(node->val.func_call.id->data->val.func->symboltable, j->id, node->lineno);
-                        if (!k) {
-                            fprintf(stderr, "Error: (line %d) invalid function call: number of parameters do not match number of arguments\n", node->lineno);
-                            exit(1);
+                        if (strcmp(j->id, "_") != 0) {
+                            SYMBOL *t = getSymbol(node->val.func_call.id->data->val.func->symboltable, j->id, node->lineno);
+                            if (!k) {
+                                fprintf(stderr, "Error: (line %d) invalid function call: number of parameters do not match number of arguments\n", node->lineno);
+                                exit(1);
+                            }
+                            mustHaveSameType(t->data, k->expr->data, node->lineno);
                         }
-                        mustHaveSameType(t->data, k->expr->data, node->lineno);
                         k = k->next;
                     }
                 }

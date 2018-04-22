@@ -1,9 +1,6 @@
 # import all necessary Python libraries
 from __future__ import print_function
-<<<<<<< HEAD
 import copy
-=======
->>>>>>> 69ce9bdc99e6a59688611a0184b0ff459fa28790
 
 def _GOLITE___():
     pass
@@ -11,7 +8,7 @@ def _GOLITE___():
 def _GOLITE___():
     pass
 
-def _GOLITE__p(*unused):
+def _GOLITE__p(__unused_0, __unused_1):
     pass
 
 class _GOLITE__t:

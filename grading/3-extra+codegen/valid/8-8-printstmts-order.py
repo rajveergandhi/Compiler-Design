@@ -20,7 +20,7 @@ def _GOLITE__baz():
     global _GOLITE__array
     global _GOLITE__glob
     _GOLITE__glob+= 1
-    return _GOLITE__array
+    return copy.deepcopy(_GOLITE__array)
 
 def main():
     global _GOLITE__array
