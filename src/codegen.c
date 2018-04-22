@@ -172,7 +172,6 @@ void codegenFUNCDCL(FUNCDCL *node) {
         fprintf(codegen_file, "def _GOLITE__%s", node->identifier);
     codegenFUNC_SIGNATURE(node->signature);
     c_indent++;
-<<<<<<< HEAD
 
     for (int i=0; i < HashSize; i++) {
         for (SYMBOL *s = node->symboltable->table[i]; s; s=s->next) {
@@ -183,10 +182,6 @@ void codegenFUNCDCL(FUNCDCL *node) {
         }
     }
 
-=======
-    // codegenIndent(c_indent);
-    // fprintf(codegen_file, "func_globals = []\n");
->>>>>>> 69ce9bdc99e6a59688611a0184b0ff459fa28790
     codegenBLOCK(node->block);
     fprintf(codegen_file, "\n");
     c_indent--;
